@@ -22,9 +22,22 @@ class LazadaToken extends Model
         'expires_at' => 'datetime',
     ];
 
+    /**
+     * Check if the token is expired
+     *
+     * @return bool
+     */
     public function isExpired()
     {
         return $this->expires_at->isPast();
+    }
+
+    /**
+     * Get the user that owns the token.
+     */
+    public function user()
+    {
+        return $this->belongsTo(User::class);
     }
 
     public function isExpiringSoon($buffer = 86400)

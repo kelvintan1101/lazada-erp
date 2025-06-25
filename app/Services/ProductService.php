@@ -21,56 +21,102 @@ class ProductService
         $totalSynced = 0;
         $hasMore = true;
 
-        while ($hasMore) {
-            $response = $this->lazadaApiService->getProducts($offset, $limit);
+        try {
+            while ($hasMore) {
+                Log::info("Fetching products from Lazada", ['offset' => $offset, 'limit' => $limit]);
+                
+                $response = $this->lazadaApiService->getProducts($offset, $limit);
+                
+                // Check if the response has the expected structure
+                if (!$response || !isset($response['data']) || !isset($response['data']['products'])) {
+                    Log::error('Unexpected response structure from Lazada', ['response' => $response]);
+                    return [
+                        'success' => false,
+                        'message' => 'Failed to fetch products from Lazada: Unexpected response structure',
+                        'total_synced' => $totalSynced,
+                        'response' => $response,
+                    ];
+                }
+                
+                $products = $response['data']['products'];
+                $totalProducts = $response['data']['total_products'] ?? 0;
+                
+                Log::info("Received products from Lazada", [
+                    'total_received' => count($products), 
+                    'total_available' => $totalProducts
+                ]);
 
-            if (!$response || !isset($response['data']['products'])) {
-                Log::error('Failed to fetch products from Lazada', ['response' => $response]);
-                return [
-                    'success' => false,
-                    'message' => 'Failed to fetch products from Lazada',
-                    'total_synced' => $totalSynced,
-                ];
+                foreach ($products as $productData) {
+                    $result = $this->saveProduct($productData);
+                    if ($result) {
+                        $totalSynced++;
+                    }
+                }
+
+                $offset += $limit;
+                $hasMore = $offset < $totalProducts && count($products) > 0;
             }
 
-            $products = $response['data']['products'];
-            $totalProducts = $response['data']['total_products'] ?? 0;
-
-            foreach ($products as $productData) {
-                $this->saveProduct($productData);
-                $totalSynced++;
-            }
-
-            $offset += $limit;
-            $hasMore = $offset < $totalProducts;
+            return [
+                'success' => true,
+                'message' => "Successfully synced $totalSynced products",
+                'total_synced' => $totalSynced,
+            ];
+        } catch (\Exception $e) {
+            Log::error('Exception syncing products', [
+                'error' => $e->getMessage(),
+                'trace' => $e->getTraceAsString()
+            ]);
+            
+            return [
+                'success' => false,
+                'message' => 'Error syncing products: ' . $e->getMessage(),
+                'total_synced' => $totalSynced,
+            ];
         }
-
-        return [
-            'success' => true,
-            'message' => "Successfully synced $totalSynced products",
-            'total_synced' => $totalSynced,
-        ];
     }
 
     private function saveProduct($productData)
     {
-        // Extract the necessary information from Lazada product data
-        // This structure may vary based on Lazada's API response format
-        $lazadaProductId = $productData['item_id'];
-        
-        Product::updateOrCreate(
-            ['lazada_product_id' => $lazadaProductId],
-            [
-                'name' => $productData['attributes']['name'] ?? '',
-                'sku' => $productData['skus'][0]['SellerSku'] ?? '',
-                'price' => $productData['skus'][0]['price'] ?? 0,
-                'stock_quantity' => $productData['skus'][0]['quantity'] ?? 0,
-                'description' => $productData['attributes']['description'] ?? null,
-                'images' => $productData['images'] ?? null,
-                'raw_data_from_lazada' => $productData,
-                'synced_at' => now(),
-            ]
-        );
+        try {
+            if (!isset($productData['item_id'])) {
+                Log::warning('Skipping product without item_id', ['product' => $productData]);
+                return false;
+            }
+
+            // Extract the necessary information from Lazada product data
+            $lazadaProductId = $productData['item_id'];
+            $skuData = $productData['skus'][0] ?? null;
+            
+            if (!$skuData) {
+                Log::warning('Skipping product without SKU data', ['item_id' => $lazadaProductId]);
+                return false;
+            }
+            
+            $attrs = $productData['attributes'] ?? [];
+            
+            Product::updateOrCreate(
+                ['lazada_product_id' => $lazadaProductId],
+                [
+                    'name' => $attrs['name'] ?? 'Unknown Product',
+                    'sku' => $skuData['SellerSku'] ?? '',
+                    'price' => $skuData['price'] ?? 0,
+                    'stock_quantity' => $skuData['quantity'] ?? 0,
+                    'description' => $attrs['description'] ?? null,
+                    'images' => $productData['images'] ?? null,
+                    'raw_data_from_lazada' => $productData,
+                    'synced_at' => now(),
+                ]
+            );
+            
+            return true;
+        } catch (\Exception $e) {
+            Log::error('Error saving product', [
+                'item_id' => $productData['item_id'] ?? 'unknown',
+                'error' => $e->getMessage()
+            ]);
+            return false;
+        }
     }
 
     public function updateStock($productId, $newQuantity)
