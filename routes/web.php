@@ -6,6 +6,7 @@ use App\Http\Controllers\OrderController;
 use App\Http\Controllers\ProductController;
 use App\Http\Controllers\SettingController;
 use App\Http\Controllers\StockAdjustmentController;
+use App\Http\Controllers\BulkUpdateController;
 use App\Http\Controllers\Auth\AuthenticatedSessionController;
 use App\Http\Controllers\Auth\PasswordController;
 use Illuminate\Support\Facades\Route;
@@ -69,6 +70,21 @@ Route::middleware(['auth'])->group(function () {
 Route::middleware(['auth', 'admin'])->group(function () {
     Route::get('/settings', [SettingController::class, 'index'])->name('settings.index');
     Route::post('/settings', [SettingController::class, 'store'])->name('settings.store');
+});
+
+// Bulk Update routes
+Route::middleware(['auth'])->group(function () {
+    Route::prefix('bulk-update')->group(function () {
+        Route::get('/', [BulkUpdateController::class, 'index'])->name('bulk-update.index');
+
+        // Routes that need Lazada token
+        Route::middleware(['lazada.token'])->group(function () {
+            Route::post('/upload', [BulkUpdateController::class, 'upload'])->name('bulk-update.upload');
+            Route::post('/execute', [BulkUpdateController::class, 'execute'])->name('bulk-update.execute');
+            Route::get('/status', [BulkUpdateController::class, 'status'])->name('bulk-update.status');
+            Route::get('/download-report', [BulkUpdateController::class, 'downloadReport'])->name('bulk-update.download-report');
+        });
+    });
 });
 
 // Lazada Auth routes

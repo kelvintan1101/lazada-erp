@@ -318,8 +318,8 @@ class LazadaApiService
     public function updateOrderStatus($orderId, $status)
     {
         // This is a simplified example - different status updates might need different endpoints
-        $endpoint = '/order/'; 
-        
+        $endpoint = '/order/';
+
         switch ($status) {
             case 'packed':
                 $endpoint .= 'pack';
@@ -330,9 +330,107 @@ class LazadaApiService
             default:
                 return null;
         }
-        
+
         return $this->makeRequest($endpoint, [
             'order_id' => $orderId,
         ], 'POST');
+    }
+
+    /**
+     * 更新产品信息
+     *
+     * @param string $sellerSku 卖家SKU
+     * @param array $updateData 要更新的数据
+     * @return array API响应
+     * @throws \Exception
+     */
+    public function updateProduct($sellerSku, $updateData)
+    {
+        // 构建更新请求的参数
+        $params = [
+            'payload' => json_encode([
+                'Request' => [
+                    'Product' => [
+                        'Skus' => [
+                            [
+                                'SellerSku' => $sellerSku,
+                                'Attributes' => $updateData
+                            ]
+                        ]
+                    ]
+                ]
+            ])
+        ];
+
+        Log::info('Updating product via Lazada API', [
+            'seller_sku' => $sellerSku,
+            'update_data' => $updateData
+        ]);
+
+        return $this->makeRequest('/product/update', $params, 'POST');
+    }
+
+    /**
+     * 批量更新产品标题
+     *
+     * @param array $products 产品数组，每个元素包含 sku 和 title
+     * @return array 更新结果
+     */
+    public function batchUpdateProductTitles($products)
+    {
+        $results = [];
+        $successCount = 0;
+        $failCount = 0;
+
+        foreach ($products as $product) {
+            try {
+                // 添加延迟以避免API限制 (Lazada通常限制每秒2-5个请求)
+                sleep(1);
+
+                $result = $this->updateProduct($product['sku'], [
+                    'name' => $product['title']
+                ]);
+
+                if ($result && (!isset($result['code']) || $result['code'] === '0')) {
+                    $results[] = [
+                        'sku' => $product['sku'],
+                        'title' => $product['title'],
+                        'status' => 'success',
+                        'message' => 'Product updated successfully'
+                    ];
+                    $successCount++;
+                } else {
+                    $results[] = [
+                        'sku' => $product['sku'],
+                        'title' => $product['title'],
+                        'status' => 'failed',
+                        'message' => $result['message'] ?? 'Unknown error',
+                        'response' => $result
+                    ];
+                    $failCount++;
+                }
+
+            } catch (\Exception $e) {
+                Log::error('Failed to update product', [
+                    'sku' => $product['sku'],
+                    'error' => $e->getMessage()
+                ]);
+
+                $results[] = [
+                    'sku' => $product['sku'],
+                    'title' => $product['title'],
+                    'status' => 'failed',
+                    'message' => $e->getMessage()
+                ];
+                $failCount++;
+            }
+        }
+
+        return [
+            'total' => count($products),
+            'success' => $successCount,
+            'failed' => $failCount,
+            'results' => $results
+        ];
     }
 }
