@@ -29,8 +29,48 @@ class BulkUpdateController extends Controller
     }
 
     /**
-     * 上传Excel文件并创建批量更新任务
+     * 检查Lazada授权状态
      */
+    public function authCheck()
+    {
+        try {
+            // 简单的授权检查，通过中间件会自动处理
+            return response()->json([
+                'success' => true,
+                'message' => 'Lazada授权正常'
+            ]);
+        } catch (\Exception $e) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Lazada授权检查失败: ' . $e->getMessage()
+            ], 500);
+        }
+    }
+
+    /**
+     * 测试Lazada API连接和产品更新功能
+     */
+    public function testLazadaConnection()
+    {
+        try {
+            // 获取少量产品来测试连接
+            $result = app(LazadaApiService::class)->getProducts(0, 5);
+            
+            return response()->json([
+                'success' => true,
+                'message' => 'Lazada API连接正常',
+                'sample_data' => $result,
+                'timestamp' => now()->toDateTimeString()
+            ]);
+        } catch (\Exception $e) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Lazada API连接测试失败: ' . $e->getMessage(),
+                'timestamp' => now()->toDateTimeString()
+            ], 500);
+        }
+    }
+
     public function upload(Request $request)
     {
         $validator = Validator::make($request->all(), [
@@ -50,10 +90,25 @@ class BulkUpdateController extends Controller
         }
 
         try {
+            // 确保bulk_updates目录存在
+            if (!Storage::exists('bulk_updates')) {
+                Storage::makeDirectory('bulk_updates');
+            }
+
             // 保存上传的文件
             $file = $request->file('excel_file');
             $fileName = 'bulk_updates/' . time() . '_' . $file->getClientOriginalName();
-            $filePath = $file->storeAs('', $fileName, 'local');
+            
+            // 使用store方法并指定磁盘
+            $filePath = $file->storeAs('bulk_updates', time() . '_' . $file->getClientOriginalName(), 'local');
+
+            // 验证文件是否成功保存
+            if (!Storage::exists($filePath)) {
+                return response()->json([
+                    'success' => false,
+                    'message' => '文件保存失败'
+                ], 500);
+            }
 
             // 创建批量更新任务
             $result = $this->bulkUpdateService->createBulkUpdateTask($filePath);
@@ -85,6 +140,14 @@ class BulkUpdateController extends Controller
             return response()->json($response);
 
         } catch (\Exception $e) {
+            // 记录详细的错误信息
+            \Log::error('批量更新文件上传失败', [
+                'error' => $e->getMessage(),
+                'trace' => $e->getTraceAsString(),
+                'file_name' => $request->file('excel_file')->getClientOriginalName() ?? 'unknown',
+                'file_size' => $request->file('excel_file')->getSize() ?? 0
+            ]);
+
             return response()->json([
                 'success' => false,
                 'message' => '文件处理失败：' . $e->getMessage()

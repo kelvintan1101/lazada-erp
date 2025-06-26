@@ -79,6 +79,8 @@ Route::middleware(['auth'])->group(function () {
 
         // Routes that need Lazada token
         Route::middleware(['lazada.token'])->group(function () {
+            Route::get('/auth-check', [BulkUpdateController::class, 'authCheck'])->name('bulk-update.auth-check');
+            Route::get('/test-connection', [BulkUpdateController::class, 'testLazadaConnection'])->name('bulk-update.test-connection');
             Route::post('/upload', [BulkUpdateController::class, 'upload'])->name('bulk-update.upload');
             Route::post('/execute', [BulkUpdateController::class, 'execute'])->name('bulk-update.execute');
             Route::get('/status', [BulkUpdateController::class, 'status'])->name('bulk-update.status');

@@ -336,38 +336,81 @@ class LazadaApiService
         ], 'POST');
     }
 
-    /**
-     * 更新产品信息
-     *
-     * @param string $sellerSku 卖家SKU
-     * @param array $updateData 要更新的数据
-     * @return array API响应
-     * @throws \Exception
-     */
     public function updateProduct($sellerSku, $updateData)
     {
-        // 构建更新请求的参数
-        $params = [
-            'payload' => json_encode([
-                'Request' => [
-                    'Product' => [
-                        'Skus' => [
-                            [
-                                'SellerSku' => $sellerSku,
-                                'Attributes' => $updateData
-                            ]
+        // 根据 Lazada API 文档构建正确的更新请求格式
+        // https://open.lazada.com/apps/doc/api?path=%2Fproduct%2Fupdate
+        $payload = [
+            'Request' => [
+                'Product' => [
+                    'Skus' => [
+                        [
+                            'SellerSku' => $sellerSku,
+                            // 产品标题更新
+                            'Name' => $updateData['name'] ?? null,
+                            // 其他可能的更新字段
+                            'Description' => $updateData['description'] ?? null,
+                            'Brand' => $updateData['brand'] ?? null,
+                            'Status' => $updateData['status'] ?? null,
+                            'Price' => $updateData['price'] ?? null,
+                            'SalePrice' => $updateData['sale_price'] ?? null,
+                            'Quantity' => $updateData['quantity'] ?? null,
+                            // 移除 null 值
                         ]
                     ]
                 ]
-            ])
+            ]
         ];
 
-        Log::info('Updating product via Lazada API', [
+        // 清理 null 值
+        $payload = $this->removeNullValues($payload);
+
+        $params = [
+            'payload' => json_encode($payload)
+        ];
+
+        Log::info('更新产品 - Lazada API请求', [
             'seller_sku' => $sellerSku,
-            'update_data' => $updateData
+            'update_data' => $updateData,
+            'payload' => $payload
         ]);
 
-        return $this->makeRequest('/product/update', $params, 'POST');
+        try {
+            $response = $this->makeRequest('/product/update', $params, 'POST');
+            
+            Log::info('更新产品 - Lazada API响应', [
+                'seller_sku' => $sellerSku,
+                'response' => $response
+            ]);
+
+            return $response;
+        } catch (\Exception $e) {
+            Log::error('更新产品失败', [
+                'seller_sku' => $sellerSku,
+                'error' => $e->getMessage(),
+                'trace' => $e->getTraceAsString()
+            ]);
+            throw $e;
+        }
+    }
+
+    /**
+     * 递归移除数组中的null值
+     */
+    private function removeNullValues($array)
+    {
+        foreach ($array as $key => $value) {
+            if (is_array($value)) {
+                $array[$key] = $this->removeNullValues($value);
+                // 如果数组变空了，也删除它
+                if (empty($array[$key])) {
+                    unset($array[$key]);
+                }
+            } elseif ($value === null) {
+                unset($array[$key]);
+            }
+        }
+        return $array;
     }
 
     /**

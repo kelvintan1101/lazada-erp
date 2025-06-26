@@ -89,12 +89,6 @@ class BulkUpdateService
         }
     }
 
-    /**
-     * 执行批量更新任务
-     * 
-     * @param int $taskId 任务ID
-     * @return array 执行结果
-     */
     public function executeBulkUpdateTask($taskId)
     {
         $task = BulkUpdateTask::find($taskId);
@@ -124,25 +118,52 @@ class BulkUpdateService
             $successCount = 0;
             $failCount = 0;
 
+            Log::info('开始执行批量更新任务', [
+                'task_id' => $taskId,
+                'total_products' => count($products)
+            ]);
+
             foreach ($products as $index => $product) {
                 try {
-                    // 添加延迟以避免API限制
+                    // 添加延迟以避免API限制 (Lazada API 推荐每秒最多2个请求)
                     if ($index > 0) {
-                        sleep(1); // 每秒最多1个请求，保守处理
+                        sleep(2); // 2秒延迟，保守处理
                     }
 
                     Log::info('正在更新产品', [
                         'task_id' => $taskId,
+                        'index' => $index + 1,
+                        'total' => count($products),
                         'sku' => $product['sku'],
                         'new_title' => $product['title']
                     ]);
 
-                    // 调用Lazada API更新产品
+                    // 调用Lazada API更新产品标题
                     $apiResult = $this->lazadaApiService->updateProduct($product['sku'], [
                         'name' => $product['title']
                     ]);
 
-                    if ($apiResult && (!isset($apiResult['code']) || $apiResult['code'] === '0')) {
+                    // 检查API响应
+                    $isSuccess = false;
+                    $message = '';
+
+                    if ($apiResult) {
+                        // Lazada API 成功响应通常有 code: "0"
+                        if (isset($apiResult['code']) && $apiResult['code'] === '0') {
+                            $isSuccess = true;
+                            $message = '更新成功';
+                        } elseif (!isset($apiResult['code'])) {
+                            // 有些成功响应可能没有code字段
+                            $isSuccess = true;
+                            $message = '更新成功';
+                        } else {
+                            $message = $apiResult['message'] ?? '更新失败：未知错误';
+                        }
+                    } else {
+                        $message = '更新失败：API返回空响应';
+                    }
+
+                    if ($isSuccess) {
                         // 更新成功，同时更新本地数据库
                         $this->updateLocalProduct($product['sku'], $product['title']);
                         
@@ -150,56 +171,87 @@ class BulkUpdateService
                             'sku' => $product['sku'],
                             'title' => $product['title'],
                             'status' => 'success',
-                            'message' => '更新成功'
+                            'message' => $message,
+                            'api_response' => $apiResult
                         ];
                         $successCount++;
+
+                        Log::info('产品更新成功', [
+                            'task_id' => $taskId,
+                            'sku' => $product['sku'],
+                            'response' => $apiResult
+                        ]);
                     } else {
                         $results[] = [
                             'sku' => $product['sku'],
                             'title' => $product['title'],
                             'status' => 'failed',
-                            'message' => $apiResult['message'] ?? '未知错误',
+                            'message' => $message,
                             'api_response' => $apiResult
                         ];
                         $failCount++;
+
+                        Log::warning('产品更新失败', [
+                            'task_id' => $taskId,
+                            'sku' => $product['sku'],
+                            'message' => $message,
+                            'response' => $apiResult
+                        ]);
                     }
 
                 } catch (\Exception $e) {
-                    Log::error('更新产品失败', [
+                    Log::error('更新产品时发生异常', [
                         'task_id' => $taskId,
                         'sku' => $product['sku'],
-                        'error' => $e->getMessage()
+                        'error' => $e->getMessage(),
+                        'trace' => $e->getTraceAsString()
                     ]);
 
                     $results[] = [
                         'sku' => $product['sku'],
                         'title' => $product['title'],
                         'status' => 'failed',
-                        'message' => $e->getMessage()
+                        'message' => '系统错误：' . $e->getMessage()
                     ];
                     $failCount++;
                 }
 
                 // 更新任务进度
+                $processedItems = $index + 1;
+                $progressPercentage = round(($processedItems / count($products)) * 100);
+                
                 $task->update([
-                    'processed_items' => $index + 1,
+                    'processed_items' => $processedItems,
                     'successful_items' => $successCount,
                     'failed_items' => $failCount,
-                    'results' => $results
+                    'results' => $results,
+                    'progress_percentage' => $progressPercentage
+                ]);
+
+                Log::debug('任务进度更新', [
+                    'task_id' => $taskId,
+                    'processed' => $processedItems,
+                    'total' => count($products),
+                    'success' => $successCount,
+                    'failed' => $failCount,
+                    'progress' => $progressPercentage . '%'
                 ]);
             }
 
             // 完成任务
+            $finalStatus = $failCount === 0 ? 'completed' : 'completed';
             $task->update([
-                'status' => $failCount === 0 ? 'completed' : 'completed',
-                'completed_at' => now()
+                'status' => $finalStatus,
+                'completed_at' => now(),
+                'progress_percentage' => 100
             ]);
 
             Log::info('批量更新任务完成', [
                 'task_id' => $taskId,
                 'total' => count($products),
                 'success' => $successCount,
-                'failed' => $failCount
+                'failed' => $failCount,
+                'final_status' => $finalStatus
             ]);
 
             return [
@@ -220,7 +272,8 @@ class BulkUpdateService
 
             Log::error('批量更新任务执行失败', [
                 'task_id' => $taskId,
-                'error' => $e->getMessage()
+                'error' => $e->getMessage(),
+                'trace' => $e->getTraceAsString()
             ]);
 
             return [

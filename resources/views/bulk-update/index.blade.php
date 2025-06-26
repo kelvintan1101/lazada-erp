@@ -7,8 +7,23 @@
     <div class="max-w-4xl mx-auto">
         <h1 class="text-3xl font-bold text-gray-900 mb-8">批量更新产品标题</h1>
         
+        <!-- Lazada授权状态检查 -->
+        <div id="lazada-status-section" class="bg-white rounded-lg shadow-md p-6 mb-6">
+            <h2 class="text-xl font-semibold text-gray-800 mb-4">系统状态检查</h2>
+            <div id="lazada-status" class="flex items-center p-4 rounded-lg">
+                <div class="animate-spin mr-3">
+                    <svg class="w-5 h-5 text-blue-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <circle cx="12" cy="12" r="10" stroke="currentColor" stroke-width="2" fill="none" stroke-dasharray="32" stroke-dashoffset="32">
+                            <animate attributeName="stroke-dashoffset" dur="1s" values="32;0" repeatCount="indefinite"/>
+                        </circle>
+                    </svg>
+                </div>
+                <span class="text-gray-600">正在检查Lazada授权状态...</span>
+            </div>
+        </div>
+
         <!-- 文件上传区域 -->
-        <div id="upload-section" class="bg-white rounded-lg shadow-md p-6 mb-6">
+        <div id="upload-section" class="bg-white rounded-lg shadow-md p-6 mb-6 hidden">
             <h2 class="text-xl font-semibold text-gray-800 mb-4">上传Excel文件</h2>
             
             <div class="mb-4">
@@ -33,21 +48,28 @@
                 </div>
             </div>
 
-            <div class="border-2 border-dashed border-gray-300 rounded-lg p-8 text-center">
+            <div class="border-2 border-dashed border-blue-300 rounded-lg p-8 text-center bg-gradient-to-b from-blue-50 to-white hover:from-blue-100 hover:to-blue-50 transition-all duration-300">
                 <input type="file" id="excel-file" accept=".xlsx,.xls,.csv" class="hidden">
                 <div id="file-drop-zone" class="cursor-pointer">
-                    <svg class="mx-auto h-12 w-12 text-gray-400 mb-4" stroke="currentColor" fill="none" viewBox="0 0 48 48">
+                    <svg class="mx-auto h-16 w-16 text-blue-400 mb-4" stroke="currentColor" fill="none" viewBox="0 0 48 48">
                         <path d="M28 8H12a4 4 0 00-4 4v20m32-12v8m0 0v8a4 4 0 01-4 4H12a4 4 0 01-4-4v-4m32-4l-3.172-3.172a4 4 0 00-5.656 0L28 28M8 32l9.172-9.172a4 4 0 015.656 0L28 28m0 0l4 4m4-24h8m-4-4v8m-12 4h.02" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" />
                     </svg>
-                    <p class="text-lg text-gray-600 mb-2">点击选择文件或拖拽文件到此处</p>
-                    <p class="text-sm text-gray-500">支持 .xlsx, .xls, .csv 格式</p>
+                    <p class="text-xl font-semibold text-blue-600 mb-2">点击选择文件或拖拽文件到此处</p>
+                    <p class="text-md text-blue-500 mb-2">支持 Excel 和 CSV 格式</p>
+                    <p class="text-sm text-gray-500">(.xlsx, .xls, .csv 格式，最大10MB)</p>
                 </div>
-                <div id="file-info" class="hidden mt-4">
-                    <p class="text-sm text-gray-600">已选择文件: <span id="file-name" class="font-medium"></span></p>
+                <div id="file-info" class="hidden mt-4 p-3 bg-green-50 border border-green-200 rounded-lg">
+                    <svg class="w-5 h-5 text-green-500 inline-block mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                    </svg>
+                    <span class="text-sm text-green-700">已选择文件: <span id="file-name" class="font-medium"></span></span>
                 </div>
             </div>
 
-            <button id="upload-btn" class="mt-4 w-full bg-blue-600 text-white py-2 px-4 rounded-lg hover:bg-blue-700 disabled:bg-gray-400 disabled:cursor-not-allowed" disabled>
+            <button id="upload-btn" class="mt-4 w-full bg-gradient-to-r from-blue-600 to-blue-700 text-white py-3 px-6 rounded-lg font-semibold text-lg shadow-lg hover:from-blue-700 hover:to-blue-800 disabled:bg-gray-400 disabled:cursor-not-allowed transform hover:scale-105 transition-all duration-200" disabled>
+                <svg class="w-5 h-5 inline-block mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12"/>
+                </svg>
                 上传文件
             </button>
         </div>
@@ -123,7 +145,6 @@
     </div>
 </div>
 
-<script>
 document.addEventListener('DOMContentLoaded', function() {
     const fileInput = document.getElementById('excel-file');
     const fileDropZone = document.getElementById('file-drop-zone');
@@ -137,15 +158,44 @@ document.addEventListener('DOMContentLoaded', function() {
     let currentTaskId = null;
     let progressInterval = null;
 
+    // 检查CSRF token是否存在
+    const csrfToken = document.querySelector('meta[name="csrf-token"]');
+    if (!csrfToken) {
+        console.error('CSRF token not found');
+        alert('页面加载错误，请刷新页面重试');
+        return;
+    }
+
+    // 检查Lazada授权状态
+    checkLazadaAuth();
+
     // 文件选择处理
     fileDropZone.addEventListener('click', () => fileInput.click());
     
     fileInput.addEventListener('change', function(e) {
         const file = e.target.files[0];
         if (file) {
+            // 验证文件类型
+            const allowedTypes = ['application/vnd.openxmlformats-officedocument.spreadsheetml.sheet', 
+                                'application/vnd.ms-excel', 'text/csv'];
+            const allowedExtensions = ['.xlsx', '.xls', '.csv'];
+            
+            if (!allowedTypes.includes(file.type) && !allowedExtensions.some(ext => file.name.toLowerCase().endsWith(ext))) {
+                alert('请选择Excel文件（.xlsx, .xls）或CSV文件');
+                return;
+            }
+            
+            // 验证文件大小 (10MB)
+            if (file.size > 10 * 1024 * 1024) {
+                alert('文件大小不能超过10MB');
+                return;
+            }
+            
             fileName.textContent = file.name;
             fileInfo.classList.remove('hidden');
             uploadBtn.disabled = false;
+            uploadBtn.classList.remove('bg-gray-400');
+            uploadBtn.classList.add('bg-blue-600', 'hover:bg-blue-700');
         }
     });
 
@@ -167,45 +217,72 @@ document.addEventListener('DOMContentLoaded', function() {
         const files = e.dataTransfer.files;
         if (files.length > 0) {
             fileInput.files = files;
-            fileName.textContent = files[0].name;
-            fileInfo.classList.remove('hidden');
-            uploadBtn.disabled = false;
+            const event = new Event('change');
+            fileInput.dispatchEvent(event);
         }
     });
 
     // 上传文件
     uploadBtn.addEventListener('click', function() {
+        if (!fileInput.files[0]) {
+            alert('请先选择文件');
+            return;
+        }
+
         const formData = new FormData();
         formData.append('excel_file', fileInput.files[0]);
 
         uploadBtn.disabled = true;
         uploadBtn.textContent = '上传中...';
+        uploadBtn.classList.remove('bg-blue-600', 'hover:bg-blue-700');
+        uploadBtn.classList.add('bg-gray-400');
+
+        console.log('开始上传文件:', fileInput.files[0].name);
 
         fetch('/bulk-update/upload', {
             method: 'POST',
             body: formData,
             headers: {
-                'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content')
+                'X-CSRF-TOKEN': csrfToken.getAttribute('content'),
+                'Accept': 'application/json'
             }
         })
-        .then(response => response.json())
+        .then(response => {
+            console.log('上传响应状态:', response.status);
+            if (!response.ok) {
+                throw new Error(`HTTP错误! 状态: ${response.status}`);
+            }
+            return response.json();
+        })
         .then(data => {
+            console.log('上传响应数据:', data);
             if (data.success) {
                 currentTaskId = data.task_id;
                 showTaskInfo(data);
                 document.getElementById('upload-section').classList.add('hidden');
                 document.getElementById('task-section').classList.remove('hidden');
             } else {
-                alert('上传失败: ' + data.message);
+                alert('上传失败: ' + (data.message || '未知错误'));
             }
         })
         .catch(error => {
-            console.error('Error:', error);
-            alert('上传失败，请重试');
+            console.error('上传错误:', error);
+            // 显示更详细的错误信息
+            if (error.message.includes('403')) {
+                alert('上传失败：没有Lazada授权。请先在设置页面进行Lazada授权。');
+            } else if (error.message.includes('422')) {
+                alert('上传失败：文件格式或大小不符合要求。请检查文件格式是否为Excel或CSV，且大小不超过10MB。');
+            } else if (error.message.includes('500')) {
+                alert('上传失败：服务器错误。请稍后重试或联系管理员。');
+            } else {
+                alert('上传失败：' + error.message + '。请检查网络连接并重试。');
+            }
         })
         .finally(() => {
             uploadBtn.disabled = false;
             uploadBtn.textContent = '上传文件';
+            uploadBtn.classList.remove('bg-gray-400');
+            uploadBtn.classList.add('bg-blue-600', 'hover:bg-blue-700');
         });
     });
 
@@ -245,7 +322,8 @@ document.addEventListener('DOMContentLoaded', function() {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
-                'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content')
+                'X-CSRF-TOKEN': csrfToken.getAttribute('content'),
+                'Accept': 'application/json'
             },
             body: JSON.stringify({ task_id: currentTaskId })
         })
@@ -341,6 +419,75 @@ document.addEventListener('DOMContentLoaded', function() {
     newTaskBtn.addEventListener('click', function() {
         location.reload();
     });
+
+    // 检查Lazada授权状态
+    function checkLazadaAuth() {
+        const lazadaStatus = document.getElementById('lazada-status');
+        const uploadSection = document.getElementById('upload-section');
+        
+        // 简单的授权检查 - 尝试访问需要授权的接口
+        fetch('/bulk-update/auth-check', {
+            method: 'GET',
+            headers: {
+                'X-CSRF-TOKEN': csrfToken.getAttribute('content'),
+                'Accept': 'application/json'
+            }
+        })
+        .then(response => {
+            if (response.status === 403) {
+                // 没有授权
+                lazadaStatus.innerHTML = `
+                    <div class="flex items-center p-4 bg-red-50 border border-red-200 rounded-lg">
+                        <svg class="w-6 h-6 text-red-500 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.732-.833-2.5 0L3.732 16.5c-.77.833.192 2.5 1.732 2.5z"/>
+                        </svg>
+                        <div class="flex-1">
+                            <p class="text-red-800 font-medium">Lazada授权未配置</p>
+                            <p class="text-red-600 text-sm mt-1">请先在设置页面进行Lazada授权，然后再使用批量更新功能。</p>
+                        </div>
+                        <a href="/settings" class="ml-4 bg-red-600 text-white px-4 py-2 rounded-lg text-sm hover:bg-red-700">
+                            前往设置
+                        </a>
+                    </div>
+                `;
+                return;
+            } else if (response.ok) {
+                // 授权正常
+                lazadaStatus.innerHTML = `
+                    <div class="flex items-center p-4 bg-green-50 border border-green-200 rounded-lg">
+                        <svg class="w-6 h-6 text-green-500 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                        </svg>
+                        <p class="text-green-800 font-medium">Lazada授权正常，可以开始上传文件</p>
+                    </div>
+                `;
+                // 显示上传区域
+                uploadSection.classList.remove('hidden');
+                return;
+            } else {
+                throw new Error('检查授权状态失败');
+            }
+        })
+        .catch(error => {
+            // 网络错误或其他问题，假设未授权
+            console.error('授权检查失败:', error);
+            lazadaStatus.innerHTML = `
+                <div class="flex items-center p-4 bg-yellow-50 border border-yellow-200 rounded-lg">
+                    <svg class="w-6 h-6 text-yellow-500 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.732-.833-2.5 0L3.732 16.5c-.77.833.192 2.5 1.732 2.5z"/>
+                    </svg>
+                    <div class="flex-1">
+                        <p class="text-yellow-800 font-medium">无法检查授权状态</p>
+                        <p class="text-yellow-600 text-sm mt-1">请确保网络连接正常，或检查Lazada授权是否配置正确。</p>
+                    </div>
+                    <button onclick="checkLazadaAuth()" class="ml-4 bg-yellow-600 text-white px-4 py-2 rounded-lg text-sm hover:bg-yellow-700">
+                        重新检查
+                    </button>
+                </div>
+            `;
+            // 仍然显示上传区域，让用户尝试
+            uploadSection.classList.remove('hidden');
+        });
+    }
 });
-</script>
 @endsection
