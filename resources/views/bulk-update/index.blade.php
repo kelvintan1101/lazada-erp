@@ -227,6 +227,20 @@
     opacity: 0 !important;
     transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1) !important;
     backdrop-filter: blur(10px) !important;
+    color: #1f2937 !important;
+}
+
+/* 确保通知内的文字颜色正确 */
+.notification-item * {
+    color: inherit !important;
+}
+
+.notification-item h4 {
+    color: #111827 !important;
+}
+
+.notification-item p {
+    color: #374151 !important;
 }
 
 .notification-item.show {
@@ -528,7 +542,7 @@ document.addEventListener('DOMContentLoaded', function() {
         notification.style.cssText = `
             pointer-events: auto !important;
             background: white !important;
-            border: 2px solid #e5e7eb !important;
+            border: 2px solid #d1d5db !important;
             border-radius: 12px !important;
             box-shadow: 0 20px 40px rgba(0, 0, 0, 0.25) !important;
             padding: 20px !important;
@@ -541,6 +555,7 @@ document.addEventListener('DOMContentLoaded', function() {
             transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1) !important;
             margin-bottom: 16px !important;
             backdrop-filter: blur(10px) !important;
+            color: #1f2937 !important;
         `;
 
         const iconColors = {
@@ -565,18 +580,18 @@ document.addEventListener('DOMContentLoaded', function() {
         }
 
         notification.innerHTML = `
-            <div class="flex items-start">
+            <div class="flex items-start" style="color: #1f2937 !important;">
                 <div class="w-10 h-10 rounded-full flex items-center justify-center ${iconColors[type]} mr-4 flex-shrink-0">
                     <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         ${icons[type]}
                     </svg>
                 </div>
                 <div class="flex-1 min-w-0">
-                    <h4 class="text-base font-bold text-gray-900 mb-1">${title}</h4>
-                    <p class="text-sm text-gray-700 leading-relaxed">${message}</p>
+                    <h4 style="color: #111827 !important; font-size: 16px !important; font-weight: bold !important; margin-bottom: 4px !important;">${title}</h4>
+                    <p style="color: #374151 !important; font-size: 14px !important; line-height: 1.5 !important;">${message}</p>
                     ${actionsHtml}
                 </div>
-                <button class="close-btn ml-3 text-gray-500 hover:text-gray-800 flex-shrink-0 p-1 rounded-full hover:bg-gray-100 transition-colors">
+                <button class="close-btn ml-3 flex-shrink-0 p-1 rounded-full transition-colors" style="color: #6b7280 !important;" onmouseover="this.style.color='#1f2937'" onmouseout="this.style.color='#6b7280'">
                     <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
                     </svg>
