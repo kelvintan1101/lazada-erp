@@ -90,9 +90,9 @@
             </div>
             
             <!-- 圆形进度条 -->
-            <div class="flex justify-center mb-8">
-                <div class="relative w-32 h-32">
-                    <svg class="w-32 h-32 transform -rotate-90" viewBox="0 0 100 100">
+            <div class="flex justify-center mb-6">
+                <div class="relative w-28 h-28">
+                    <svg class="w-28 h-28 transform -rotate-90" viewBox="0 0 100 100">
                         <!-- 背景圆环 -->
                         <circle
                             cx="50"
@@ -126,52 +126,52 @@
                     </svg>
                     <!-- 百分比显示 -->
                     <div class="absolute inset-0 flex items-center justify-center">
-                        <div class="text-center">
-                            <div id="progress-percentage" class="text-2xl font-bold text-gray-800">0%</div>
-                            <div class="text-sm text-gray-500">完成</div>
+                        <div class="text-center px-1">
+                            <div id="progress-percentage" class="text-xl font-bold text-gray-800 leading-tight">0%</div>
+                            <div class="text-xs text-gray-500 leading-tight">完成</div>
                         </div>
                     </div>
                 </div>
             </div>
 
             <!-- 统计信息卡片 -->
-            <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
-                <div class="bg-white rounded-xl shadow-md p-6 border-l-4 border-blue-500">
+            <div class="grid grid-cols-1 sm:grid-cols-3 gap-3 mb-6">
+                <div class="bg-white rounded-lg shadow-sm p-4 border-l-4 border-blue-500">
                     <div class="flex items-center justify-between">
-                        <div>
-                            <p class="text-sm font-medium text-gray-600">总数量</p>
-                            <p id="total-count" class="text-3xl font-bold text-gray-900">0</p>
+                        <div class="min-w-0">
+                            <p class="text-xs font-medium text-gray-600 truncate">总数量</p>
+                            <p id="total-count" class="text-2xl font-bold text-gray-900">0</p>
                         </div>
-                        <div class="w-12 h-12 bg-blue-100 rounded-lg flex items-center justify-center">
-                            <svg class="w-6 h-6 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <div class="w-10 h-10 bg-blue-100 rounded-lg flex items-center justify-center flex-shrink-0">
+                            <svg class="w-5 h-5 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 7h.01M7 3h5c.512 0 1.024.195 1.414.586l7 7a2 2 0 010 2.828l-7 7a2 2 0 01-2.828 0l-7-7A1.994 1.994 0 013 12V7a4 4 0 014-4z"/>
                             </svg>
                         </div>
                     </div>
                 </div>
 
-                <div class="bg-white rounded-xl shadow-md p-6 border-l-4 border-green-500">
+                <div class="bg-white rounded-lg shadow-sm p-4 border-l-4 border-green-500">
                     <div class="flex items-center justify-between">
-                        <div>
-                            <p class="text-sm font-medium text-gray-600">成功</p>
-                            <p id="success-count" class="text-3xl font-bold text-green-600">0</p>
+                        <div class="min-w-0">
+                            <p class="text-xs font-medium text-gray-600 truncate">成功</p>
+                            <p id="success-count" class="text-2xl font-bold text-green-600">0</p>
                         </div>
-                        <div class="w-12 h-12 bg-green-100 rounded-lg flex items-center justify-center">
-                            <svg class="w-6 h-6 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <div class="w-10 h-10 bg-green-100 rounded-lg flex items-center justify-center flex-shrink-0">
+                            <svg class="w-5 h-5 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/>
                             </svg>
                         </div>
                     </div>
                 </div>
 
-                <div class="bg-white rounded-xl shadow-md p-6 border-l-4 border-red-500">
+                <div class="bg-white rounded-lg shadow-sm p-4 border-l-4 border-red-500">
                     <div class="flex items-center justify-between">
-                        <div>
-                            <p class="text-sm font-medium text-gray-600">失败</p>
-                            <p id="failed-count" class="text-3xl font-bold text-red-600">0</p>
+                        <div class="min-w-0">
+                            <p class="text-xs font-medium text-gray-600 truncate">失败</p>
+                            <p id="failed-count" class="text-2xl font-bold text-red-600">0</p>
                         </div>
-                        <div class="w-12 h-12 bg-red-100 rounded-lg flex items-center justify-center">
-                            <svg class="w-6 h-6 text-red-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <div class="w-10 h-10 bg-red-100 rounded-lg flex items-center justify-center flex-shrink-0">
+                            <svg class="w-5 h-5 text-red-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
                             </svg>
                         </div>
@@ -180,14 +180,14 @@
             </div>
 
             <!-- 状态消息和动画 -->
-            <div class="bg-white rounded-xl shadow-md p-6 mb-6">
-                <div class="flex items-center space-x-4">
+            <div class="bg-white rounded-xl shadow-md p-4 mb-4">
+                <div class="flex items-center space-x-3">
                     <div id="status-icon" class="flex-shrink-0">
                         <!-- 加载动画 -->
-                        <div class="w-8 h-8 border-4 border-blue-200 border-t-blue-600 rounded-full animate-spin"></div>
+                        <div class="w-6 h-6 border-2 border-blue-200 border-t-blue-600 rounded-full animate-spin"></div>
                     </div>
-                    <div class="flex-1">
-                        <p id="status-message" class="text-lg font-medium text-gray-800">准备开始...</p>
+                    <div class="flex-1 min-w-0">
+                        <p id="status-message" class="text-base font-medium text-gray-800 truncate">准备开始...</p>
                         <p id="status-detail" class="text-sm text-gray-600 mt-1">系统正在初始化处理流程</p>
                     </div>
                 </div>
@@ -203,14 +203,19 @@
 
             <!-- 完成操作按钮 -->
             <div id="completed-actions" class="hidden">
-                <div class="bg-green-50 border border-green-200 rounded-xl p-6 mb-6">
-                    <div class="flex items-center mb-4">
-                        <svg class="w-8 h-8 text-green-600 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/>
-                        </svg>
-                        <h3 class="text-lg font-semibold text-green-800">更新完成！</h3>
+                <div class="bg-green-50 border border-green-200 rounded-xl p-4 mb-4">
+                    <div class="flex items-center justify-center mb-3">
+                        <div class="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mr-4">
+                            <svg class="w-8 h-8 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                            </svg>
+                        </div>
+                        <div>
+                            <h3 class="text-lg font-semibold text-green-800">更新完成！</h3>
+                            <p class="text-green-700 text-sm">产品标题更新任务已成功完成</p>
+                        </div>
                     </div>
-                    <p class="text-green-700 mb-4">产品标题更新任务已成功完成。您可以下载详细报告查看结果。</p>
+                    <p class="text-green-600 text-sm text-center mb-3">您可以下载详细报告查看结果</p>
                 </div>
                 
                 <div class="flex flex-col sm:flex-row gap-4">
@@ -509,7 +514,7 @@ document.addEventListener('DOMContentLoaded', function() {
                 status = `正在处理中... (${task.processed_items}/${task.total_items})`;
                 detail = `已完成 ${task.successful_items} 个，失败 ${task.failed_items} 个`;
                 if (task.processed_items > 0) {
-                    addLogMessage(`处理进度：${task.processed_items}/${task.total_items} (${percentage}%)`, 'info');
+                    addLogMessage(`处理进度：${task.processed_items}/${task.total_items}`, 'info');
                 }
                 break;
             case 'completed':
