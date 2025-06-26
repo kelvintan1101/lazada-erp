@@ -138,47 +138,8 @@
     </div>
 </div>
 
-<!-- 成功完成弹窗 -->
-<div id="success-modal" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 hidden">
-    <div class="bg-white rounded-2xl shadow-2xl p-8 max-w-md mx-4 transform scale-95 transition-all duration-300">
-        <div class="text-center">
-            <!-- 成功图标 -->
-            <div class="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-4">
-                <svg class="w-8 h-8 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/>
-                </svg>
-            </div>
-            
-            <!-- 标题和内容 -->
-            <h3 class="text-xl font-bold text-gray-900 mb-2">更新完成！</h3>
-            <p class="text-gray-600 mb-6" id="success-message">产品标题更新任务已成功完成</p>
-            
-            <!-- 统计信息 -->
-            <div class="bg-gray-50 rounded-lg p-4 mb-6">
-                <div class="grid grid-cols-2 gap-4 text-sm">
-                    <div>
-                        <span class="text-gray-600">成功：</span>
-                        <span class="font-semibold text-green-600" id="modal-success-count">0</span>
-                    </div>
-                    <div>
-                        <span class="text-gray-600">失败：</span>
-                        <span class="font-semibold text-red-600" id="modal-failed-count">0</span>
-                    </div>
-                </div>
-            </div>
-            
-            <!-- 操作按钮 -->
-            <div class="flex space-x-3">
-                <button id="modal-download-btn" class="flex-1 bg-blue-600 hover:bg-blue-700 text-white py-2 px-4 rounded-lg font-medium transition-colors">
-                    下载报告
-                </button>
-                <button id="modal-new-task-btn" class="flex-1 bg-gray-100 hover:bg-gray-200 text-gray-700 py-2 px-4 rounded-lg font-medium transition-colors">
-                    新任务
-                </button>
-            </div>
-        </div>
-    </div>
-</div>
+<!-- 通知系统 -->
+<div id="notification-container" class="fixed top-4 right-4 z-50 space-y-3"></div>
 @endsection
 
 @push('scripts')
@@ -214,13 +175,13 @@ document.addEventListener('DOMContentLoaded', function() {
             const allowedExtensions = ['.xlsx', '.xls', '.csv'];
             
             if (!allowedTypes.includes(file.type) && !allowedExtensions.some(ext => file.name.toLowerCase().endsWith(ext))) {
-                alert('请选择Excel文件（.xlsx, .xls）或CSV文件');
+                createNotification('error', '文件格式错误', '请选择Excel文件（.xlsx, .xls）或CSV文件');
                 return;
             }
             
             // 验证文件大小 (10MB)
             if (file.size > 10 * 1024 * 1024) {
-                alert('文件大小不能超过10MB');
+                createNotification('error', '文件过大', '文件大小不能超过10MB');
                 return;
             }
             
@@ -260,7 +221,7 @@ document.addEventListener('DOMContentLoaded', function() {
     // 上传文件
     uploadBtn.addEventListener('click', function() {
         if (!fileInput.files[0]) {
-            alert('请先选择文件');
+            createNotification('error', '请选择文件', '请先选择一个Excel或CSV文件');
             return;
         }
 
@@ -299,6 +260,9 @@ document.addEventListener('DOMContentLoaded', function() {
             if (data.success) {
                 currentTaskId = data.task_id;
                 
+                // 显示开始处理通知
+                createNotification('info', '开始处理', `已上传 ${data.total_items} 个产品，正在开始更新...`);
+                
                 // 隐藏上传区域，显示进度区域
                 document.getElementById('upload-section').classList.add('hidden');
                 document.getElementById('progress-section').classList.remove('hidden');
@@ -316,19 +280,19 @@ document.addEventListener('DOMContentLoaded', function() {
                 // 自动执行任务
                 executeTaskAutomatically();
             } else {
-                alert('上传失败: ' + (data.message || '未知错误'));
+                createNotification('error', '上传失败', data.message || '未知错误');
             }
         })
         .catch(error => {
             console.error('上传错误:', error);
             if (error.message.includes('403')) {
-                alert('上传失败：没有Lazada授权。请先在设置页面进行Lazada授权。');
+                createNotification('error', '授权失败', '没有Lazada授权。请先在设置页面进行Lazada授权。');
             } else if (error.message.includes('422')) {
-                alert('上传失败：文件格式或大小不符合要求。');
+                createNotification('error', '文件错误', '文件格式或大小不符合要求。');
             } else if (error.message.includes('500')) {
-                alert('上传失败：服务器错误。请稍后重试。');
+                createNotification('error', '服务器错误', '服务器错误，请稍后重试。');
             } else {
-                alert('上传失败：' + error.message);
+                createNotification('error', '上传失败', error.message);
             }
         })
         .finally(() => {
@@ -390,26 +354,102 @@ document.addEventListener('DOMContentLoaded', function() {
         statusDetail.textContent = detail;
     }
 
-    // 显示成功弹窗
-    function showSuccessModal(task) {
-        const modal = document.getElementById('success-modal');
-        const successMessage = document.getElementById('success-message');
-        const modalSuccessCount = document.getElementById('modal-success-count');
-        const modalFailedCount = document.getElementById('modal-failed-count');
+    // 创建通知
+    function createNotification(type, title, message, actions = []) {
+        const container = document.getElementById('notification-container');
+        const notificationId = 'notification-' + Date.now();
         
-        successMessage.textContent = `成功处理了 ${task.successful_items} 个产品，失败 ${task.failed_items} 个`;
-        modalSuccessCount.textContent = task.successful_items;
-        modalFailedCount.textContent = task.failed_items;
+        const notification = document.createElement('div');
+        notification.id = notificationId;
+        notification.className = 'bg-white border border-gray-200 rounded-lg shadow-lg p-4 min-w-80 max-w-sm transform transition-all duration-300 translate-x-full opacity-0';
         
-        modal.classList.remove('hidden');
-        modal.querySelector('.bg-white').classList.add('scale-100');
-        modal.querySelector('.bg-white').classList.remove('scale-95');
+        const iconColors = {
+            success: 'text-green-600 bg-green-100',
+            error: 'text-red-600 bg-red-100',
+            info: 'text-blue-600 bg-blue-100'
+        };
+        
+        const icons = {
+            success: '<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/>',
+            error: '<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>',
+            info: '<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>'
+        };
+        
+        let actionsHtml = '';
+        if (actions.length > 0) {
+            actionsHtml = '<div class="mt-3 flex space-x-2">';
+            actions.forEach(action => {
+                actionsHtml += `<button onclick="${action.onclick}" class="${action.className}">${action.text}</button>`;
+            });
+            actionsHtml += '</div>';
+        }
+        
+        notification.innerHTML = `
+            <div class="flex items-start">
+                <div class="w-8 h-8 rounded-full flex items-center justify-center ${iconColors[type]} mr-3 flex-shrink-0">
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        ${icons[type]}
+                    </svg>
+                </div>
+                <div class="flex-1">
+                    <h4 class="text-sm font-semibold text-gray-900">${title}</h4>
+                    <p class="text-sm text-gray-600 mt-1">${message}</p>
+                    ${actionsHtml}
+                </div>
+                <button onclick="closeNotification('${notificationId}')" class="ml-2 text-gray-400 hover:text-gray-600 flex-shrink-0">
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
+                    </svg>
+                </button>
+            </div>
+        `;
+        
+        container.appendChild(notification);
+        
+        // 动画显示
+        setTimeout(() => {
+            notification.classList.remove('translate-x-full', 'opacity-0');
+        }, 100);
+        
+        // 自动消失（除非有操作按钮）
+        if (actions.length === 0) {
+            setTimeout(() => {
+                closeNotification(notificationId);
+            }, 5000);
+        }
+        
+        return notificationId;
     }
 
-    // 关闭弹窗
-    function closeModal() {
-        const modal = document.getElementById('success-modal');
-        modal.classList.add('hidden');
+    // 关闭通知
+    function closeNotification(notificationId) {
+        const notification = document.getElementById(notificationId);
+        if (notification) {
+            notification.classList.add('translate-x-full', 'opacity-0');
+            setTimeout(() => {
+                notification.remove();
+            }, 300);
+        }
+    }
+
+    // 显示成功通知
+    function showSuccessNotification(task) {
+        const message = `成功处理 ${task.successful_items} 个产品${task.failed_items > 0 ? `，失败 ${task.failed_items} 个` : ''}`;
+        
+        const actions = [
+            {
+                text: '下载报告',
+                className: 'bg-blue-600 hover:bg-blue-700 text-white text-xs py-1 px-3 rounded font-medium transition-colors',
+                onclick: `downloadReport('${currentTaskId}')`
+            },
+            {
+                text: '新任务',
+                className: 'bg-gray-100 hover:bg-gray-200 text-gray-700 text-xs py-1 px-3 rounded font-medium transition-colors',
+                onclick: 'startNewTask()'
+            }
+        ];
+        
+        createNotification('success', '更新完成！', message, actions);
     }
 
     // 自动执行任务函数
@@ -428,14 +468,14 @@ document.addEventListener('DOMContentLoaded', function() {
             if (data.success) {
                 startProgressMonitoring();
             } else {
-                alert('启动失败: ' + data.message);
+                createNotification('error', '启动失败', data.message);
                 document.getElementById('progress-section').classList.add('hidden');
                 document.getElementById('upload-section').classList.remove('hidden');
             }
         })
         .catch(error => {
             console.error('启动错误:', error);
-            alert('启动失败，请重试');
+            createNotification('error', '启动失败', '任务启动失败，请重试');
             document.getElementById('progress-section').classList.add('hidden');
             document.getElementById('upload-section').classList.remove('hidden');
         });
@@ -457,13 +497,26 @@ document.addEventListener('DOMContentLoaded', function() {
                 
                 if (task.status === 'completed') {
                     clearInterval(progressInterval);
-                    showSuccessModal(task);
+                    showSuccessNotification(task);
+                    
+                    // 几秒后返回上传页面
+                    setTimeout(() => {
+                        document.getElementById('progress-section').classList.add('hidden');
+                        document.getElementById('upload-section').classList.remove('hidden');
+                        // 重置文件选择
+                        document.getElementById('excel-file').value = '';
+                        document.getElementById('file-info').classList.add('hidden');
+                        document.getElementById('upload-btn').disabled = true;
+                    }, 3000);
                 } else if (task.status === 'failed') {
                     clearInterval(progressInterval);
-                    alert('任务失败：' + task.error_message || '处理过程中遇到错误');
+                    createNotification('error', '更新失败', task.error_message || '处理过程中遇到错误，请重试');
+                    
                     // 返回上传页面
-                    document.getElementById('progress-section').classList.add('hidden');
-                    document.getElementById('upload-section').classList.remove('hidden');
+                    setTimeout(() => {
+                        document.getElementById('progress-section').classList.add('hidden');
+                        document.getElementById('upload-section').classList.remove('hidden');
+                    }, 2000);
                 }
             }
         })
@@ -472,23 +525,21 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     }
 
-    // 弹窗按钮事件监听
-    document.getElementById('modal-download-btn').addEventListener('click', function() {
-        window.location.href = `/bulk-update/download-report?task_id=${currentTaskId}`;
-        closeModal();
-    });
+    // 全局函数供通知使用
+    window.downloadReport = function(taskId) {
+        window.location.href = `/bulk-update/download-report?task_id=${taskId}`;
+    };
 
-    document.getElementById('modal-new-task-btn').addEventListener('click', function() {
-        closeModal();
-        location.reload();
-    });
-
-    // 点击弹窗外部关闭
-    document.getElementById('success-modal').addEventListener('click', function(e) {
-        if (e.target === this) {
-            closeModal();
-        }
-    });
+    window.startNewTask = function() {
+        document.getElementById('progress-section').classList.add('hidden');
+        document.getElementById('upload-section').classList.remove('hidden');
+        // 重置文件选择
+        document.getElementById('excel-file').value = '';
+        document.getElementById('file-info').classList.add('hidden');
+        document.getElementById('upload-btn').disabled = true;
+        document.getElementById('upload-btn').classList.remove('bg-blue-600', 'hover:bg-blue-700');
+        document.getElementById('upload-btn').classList.add('disabled:bg-gray-300');
+    };
 });
 </script>
 @endpush
