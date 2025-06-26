@@ -457,3 +457,72 @@ Route::get('/bulk-update/test', function() {
         ], 500);
     }
 })->middleware(['auth']);
+
+// 添加直接执行最新任务的路由
+Route::post('/bulk-update/execute-latest', function() {
+    try {
+        // 获取最新的待执行任务
+        $latestTask = \App\Models\BulkUpdateTask::where('status', 'pending')
+            ->latest()
+            ->first();
+            
+        if (!$latestTask) {
+            return response()->json([
+                'success' => false,
+                'message' => '没有找到待执行的任务'
+            ], 404);
+        }
+        
+        // 执行任务
+        $bulkService = app(\App\Services\BulkUpdateService::class);
+        \App\Jobs\ProcessBulkUpdateJob::dispatch($latestTask->id);
+        
+        return response()->json([
+            'success' => true,
+            'message' => '任务已开始执行',
+            'task_id' => $latestTask->id
+        ]);
+        
+    } catch (\Exception $e) {
+        return response()->json([
+            'success' => false,
+            'message' => '启动任务失败: ' . $e->getMessage()
+        ], 500);
+    }
+})->middleware(['auth']);
+
+// 添加查看任务状态的路由
+Route::get('/bulk-update/latest-task', function() {
+    try {
+        $latestTask = \App\Models\BulkUpdateTask::latest()->first();
+        
+        if (!$latestTask) {
+            return response()->json([
+                'success' => false,
+                'message' => '没有找到任务'
+            ], 404);
+        }
+        
+        return response()->json([
+            'success' => true,
+            'task' => [
+                'id' => $latestTask->id,
+                'status' => $latestTask->status,
+                'total_items' => $latestTask->total_items,
+                'processed_items' => $latestTask->processed_items,
+                'successful_items' => $latestTask->successful_items,
+                'failed_items' => $latestTask->failed_items,
+                'progress_percentage' => $latestTask->getProgressPercentage(),
+                'created_at' => $latestTask->created_at,
+                'started_at' => $latestTask->started_at,
+                'completed_at' => $latestTask->completed_at
+            ]
+        ]);
+        
+    } catch (\Exception $e) {
+        return response()->json([
+            'success' => false,
+            'message' => '获取任务状态失败: ' . $e->getMessage()
+        ], 500);
+    }
+})->middleware(['auth']);
