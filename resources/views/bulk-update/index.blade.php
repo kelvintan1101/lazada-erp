@@ -3,42 +3,44 @@
 @section('title', '批量更新产品标题')
 
 @section('content')
-<div class="container mx-auto px-4 py-6">
-    <div class="max-w-2xl mx-auto">
-        
+<div class="min-h-screen bg-gray-50 py-8">
+    <div class="max-w-2xl mx-auto px-4">
+
         <!-- 文件上传区域 -->
-        <div id="upload-section" class="bg-white rounded-xl shadow-sm border border-gray-100 p-6">
-            <div class="text-center mb-6">
-                <h2 class="text-xl font-bold text-gray-900 mb-2">批量更新产品标题</h2>
-                <p class="text-sm text-gray-600">上传包含SKU和产品标题的Excel/CSV文件</p>
-            </div>
-            
-            <!-- 简化的格式提示 -->
-            <div class="bg-blue-50 rounded-lg p-3 mb-6 flex items-center justify-between">
-                <div class="flex items-center">
-                    <svg class="w-5 h-5 text-blue-500 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
-                    </svg>
-                    <span class="text-sm text-blue-700">需要包含SKU和产品标题列</span>
-                </div>
-                <a href="/templates/product_title_update_template.csv"
-                   download="产品标题更新模板.csv"
-                   class="text-sm text-blue-600 hover:text-blue-800 font-medium">
-                    下载模板
-                </a>
+        <div id="upload-section" class="bg-white rounded-xl shadow-lg border border-gray-200 p-8">
+            <div class="text-center mb-8">
+                <h1 class="text-2xl font-bold text-gray-900 mb-3">批量更新产品标题</h1>
+                <p class="text-gray-600">上传包含SKU和产品标题的Excel/CSV文件</p>
             </div>
 
-            <!-- 简化的文件选择区域 -->
-            <div class="border-2 border-dashed border-gray-300 rounded-xl p-8 text-center hover:border-blue-400 hover:bg-blue-50 transition-all duration-200">
+            <!-- 格式提示 -->
+            <div class="bg-blue-50 border border-blue-200 rounded-lg p-4 mb-6">
+                <div class="flex items-center justify-between">
+                    <div class="flex items-center">
+                        <svg class="w-5 h-5 text-blue-500 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                        </svg>
+                        <span class="text-sm text-blue-700 font-medium">需要包含SKU和产品标题列</span>
+                    </div>
+                    <a href="/templates/product_title_update_template.csv"
+                       download="产品标题更新模板.csv"
+                       class="text-sm text-blue-600 hover:text-blue-800 font-medium underline">
+                        下载模板
+                    </a>
+                </div>
+            </div>
+
+            <!-- 文件选择区域 -->
+            <div class="border-2 border-dashed border-gray-300 rounded-xl p-8 text-center hover:border-blue-400 hover:bg-blue-50 transition-all duration-200 mb-6">
                 <input type="file" id="excel-file" accept=".xlsx,.xls,.csv" class="hidden">
                 <div id="file-drop-zone" class="cursor-pointer">
                     <svg class="mx-auto h-12 w-12 text-gray-400 mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12"/>
                     </svg>
                     <p class="text-lg font-semibold text-gray-700 mb-1">选择文件或拖拽到这里</p>
-                    <p class="text-sm text-gray-500">支持 .xlsx, .xls, .csv 格式</p>
+                    <p class="text-sm text-gray-500">支持 .xlsx, .xls, .csv 格式，最大10MB</p>
                 </div>
-                
+
                 <!-- 文件信息显示 -->
                 <div id="file-info" class="hidden mt-4 p-3 bg-green-50 border border-green-200 rounded-lg">
                     <div class="flex items-center justify-center">
@@ -53,9 +55,14 @@
             </div>
 
             <!-- 上传按钮 -->
-            <button id="upload-btn" class="mt-6 w-full bg-blue-600 hover:bg-blue-700 disabled:bg-gray-300 disabled:cursor-not-allowed text-white py-3 px-6 rounded-xl font-semibold transition-all duration-200 shadow-sm" disabled>
-                <span id="upload-btn-text">开始上传并更新</span>
-            </button>
+            <div class="flex justify-center">
+                <button id="upload-btn"
+                        type="button"
+                        class="w-full max-w-md px-6 py-3 bg-blue-600 text-white font-semibold rounded-lg shadow-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed disabled:bg-gray-400 transition-all duration-200"
+                        disabled>
+                    <span id="upload-btn-text">请先选择文件</span>
+                </button>
+            </div>
         </div>
 
 
@@ -139,27 +146,50 @@
 </div>
 
 <!-- 通知系统 -->
-<div id="notification-container" class="fixed bottom-4 right-4 z-50 space-y-3 pointer-events-none">
+<div id="notification-container" class="fixed bottom-4 right-4 z-50 max-w-sm pointer-events-none">
     <!-- 通知将在这里动态创建 -->
 </div>
 @endsection
 
 @push('styles')
 <style>
+/* 通知容器样式 */
 #notification-container {
     max-height: calc(100vh - 2rem);
     overflow: visible;
     display: flex;
     flex-direction: column-reverse;
+    gap: 0.75rem;
 }
 
+/* 通知项样式 */
 .notification-item {
-    margin-top: 0.75rem !important;
-    margin-bottom: 0 !important;
+    pointer-events: auto;
+    transform: translateX(100%);
+    opacity: 0;
+    transition: all 0.3s ease-in-out;
 }
 
-.notification-item:first-child {
-    margin-top: 0 !important;
+.notification-item.show {
+    transform: translateX(0);
+    opacity: 1;
+}
+
+.notification-item.hide {
+    transform: translateX(100%);
+    opacity: 0;
+}
+
+/* 按钮样式确保显示 */
+#upload-btn {
+    display: block !important;
+    visibility: visible !important;
+}
+
+/* 确保按钮文本显示 */
+#upload-btn-text {
+    display: inline !important;
+    visibility: visible !important;
 }
 </style>
 @endpush
@@ -167,55 +197,94 @@
 @push('scripts')
 <script>
 document.addEventListener('DOMContentLoaded', function() {
+    console.log('页面加载完成，初始化批量更新功能...');
+
+    // 获取DOM元素
     const fileInput = document.getElementById('excel-file');
     const fileDropZone = document.getElementById('file-drop-zone');
     const fileInfo = document.getElementById('file-info');
     const fileName = document.getElementById('file-name');
     const uploadBtn = document.getElementById('upload-btn');
+    const uploadBtnText = document.getElementById('upload-btn-text');
 
-    
-    let currentTaskId = null;
-    let progressInterval = null;
-
-    // 检查CSRF token是否存在
-    const csrfToken = document.querySelector('meta[name="csrf-token"]');
-    if (!csrfToken) {
-        console.error('CSRF token not found');
-        alert('页面加载错误，请刷新页面重试');
+    // 检查关键元素是否存在
+    if (!fileInput || !fileDropZone || !uploadBtn || !uploadBtnText) {
+        console.error('关键DOM元素未找到');
         return;
     }
 
+    let currentTaskId = null;
+    let progressInterval = null;
+
+    // 检查CSRF token
+    const csrfToken = document.querySelector('meta[name="csrf-token"]');
+    if (!csrfToken) {
+        console.error('CSRF token not found');
+        showNotification('error', '页面错误', '请刷新页面重试');
+        return;
+    }
+
+    console.log('初始化完成，设置事件监听器...');
+
     // 文件选择处理
-    fileDropZone.addEventListener('click', () => fileInput.click());
-    
+    fileDropZone.addEventListener('click', function() {
+        console.log('点击文件选择区域');
+        fileInput.click();
+    });
+
     fileInput.addEventListener('change', function(e) {
         const file = e.target.files[0];
+        console.log('文件选择变化:', file ? file.name : '无文件');
+
         if (file) {
             // 验证文件类型
-            const allowedTypes = ['application/vnd.openxmlformats-officedocument.spreadsheetml.sheet', 
+            const allowedTypes = ['application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
                                 'application/vnd.ms-excel', 'text/csv'];
             const allowedExtensions = ['.xlsx', '.xls', '.csv'];
-            
+
             if (!allowedTypes.includes(file.type) && !allowedExtensions.some(ext => file.name.toLowerCase().endsWith(ext))) {
-                createNotification('error', '文件格式错误', '请选择Excel文件（.xlsx, .xls）或CSV文件');
+                showNotification('error', '文件格式错误', '请选择Excel文件（.xlsx, .xls）或CSV文件');
+                resetFileSelection();
                 return;
             }
-            
+
             // 验证文件大小 (10MB)
             if (file.size > 10 * 1024 * 1024) {
-                createNotification('error', '文件过大', '文件大小不能超过10MB');
+                showNotification('error', '文件过大', '文件大小不能超过10MB');
+                resetFileSelection();
                 return;
             }
-            
+
+            // 显示文件信息
             fileName.textContent = file.name;
             fileInfo.classList.remove('hidden');
-            
+
             // 启用上传按钮
-            uploadBtn.disabled = false;
-            uploadBtn.classList.remove('disabled:bg-gray-300');
-            uploadBtn.classList.add('bg-blue-600', 'hover:bg-blue-700');
+            enableUploadButton();
+            console.log('文件验证通过，按钮已启用');
+        } else {
+            resetFileSelection();
         }
     });
+
+    // 辅助函数
+    function enableUploadButton() {
+        uploadBtn.disabled = false;
+        uploadBtn.className = 'w-full max-w-md px-6 py-3 bg-blue-600 text-white font-semibold rounded-lg shadow-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 transition-all duration-200';
+        uploadBtnText.textContent = '开始上传并更新';
+    }
+
+    function disableUploadButton(text = '请先选择文件') {
+        uploadBtn.disabled = true;
+        uploadBtn.className = 'w-full max-w-md px-6 py-3 bg-gray-400 text-white font-semibold rounded-lg shadow-md cursor-not-allowed opacity-50 transition-all duration-200';
+        uploadBtnText.textContent = text;
+    }
+
+    function resetFileSelection() {
+        fileInput.value = '';
+        fileInfo.classList.add('hidden');
+        disableUploadButton();
+    }
 
     // 拖拽上传
     fileDropZone.addEventListener('dragover', function(e) {
@@ -231,7 +300,7 @@ document.addEventListener('DOMContentLoaded', function() {
     fileDropZone.addEventListener('drop', function(e) {
         e.preventDefault();
         fileDropZone.classList.remove('border-blue-500', 'bg-blue-50');
-        
+
         const files = e.dataTransfer.files;
         if (files.length > 0) {
             fileInput.files = files;
@@ -240,10 +309,12 @@ document.addEventListener('DOMContentLoaded', function() {
         }
     });
 
-    // 上传文件
+    // 上传文件处理
     uploadBtn.addEventListener('click', function() {
+        console.log('点击上传按钮');
+
         if (!fileInput.files[0]) {
-            createNotification('error', '请选择文件', '请先选择一个Excel或CSV文件');
+            showNotification('error', '请选择文件', '请先选择一个Excel或CSV文件');
             return;
         }
 
@@ -251,11 +322,8 @@ document.addEventListener('DOMContentLoaded', function() {
         formData.append('excel_file', fileInput.files[0]);
 
         // 更新按钮状态
-        const uploadBtnText = document.getElementById('upload-btn-text');
-        uploadBtn.disabled = true;
-        uploadBtnText.textContent = '上传中...';
-        uploadBtn.classList.remove('bg-blue-600', 'hover:bg-blue-700');
-        uploadBtn.classList.add('bg-gray-400');
+        disableUploadButton('上传中...');
+        console.log('开始上传文件...');
 
         fetch('/bulk-update/upload', {
             method: 'POST',
@@ -279,16 +347,17 @@ document.addEventListener('DOMContentLoaded', function() {
             return response.json();
         })
         .then(data => {
+            console.log('上传响应:', data);
             if (data.success) {
                 currentTaskId = data.task_id;
-                
+
                 // 显示开始处理通知
-                createNotification('info', '开始处理', `已上传 ${data.total_items} 个产品，正在开始更新...`);
-                
+                showNotification('info', '开始处理', `已上传 ${data.total_items} 个产品，正在开始更新...`);
+
                 // 隐藏上传区域，显示进度区域
                 document.getElementById('upload-section').classList.add('hidden');
                 document.getElementById('progress-section').classList.remove('hidden');
-                
+
                 // 初始化进度显示
                 updateProgressDisplay({
                     status: 'pending',
@@ -298,32 +367,135 @@ document.addEventListener('DOMContentLoaded', function() {
                     successful_items: 0,
                     failed_items: 0
                 });
-                
+
                 // 自动执行任务
                 executeTaskAutomatically();
             } else {
-                createNotification('error', '上传失败', data.message || '未知错误');
+                showNotification('error', '上传失败', data.message || '未知错误');
             }
         })
         .catch(error => {
             console.error('上传错误:', error);
             if (error.message.includes('403')) {
-                createNotification('error', '授权失败', '没有Lazada授权。请先在设置页面进行Lazada授权。');
+                showNotification('error', '授权失败', '没有Lazada授权。请先在设置页面进行Lazada授权。');
             } else if (error.message.includes('422')) {
-                createNotification('error', '文件错误', '文件格式或大小不符合要求。');
+                showNotification('error', '文件错误', '文件格式或大小不符合要求。');
             } else if (error.message.includes('500')) {
-                createNotification('error', '服务器错误', '服务器错误，请稍后重试。');
+                showNotification('error', '服务器错误', '服务器错误，请稍后重试。');
             } else {
-                createNotification('error', '上传失败', error.message);
+                showNotification('error', '上传失败', error.message);
             }
         })
         .finally(() => {
-            uploadBtn.disabled = false;
-            uploadBtnText.textContent = '开始上传并更新';
-            uploadBtn.classList.remove('bg-gray-400');
-            uploadBtn.classList.add('bg-blue-600', 'hover:bg-blue-700');
+            enableUploadButton();
         });
     });
+
+    // 新的通知系统
+    function showNotification(type, title, message, actions = []) {
+        console.log('显示通知:', type, title, message);
+
+        const container = document.getElementById('notification-container');
+        if (!container) {
+            console.error('通知容器未找到');
+            return;
+        }
+
+        const notificationId = 'notification-' + Date.now();
+        const notification = document.createElement('div');
+        notification.id = notificationId;
+        notification.className = 'notification-item bg-white border border-gray-200 rounded-lg shadow-lg p-4 w-80 mb-3';
+
+        const iconColors = {
+            success: 'text-green-600 bg-green-100',
+            error: 'text-red-600 bg-red-100',
+            info: 'text-blue-600 bg-blue-100'
+        };
+
+        const icons = {
+            success: '<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/>',
+            error: '<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>',
+            info: '<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>'
+        };
+
+        let actionsHtml = '';
+        if (actions.length > 0) {
+            actionsHtml = '<div class="mt-3 flex space-x-2">';
+            actions.forEach((action, index) => {
+                actionsHtml += `<button data-action="${action.action}" class="${action.className}">${action.text}</button>`;
+            });
+            actionsHtml += '</div>';
+        }
+
+        notification.innerHTML = `
+            <div class="flex items-start">
+                <div class="w-8 h-8 rounded-full flex items-center justify-center ${iconColors[type]} mr-3 flex-shrink-0">
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        ${icons[type]}
+                    </svg>
+                </div>
+                <div class="flex-1 min-w-0">
+                    <h4 class="text-sm font-semibold text-gray-900">${title}</h4>
+                    <p class="text-sm text-gray-600 mt-1">${message}</p>
+                    ${actionsHtml}
+                </div>
+                <button class="close-btn ml-2 text-gray-400 hover:text-gray-600 flex-shrink-0 p-1">
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
+                    </svg>
+                </button>
+            </div>
+        `;
+
+        // 添加到容器
+        container.appendChild(notification);
+
+        // 添加关闭事件
+        const closeBtn = notification.querySelector('.close-btn');
+        closeBtn.addEventListener('click', () => {
+            hideNotification(notificationId);
+        });
+
+        // 添加操作按钮事件
+        const actionButtons = notification.querySelectorAll('[data-action]');
+        actionButtons.forEach(btn => {
+            btn.addEventListener('click', (e) => {
+                const action = btn.getAttribute('data-action');
+                if (action === 'download') {
+                    downloadReport(currentTaskId);
+                } else if (action === 'new-task') {
+                    startNewTask();
+                }
+                hideNotification(notificationId);
+            });
+        });
+
+        // 显示动画
+        setTimeout(() => {
+            notification.classList.add('show');
+        }, 100);
+
+        // 自动消失（除非有操作按钮）
+        if (actions.length === 0) {
+            setTimeout(() => {
+                hideNotification(notificationId);
+            }, 5000);
+        }
+
+        return notificationId;
+    }
+
+    function hideNotification(notificationId) {
+        const notification = document.getElementById(notificationId);
+        if (notification) {
+            notification.classList.add('hide');
+            setTimeout(() => {
+                if (notification.parentNode) {
+                    notification.parentNode.removeChild(notification);
+                }
+            }, 300);
+        }
+    }
 
     // 更新圆形进度条
     function updateCircularProgress(percentage) {
@@ -376,127 +548,15 @@ document.addEventListener('DOMContentLoaded', function() {
         statusDetail.textContent = detail;
     }
 
-    // 创建通知
+    // 兼容旧的函数名
     function createNotification(type, title, message, actions = []) {
-        const container = document.getElementById('notification-container');
-        const notificationId = 'notification-' + Date.now();
-        
-        const notification = document.createElement('div');
-        notification.id = notificationId;
-        notification.className = 'notification-item bg-white border border-gray-200 rounded-lg shadow-lg p-4 w-80 transform transition-all duration-300 translate-x-full opacity-0 pointer-events-auto';
-        
-        const iconColors = {
-            success: 'text-green-600 bg-green-100',
-            error: 'text-red-600 bg-red-100',
-            info: 'text-blue-600 bg-blue-100'
-        };
-        
-        const icons = {
-            success: '<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/>',
-            error: '<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>',
-            info: '<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>'
-        };
-        
-        let actionsHtml = '';
-        if (actions.length > 0) {
-            actionsHtml = '<div class="mt-3 flex space-x-2">';
-            actions.forEach((action, index) => {
-                actionsHtml += `<button data-action="${action.action}" class="${action.className}">${action.text}</button>`;
-            });
-            actionsHtml += '</div>';
-        }
-        
-        notification.innerHTML = `
-            <div class="flex items-start">
-                <div class="w-8 h-8 rounded-full flex items-center justify-center ${iconColors[type]} mr-3 flex-shrink-0">
-                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        ${icons[type]}
-                    </svg>
-                </div>
-                <div class="flex-1 min-w-0">
-                    <h4 class="text-sm font-semibold text-gray-900">${title}</h4>
-                    <p class="text-sm text-gray-600 mt-1">${message}</p>
-                    ${actionsHtml}
-                </div>
-                <button class="close-btn ml-2 text-gray-400 hover:text-gray-600 flex-shrink-0 p-1">
-                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
-                    </svg>
-                </button>
-            </div>
-        `;
-        
-        // 先添加到容器
-        container.appendChild(notification);
-        
-        // 添加关闭按钮事件监听器
-        const closeBtn = notification.querySelector('.close-btn');
-        closeBtn.addEventListener('click', (e) => {
-            e.preventDefault();
-            e.stopPropagation();
-            closeNotification(notificationId);
-        });
-        
-        // 添加操作按钮事件监听器
-        const actionButtons = notification.querySelectorAll('[data-action]');
-        actionButtons.forEach(btn => {
-            btn.addEventListener('click', (e) => {
-                e.preventDefault();
-                e.stopPropagation();
-                const action = btn.getAttribute('data-action');
-                if (action === 'download') {
-                    window.downloadReport(currentTaskId);
-                } else if (action === 'new-task') {
-                    window.startNewTask();
-                }
-                closeNotification(notificationId);
-            });
-        });
-        
-        // 动画显示
-        setTimeout(() => {
-            notification.classList.remove('translate-x-full', 'opacity-0');
-        }, 100);
-        
-        // 自动消失（除非有操作按钮）
-        if (actions.length === 0) {
-            const autoCloseTimer = setTimeout(() => {
-                closeNotification(notificationId);
-            }, 5000);
-            
-            // 鼠标悬停时暂停自动关闭
-            notification.addEventListener('mouseenter', () => {
-                clearTimeout(autoCloseTimer);
-            });
-        }
-        
-        return notificationId;
+        return showNotification(type, title, message, actions);
     }
-
-    // 关闭通知
-    function closeNotification(notificationId) {
-        const notification = document.getElementById(notificationId);
-        if (notification && notification.parentNode) {
-            notification.classList.add('translate-x-full', 'opacity-0');
-            setTimeout(() => {
-                try {
-                    if (notification.parentNode) {
-                        notification.parentNode.removeChild(notification);
-                    }
-                } catch (e) {
-                    console.log('通知已被移除');
-                }
-            }, 300);
-        }
-    }
-    
-    // 确保函数在全局作用域
-    window.closeNotification = closeNotification;
 
     // 显示成功通知
     function showSuccessNotification(task) {
         const message = `成功处理 ${task.successful_items} 个产品${task.failed_items > 0 ? `，失败 ${task.failed_items} 个` : ''}`;
-        
+
         const actions = [
             {
                 text: '下载报告',
@@ -509,8 +569,8 @@ document.addEventListener('DOMContentLoaded', function() {
                 action: 'new-task'
             }
         ];
-        
-        createNotification('success', '更新完成！', message, actions);
+
+        showNotification('success', '更新完成！', message, actions);
     }
 
     // 自动执行任务函数
@@ -529,14 +589,14 @@ document.addEventListener('DOMContentLoaded', function() {
             if (data.success) {
                 startProgressMonitoring();
             } else {
-                createNotification('error', '启动失败', data.message);
+                showNotification('error', '启动失败', data.message);
                 document.getElementById('progress-section').classList.add('hidden');
                 document.getElementById('upload-section').classList.remove('hidden');
             }
         })
         .catch(error => {
             console.error('启动错误:', error);
-            createNotification('error', '启动失败', '任务启动失败，请重试');
+            showNotification('error', '启动失败', '任务启动失败，请重试');
             document.getElementById('progress-section').classList.add('hidden');
             document.getElementById('upload-section').classList.remove('hidden');
         });
@@ -571,8 +631,8 @@ document.addEventListener('DOMContentLoaded', function() {
                     }, 3000);
                 } else if (task.status === 'failed') {
                     clearInterval(progressInterval);
-                    createNotification('error', '更新失败', task.error_message || '处理过程中遇到错误，请重试');
-                    
+                    showNotification('error', '更新失败', task.error_message || '处理过程中遇到错误，请重试');
+
                     // 返回上传页面
                     setTimeout(() => {
                         document.getElementById('progress-section').classList.add('hidden');
@@ -587,20 +647,25 @@ document.addEventListener('DOMContentLoaded', function() {
     }
 
     // 全局函数供通知使用
-    window.downloadReport = function(taskId) {
+    function downloadReport(taskId) {
+        console.log('下载报告:', taskId);
         window.location.href = `/bulk-update/download-report?task_id=${taskId}`;
-    };
+    }
 
-    window.startNewTask = function() {
+    function startNewTask() {
+        console.log('开始新任务');
         document.getElementById('progress-section').classList.add('hidden');
         document.getElementById('upload-section').classList.remove('hidden');
-        // 重置文件选择
-        document.getElementById('excel-file').value = '';
-        document.getElementById('file-info').classList.add('hidden');
-        document.getElementById('upload-btn').disabled = true;
-        document.getElementById('upload-btn').classList.remove('bg-blue-600', 'hover:bg-blue-700');
-        document.getElementById('upload-btn').classList.add('disabled:bg-gray-300');
-    };
+        resetFileSelection();
+    }
+
+    // 将函数暴露到全局作用域
+    window.downloadReport = downloadReport;
+    window.startNewTask = startNewTask;
+    window.showNotification = showNotification;
+    window.hideNotification = hideNotification;
+
+    console.log('批量更新功能初始化完成');
 });
 </script>
 @endpush
