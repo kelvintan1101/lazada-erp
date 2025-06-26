@@ -12,38 +12,9 @@
     z-index: 9999 !important;
 }
 
-/* 防止任何悬停状态隐藏按钮 */
-.close-btn:hover {
-    opacity: 1 !important;
-    visibility: visible !important;
-}
-
-/* 通知容器确保不会隐藏子元素 */
-.notification-content .close-btn {
-    opacity: 1 !important;
-    visibility: visible !important;
-}
-
-/* 超强制样式确保关闭按钮显示 */
-button.close-btn,
-.close-btn,
-[class*="close-btn"] {
-    opacity: 1 !important;
-    visibility: visible !important;
-    display: flex !important;
-    position: absolute !important;
-    z-index: 999999 !important;
-    pointer-events: auto !important;
-}
-
-/* 覆盖任何可能的隐藏样式 */
-.notification-item button.close-btn,
-.notification-item .close-btn,
-div[id*="notification"] button.close-btn,
-div[id*="notification"] .close-btn {
-    opacity: 1 !important;
-    visibility: visible !important;
-    display: flex !important;
+/* 通知样式优化 */
+.notification-item {
+    transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1) !important;
 }
 </style>
 <div class="min-h-screen bg-gray-50 py-8">
@@ -565,54 +536,7 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     });
 
-    // 强制显示关闭按钮的函数
-    function forceShowCloseButton(notification) {
-        const closeBtn = notification.querySelector('.close-btn');
-        if (closeBtn) {
-            // 使用最强制的方式设置样式
-            const forceStyles = {
-                'opacity': '1',
-                'visibility': 'visible',
-                'display': 'flex',
-                'position': 'absolute',
-                'z-index': '999999',
-                'pointer-events': 'auto'
-            };
 
-            Object.keys(forceStyles).forEach(prop => {
-                closeBtn.style.setProperty(prop, forceStyles[prop], 'important');
-            });
-
-            console.log('🔧 强制设置关闭按钮样式:', {
-                element: closeBtn,
-                computedStyles: window.getComputedStyle(closeBtn),
-                inlineStyles: closeBtn.style.cssText
-            });
-        }
-    }
-
-    // 全局检查和修复关闭按钮显示
-    function fixAllCloseButtons() {
-        const allCloseButtons = document.querySelectorAll('.close-btn');
-        console.log('🔍 检查所有关闭按钮:', allCloseButtons.length);
-
-        allCloseButtons.forEach((btn, index) => {
-            const computedStyle = window.getComputedStyle(btn);
-            console.log(`按钮 ${index}:`, {
-                opacity: computedStyle.opacity,
-                visibility: computedStyle.visibility,
-                display: computedStyle.display
-            });
-
-            // 强制设置可见
-            btn.style.setProperty('opacity', '1', 'important');
-            btn.style.setProperty('visibility', 'visible', 'important');
-            btn.style.setProperty('display', 'flex', 'important');
-        });
-    }
-
-    // 定期检查关闭按钮
-    setInterval(fixAllCloseButtons, 1000);
 
     // 完全重写的通知系统
     function showNotification(type, title, message, actions = []) {
@@ -678,34 +602,12 @@ document.addEventListener('DOMContentLoaded', function() {
                         ${icons[type]}
                     </svg>
                 </div>
-                <div class="flex-1 min-w-0" style="padding-right: 30px;">
+                <div class="flex-1 min-w-0">
                     <h4 style="color: #111827 !important; font-size: 16px !important; font-weight: bold !important; margin-bottom: 4px !important;">${title}</h4>
                     <p style="color: #374151 !important; font-size: 14px !important; line-height: 1.5 !important;">${message}</p>
                     ${actionsHtml}
                 </div>
-                <button class="close-btn" style="
-                    position: absolute !important;
-                    top: 8px !important;
-                    right: 8px !important;
-                    width: 24px !important;
-                    height: 24px !important;
-                    border-radius: 50% !important;
-                    background: rgba(107, 114, 128, 0.1) !important;
-                    border: none !important;
-                    cursor: pointer !important;
-                    display: flex !important;
-                    align-items: center !important;
-                    justify-content: center !important;
-                    color: #6b7280 !important;
-                    opacity: 1 !important;
-                    visibility: visible !important;
-                    z-index: 9999 !important;
-                    transition: all 0.2s ease !important;
-                " onmouseover="this.style.background='rgba(107, 114, 128, 0.2)'; this.style.color='#374151'; this.style.opacity='1'; this.style.visibility='visible'" onmouseout="this.style.background='rgba(107, 114, 128, 0.1)'; this.style.color='#6b7280'; this.style.opacity='1'; this.style.visibility='visible'">
-                    <svg style="width: 14px !important; height: 14px !important;" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
-                    </svg>
-                </button>
+
             </div>
         `;
 
@@ -715,27 +617,10 @@ document.addEventListener('DOMContentLoaded', function() {
         console.log('📍 容器位置:', container.getBoundingClientRect());
         console.log('📍 通知位置:', notification.getBoundingClientRect());
 
-        // 添加关闭事件
-        const closeBtn = notification.querySelector('.close-btn');
-        if (closeBtn) {
-            // 强制确保按钮可见
-            closeBtn.style.setProperty('opacity', '1', 'important');
-            closeBtn.style.setProperty('visibility', 'visible', 'important');
-            closeBtn.style.setProperty('display', 'flex', 'important');
-            closeBtn.style.setProperty('z-index', '99999', 'important');
-
-            console.log('🔍 关闭按钮样式检查:', {
-                opacity: window.getComputedStyle(closeBtn).opacity,
-                visibility: window.getComputedStyle(closeBtn).visibility,
-                display: window.getComputedStyle(closeBtn).display,
-                zIndex: window.getComputedStyle(closeBtn).zIndex
-            });
-
-            closeBtn.addEventListener('click', () => {
-                console.log('🔴 点击关闭按钮');
-                hideNotification(notificationId);
-            });
-        }
+        // 通知将自动在5秒后消失
+        setTimeout(() => {
+            hideNotification(notificationId);
+        }, 5000);
 
 
 
@@ -762,8 +647,7 @@ document.addEventListener('DOMContentLoaded', function() {
             notification.style.animation = 'slideInRight 0.4s ease-out forwards !important';
             notification.classList.add('show');
 
-            // 强制确保关闭按钮可见
-            forceShowCloseButton(notification);
+
             console.log('✨ 动画已触发');
         }, 50);
 
@@ -914,29 +798,7 @@ document.addEventListener('DOMContentLoaded', function() {
                 <h3 class="text-xl font-bold mb-2">${title}</h3>
                 <p class="text-white text-opacity-90 mb-2">${message}</p>
                 ${actionsHtml}
-                <button class="close-btn" style="
-                    position: absolute !important;
-                    top: 12px !important;
-                    right: 12px !important;
-                    width: 28px !important;
-                    height: 28px !important;
-                    border-radius: 50% !important;
-                    background: rgba(255, 255, 255, 0.1) !important;
-                    border: none !important;
-                    cursor: pointer !important;
-                    display: flex !important;
-                    align-items: center !important;
-                    justify-content: center !important;
-                    color: rgba(255, 255, 255, 0.8) !important;
-                    opacity: 1 !important;
-                    visibility: visible !important;
-                    z-index: 9999 !important;
-                    transition: all 0.2s ease !important;
-                " onmouseover="this.style.background='rgba(255, 255, 255, 0.2)'; this.style.color='rgba(255, 255, 255, 1)'; this.style.opacity='1'; this.style.visibility='visible'" onmouseout="this.style.background='rgba(255, 255, 255, 0.1)'; this.style.color='rgba(255, 255, 255, 0.8)'; this.style.opacity='1'; this.style.visibility='visible'">
-                    <svg style="width: 16px !important; height: 16px !important;" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M6 18L18 6M6 6l12 12"/>
-                    </svg>
-                </button>
+
             </div>
         `;
 
@@ -946,13 +808,10 @@ document.addEventListener('DOMContentLoaded', function() {
         container.appendChild(notification);
         console.log('大型成功通知已添加到容器:', notification);
 
-        // 添加关闭事件
-        const closeBtn = notification.querySelector('.close-btn');
-        if (closeBtn) {
-            closeBtn.addEventListener('click', () => {
-                hideNotification(notificationId);
-            });
-        }
+        // 大型通知将在10秒后自动消失
+        setTimeout(() => {
+            hideNotification(notificationId);
+        }, 10000);
 
         // 添加操作按钮事件
         const actionButtons = notification.querySelectorAll('[data-action]');
@@ -975,8 +834,6 @@ document.addEventListener('DOMContentLoaded', function() {
             notification.style.opacity = '1';
             notification.classList.add('show');
 
-            // 强制确保关闭按钮可见
-            forceShowCloseButton(notification);
         }, 50);
 
         // 10秒后自动消失
