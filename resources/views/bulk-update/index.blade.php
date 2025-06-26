@@ -151,6 +151,7 @@
                 <div>按钮可见性: <span id="debug-btn-visibility" class="font-mono">检查中...</span></div>
                 <div>文件选择状态: <span id="debug-file-status" class="font-mono">未选择</span></div>
                 <div class="mt-2">
+                    <button onclick="window.testSimpleNotification()" class="bg-red-500 text-white px-3 py-1 rounded text-xs mr-2">简单测试</button>
                     <button onclick="window.testNotification()" class="bg-blue-500 text-white px-3 py-1 rounded text-xs mr-2">测试通知</button>
                     <button onclick="window.testSuccessNotification()" class="bg-green-500 text-white px-3 py-1 rounded text-xs mr-2">测试成功通知</button>
                     <button onclick="window.debugButtonStatus()" class="bg-yellow-500 text-white px-3 py-1 rounded text-xs">刷新状态</button>
@@ -175,24 +176,27 @@
     display: flex;
     flex-direction: column-reverse;
     gap: 0.75rem;
+    z-index: 9999 !important;
 }
 
 /* 通知项样式 */
 .notification-item {
-    pointer-events: auto;
-    transform: translateX(100%);
-    opacity: 0;
-    transition: all 0.3s ease-in-out;
+    pointer-events: auto !important;
+    transform: translateX(100%) !important;
+    opacity: 0 !important;
+    transition: all 0.3s ease-in-out !important;
+    position: relative !important;
+    z-index: 10000 !important;
 }
 
 .notification-item.show {
-    transform: translateX(0);
-    opacity: 1;
+    transform: translateX(0) !important;
+    opacity: 1 !important;
 }
 
 .notification-item.hide {
-    transform: translateX(100%);
-    opacity: 0;
+    transform: translateX(100%) !important;
+    opacity: 0 !important;
 }
 
 /* 按钮样式确保显示 */
@@ -479,6 +483,13 @@ document.addEventListener('DOMContentLoaded', function() {
         notification.id = notificationId;
         notification.className = 'notification-item bg-white border border-gray-200 rounded-lg shadow-lg p-4 w-80 mb-3';
 
+        // 确保初始状态
+        notification.style.transform = 'translateX(100%)';
+        notification.style.opacity = '0';
+        notification.style.position = 'relative';
+        notification.style.zIndex = '10000';
+        notification.style.pointerEvents = 'auto';
+
         const iconColors = {
             success: 'text-green-600 bg-green-100',
             error: 'text-red-600 bg-red-100',
@@ -522,12 +533,15 @@ document.addEventListener('DOMContentLoaded', function() {
 
         // 添加到容器
         container.appendChild(notification);
+        console.log('通知已添加到容器:', notification);
 
         // 添加关闭事件
         const closeBtn = notification.querySelector('.close-btn');
-        closeBtn.addEventListener('click', () => {
-            hideNotification(notificationId);
-        });
+        if (closeBtn) {
+            closeBtn.addEventListener('click', () => {
+                hideNotification(notificationId);
+            });
+        }
 
         // 添加操作按钮事件
         const actionButtons = notification.querySelectorAll('[data-action]');
@@ -543,10 +557,13 @@ document.addEventListener('DOMContentLoaded', function() {
             });
         });
 
-        // 显示动画
+        // 强制显示动画
         setTimeout(() => {
+            console.log('开始显示动画');
+            notification.style.transform = 'translateX(0)';
+            notification.style.opacity = '1';
             notification.classList.add('show');
-        }, 100);
+        }, 50);
 
         // 自动消失（除非有操作按钮）
         if (actions.length === 0) {
@@ -559,12 +576,16 @@ document.addEventListener('DOMContentLoaded', function() {
     }
 
     function hideNotification(notificationId) {
+        console.log('隐藏通知:', notificationId);
         const notification = document.getElementById(notificationId);
         if (notification) {
+            notification.style.transform = 'translateX(100%)';
+            notification.style.opacity = '0';
             notification.classList.add('hide');
             setTimeout(() => {
                 if (notification.parentNode) {
                     notification.parentNode.removeChild(notification);
+                    console.log('通知已移除:', notificationId);
                 }
             }, 300);
         }
@@ -664,6 +685,13 @@ document.addEventListener('DOMContentLoaded', function() {
         notification.id = notificationId;
         notification.className = 'notification-item bg-gradient-to-r from-green-500 to-blue-600 border-0 rounded-xl shadow-2xl p-6 w-96 mb-4 text-white';
 
+        // 确保初始状态
+        notification.style.transform = 'translateX(100%)';
+        notification.style.opacity = '0';
+        notification.style.position = 'relative';
+        notification.style.zIndex = '10001';
+        notification.style.pointerEvents = 'auto';
+
         let actionsHtml = '';
         if (actions.length > 0) {
             actionsHtml = '<div class="mt-4 flex space-x-3 justify-center">';
@@ -695,12 +723,15 @@ document.addEventListener('DOMContentLoaded', function() {
 
         // 添加到容器
         container.appendChild(notification);
+        console.log('大型成功通知已添加到容器:', notification);
 
         // 添加关闭事件
         const closeBtn = notification.querySelector('.close-btn');
-        closeBtn.addEventListener('click', () => {
-            hideNotification(notificationId);
-        });
+        if (closeBtn) {
+            closeBtn.addEventListener('click', () => {
+                hideNotification(notificationId);
+            });
+        }
 
         // 添加操作按钮事件
         const actionButtons = notification.querySelectorAll('[data-action]');
@@ -716,10 +747,13 @@ document.addEventListener('DOMContentLoaded', function() {
             });
         });
 
-        // 显示动画
+        // 强制显示动画
         setTimeout(() => {
+            console.log('开始显示大型成功通知动画');
+            notification.style.transform = 'translateX(0)';
+            notification.style.opacity = '1';
             notification.classList.add('show');
-        }, 100);
+        }, 50);
 
         // 10秒后自动消失
         setTimeout(() => {
@@ -848,6 +882,9 @@ document.addEventListener('DOMContentLoaded', function() {
     // 测试函数
     function testNotification() {
         console.log('测试通知显示');
+        const container = document.getElementById('notification-container');
+        console.log('通知容器:', container);
+        console.log('容器样式:', window.getComputedStyle(container));
         showNotification('success', '测试通知', '这是一个测试通知，用于验证通知系统是否正常工作');
     }
 
@@ -860,6 +897,38 @@ document.addEventListener('DOMContentLoaded', function() {
         showSuccessNotification(mockTask);
     }
 
+    function testSimpleNotification() {
+        console.log('测试简单通知');
+        const container = document.getElementById('notification-container');
+        if (!container) {
+            console.error('通知容器不存在!');
+            return;
+        }
+
+        const testDiv = document.createElement('div');
+        testDiv.innerHTML = '简单测试通知';
+        testDiv.style.cssText = `
+            background: red;
+            color: white;
+            padding: 20px;
+            border-radius: 8px;
+            margin-bottom: 10px;
+            position: relative;
+            z-index: 10000;
+            pointer-events: auto;
+        `;
+
+        container.appendChild(testDiv);
+        console.log('简单测试通知已添加');
+
+        setTimeout(() => {
+            if (testDiv.parentNode) {
+                testDiv.parentNode.removeChild(testDiv);
+                console.log('简单测试通知已移除');
+            }
+        }, 3000);
+    }
+
     // 将函数暴露到全局作用域
     window.downloadReport = downloadReport;
     window.startNewTask = startNewTask;
@@ -867,6 +936,7 @@ document.addEventListener('DOMContentLoaded', function() {
     window.hideNotification = hideNotification;
     window.testNotification = testNotification;
     window.testSuccessNotification = testSuccessNotification;
+    window.testSimpleNotification = testSimpleNotification;
     window.debugButtonStatus = debugButtonStatus;
     window.updateDebugPanel = updateDebugPanel;
 
