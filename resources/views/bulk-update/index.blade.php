@@ -23,6 +23,28 @@
     opacity: 1 !important;
     visibility: visible !important;
 }
+
+/* 超强制样式确保关闭按钮显示 */
+button.close-btn,
+.close-btn,
+[class*="close-btn"] {
+    opacity: 1 !important;
+    visibility: visible !important;
+    display: flex !important;
+    position: absolute !important;
+    z-index: 999999 !important;
+    pointer-events: auto !important;
+}
+
+/* 覆盖任何可能的隐藏样式 */
+.notification-item button.close-btn,
+.notification-item .close-btn,
+div[id*="notification"] button.close-btn,
+div[id*="notification"] .close-btn {
+    opacity: 1 !important;
+    visibility: visible !important;
+    display: flex !important;
+}
 </style>
 <div class="min-h-screen bg-gray-50 py-8">
     <div class="max-w-2xl mx-auto px-4">
@@ -543,6 +565,55 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     });
 
+    // 强制显示关闭按钮的函数
+    function forceShowCloseButton(notification) {
+        const closeBtn = notification.querySelector('.close-btn');
+        if (closeBtn) {
+            // 使用最强制的方式设置样式
+            const forceStyles = {
+                'opacity': '1',
+                'visibility': 'visible',
+                'display': 'flex',
+                'position': 'absolute',
+                'z-index': '999999',
+                'pointer-events': 'auto'
+            };
+
+            Object.keys(forceStyles).forEach(prop => {
+                closeBtn.style.setProperty(prop, forceStyles[prop], 'important');
+            });
+
+            console.log('🔧 强制设置关闭按钮样式:', {
+                element: closeBtn,
+                computedStyles: window.getComputedStyle(closeBtn),
+                inlineStyles: closeBtn.style.cssText
+            });
+        }
+    }
+
+    // 全局检查和修复关闭按钮显示
+    function fixAllCloseButtons() {
+        const allCloseButtons = document.querySelectorAll('.close-btn');
+        console.log('🔍 检查所有关闭按钮:', allCloseButtons.length);
+
+        allCloseButtons.forEach((btn, index) => {
+            const computedStyle = window.getComputedStyle(btn);
+            console.log(`按钮 ${index}:`, {
+                opacity: computedStyle.opacity,
+                visibility: computedStyle.visibility,
+                display: computedStyle.display
+            });
+
+            // 强制设置可见
+            btn.style.setProperty('opacity', '1', 'important');
+            btn.style.setProperty('visibility', 'visible', 'important');
+            btn.style.setProperty('display', 'flex', 'important');
+        });
+    }
+
+    // 定期检查关闭按钮
+    setInterval(fixAllCloseButtons, 1000);
+
     // 完全重写的通知系统
     function showNotification(type, title, message, actions = []) {
         console.log('🔔 显示通知:', type, title, message);
@@ -647,6 +718,19 @@ document.addEventListener('DOMContentLoaded', function() {
         // 添加关闭事件
         const closeBtn = notification.querySelector('.close-btn');
         if (closeBtn) {
+            // 强制确保按钮可见
+            closeBtn.style.setProperty('opacity', '1', 'important');
+            closeBtn.style.setProperty('visibility', 'visible', 'important');
+            closeBtn.style.setProperty('display', 'flex', 'important');
+            closeBtn.style.setProperty('z-index', '99999', 'important');
+
+            console.log('🔍 关闭按钮样式检查:', {
+                opacity: window.getComputedStyle(closeBtn).opacity,
+                visibility: window.getComputedStyle(closeBtn).visibility,
+                display: window.getComputedStyle(closeBtn).display,
+                zIndex: window.getComputedStyle(closeBtn).zIndex
+            });
+
             closeBtn.addEventListener('click', () => {
                 console.log('🔴 点击关闭按钮');
                 hideNotification(notificationId);
@@ -677,6 +761,9 @@ document.addEventListener('DOMContentLoaded', function() {
             notification.style.opacity = '1 !important';
             notification.style.animation = 'slideInRight 0.4s ease-out forwards !important';
             notification.classList.add('show');
+
+            // 强制确保关闭按钮可见
+            forceShowCloseButton(notification);
             console.log('✨ 动画已触发');
         }, 50);
 
@@ -887,6 +974,9 @@ document.addEventListener('DOMContentLoaded', function() {
             notification.style.transform = 'translateX(0)';
             notification.style.opacity = '1';
             notification.classList.add('show');
+
+            // 强制确保关闭按钮可见
+            forceShowCloseButton(notification);
         }, 50);
 
         // 10秒后自动消失
