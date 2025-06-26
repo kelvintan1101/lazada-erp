@@ -16,6 +16,29 @@
 .notification-item {
     transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1) !important;
 }
+
+/* 淡出动画 */
+@keyframes fadeOut {
+    0% {
+        opacity: 1;
+        transform: translateX(0) scale(1);
+        filter: blur(0px);
+    }
+    50% {
+        opacity: 0.5;
+        transform: translateX(25px) scale(0.98);
+        filter: blur(0.5px);
+    }
+    100% {
+        opacity: 0;
+        transform: translateX(50px) scale(0.95);
+        filter: blur(1px);
+    }
+}
+
+.notification-item.hide {
+    animation: fadeOut 2s cubic-bezier(0.4, 0, 0.2, 1) forwards;
+}
 </style>
 <div class="min-h-screen bg-gray-50 py-8">
     <div class="max-w-2xl mx-auto px-4">
@@ -617,10 +640,10 @@ document.addEventListener('DOMContentLoaded', function() {
         console.log('📍 容器位置:', container.getBoundingClientRect());
         console.log('📍 通知位置:', notification.getBoundingClientRect());
 
-        // 通知将自动在5秒后消失
+        // 通知将自动在6秒后开始淡出消失
         setTimeout(() => {
             hideNotification(notificationId);
-        }, 5000);
+        }, 6000);
 
 
 
@@ -662,19 +685,19 @@ document.addEventListener('DOMContentLoaded', function() {
     }
 
     function hideNotification(notificationId) {
-        console.log('隐藏通知:', notificationId);
+        console.log('🌅 开始优雅淡出通知:', notificationId);
         const notification = document.getElementById(notificationId);
         if (notification) {
-            notification.style.animation = 'slideOutRight 0.3s ease-in forwards !important';
-            notification.style.transform = 'translateX(100%)';
-            notification.style.opacity = '0';
+            // 添加淡出CSS类，触发动画
             notification.classList.add('hide');
+
+            console.log('🎭 淡出动画已开始，2秒后优雅移除');
             setTimeout(() => {
                 if (notification.parentNode) {
                     notification.parentNode.removeChild(notification);
-                    console.log('通知已移除:', notificationId);
+                    console.log('✨ 通知已优雅移除:', notificationId);
                 }
-            }, 300);
+            }, 2000); // 2秒的淡出时间，与CSS动画同步
         }
     }
 
@@ -808,10 +831,10 @@ document.addEventListener('DOMContentLoaded', function() {
         container.appendChild(notification);
         console.log('大型成功通知已添加到容器:', notification);
 
-        // 大型通知将在10秒后自动消失
+        // 大型通知将在8秒后开始淡出消失
         setTimeout(() => {
             hideNotification(notificationId);
-        }, 10000);
+        }, 8000);
 
         // 添加操作按钮事件
         const actionButtons = notification.querySelectorAll('[data-action]');
