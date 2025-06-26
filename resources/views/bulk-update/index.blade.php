@@ -271,8 +271,23 @@ document.addEventListener('DOMContentLoaded', function() {
             if (data.success) {
                 currentTaskId = data.task_id;
                 showTaskInfo(data);
+                
+                // 直接自动执行任务，不显示确认页面
                 document.getElementById('upload-section').classList.add('hidden');
-                document.getElementById('task-section').classList.remove('hidden');
+                document.getElementById('progress-section').classList.remove('hidden');
+                
+                // 显示任务开始信息
+                updateProgressDisplay({
+                    status: 'pending',
+                    progress_percentage: 0,
+                    total_items: data.total_items,
+                    processed_items: 0,
+                    successful_items: 0,
+                    failed_items: 0
+                });
+                
+                // 自动执行任务
+                executeTaskAutomatically();
             } else {
                 alert('上传失败: ' + (data.message || '未知错误'));
             }
@@ -330,7 +345,76 @@ document.addEventListener('DOMContentLoaded', function() {
         }
     }
 
-    // 执行任务
+    // 更新进度显示函数
+    function updateProgressDisplay(task) {
+        const progressBar = document.getElementById('progress-bar');
+        const progressText = document.getElementById('progress-text');
+        const totalCount = document.getElementById('total-count');
+        const successCount = document.getElementById('success-count');
+        const failedCount = document.getElementById('failed-count');
+        const statusMessage = document.getElementById('status-message');
+
+        const percentage = task.progress_percentage || 0;
+        progressBar.style.width = percentage + '%';
+        progressText.textContent = percentage + '%';
+        
+        totalCount.textContent = task.total_items;
+        successCount.textContent = task.successful_items;
+        failedCount.textContent = task.failed_items;
+
+        let status = '';
+        switch (task.status) {
+            case 'pending':
+                status = '等待开始...';
+                break;
+            case 'processing':
+                status = `正在处理... (${task.processed_items}/${task.total_items})`;
+                break;
+            case 'completed':
+                status = '更新完成！';
+                break;
+            case 'failed':
+                status = '任务失败';
+                break;
+        }
+        statusMessage.textContent = status;
+    }
+
+    // 自动执行任务函数
+    function executeTaskAutomatically() {
+        console.log('自动执行任务，任务ID:', currentTaskId);
+        
+        fetch('/bulk-update/execute', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRF-TOKEN': csrfToken.getAttribute('content'),
+                'Accept': 'application/json'
+            },
+            body: JSON.stringify({ task_id: currentTaskId })
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                console.log('任务自动启动成功');
+                startProgressMonitoring();
+            } else {
+                alert('自动启动失败: ' + data.message);
+                // 如果自动启动失败，显示任务确认页面
+                document.getElementById('progress-section').classList.add('hidden');
+                document.getElementById('task-section').classList.remove('hidden');
+            }
+        })
+        .catch(error => {
+            console.error('自动启动错误:', error);
+            alert('自动启动失败，请手动执行');
+            // 如果自动启动失败，显示任务确认页面
+            document.getElementById('progress-section').classList.add('hidden');
+            document.getElementById('task-section').classList.remove('hidden');
+        });
+    }
+
+    // 执行任务（手动触发，作为备用）
     executeBtn.addEventListener('click', function() {
         executeBtn.disabled = true;
         executeBtn.textContent = '启动中...';
@@ -387,40 +471,6 @@ document.addEventListener('DOMContentLoaded', function() {
         .catch(error => {
             console.error('Error:', error);
         });
-    }
-
-    function updateProgressDisplay(task) {
-        const progressBar = document.getElementById('progress-bar');
-        const progressText = document.getElementById('progress-text');
-        const totalCount = document.getElementById('total-count');
-        const successCount = document.getElementById('success-count');
-        const failedCount = document.getElementById('failed-count');
-        const statusMessage = document.getElementById('status-message');
-
-        const percentage = task.progress_percentage || 0;
-        progressBar.style.width = percentage + '%';
-        progressText.textContent = percentage + '%';
-        
-        totalCount.textContent = task.total_items;
-        successCount.textContent = task.successful_items;
-        failedCount.textContent = task.failed_items;
-
-        let status = '';
-        switch (task.status) {
-            case 'pending':
-                status = '等待开始...';
-                break;
-            case 'processing':
-                status = `正在处理... (${task.processed_items}/${task.total_items})`;
-                break;
-            case 'completed':
-                status = '更新完成！';
-                break;
-            case 'failed':
-                status = '任务失败';
-                break;
-        }
-        statusMessage.textContent = status;
     }
 
     function showCompletedActions() {
