@@ -83,23 +83,23 @@
         </div>
 
         <!-- 进度显示区域 - 重新设计更人性化 -->
-        <div id="progress-section" class="bg-gradient-to-br from-white to-gray-50 rounded-2xl shadow-lg p-8 hidden">
-            <div class="text-center mb-8">
-                <h2 class="text-2xl font-bold text-gray-800 mb-2">更新进度</h2>
-                <p class="text-gray-600">正在为您处理产品信息，请稍候...</p>
+        <div id="progress-section" class="bg-gradient-to-br from-white to-gray-50 rounded-2xl shadow-lg p-6 hidden">
+            <div class="text-center mb-4">
+                <h2 id="progress-title" class="text-xl font-bold text-gray-800 mb-1">更新进度</h2>
+                <p id="progress-subtitle" class="text-sm text-gray-600">正在为您处理产品信息，请稍候...</p>
             </div>
             
             <!-- 圆形进度条 -->
             <div class="flex justify-center mb-6">
-                <div class="relative w-28 h-28">
-                    <svg class="w-28 h-28 transform -rotate-90" viewBox="0 0 100 100">
+                <div class="relative w-24 h-24 mx-auto">
+                    <svg class="w-full h-full transform -rotate-90" viewBox="0 0 100 100">
                         <!-- 背景圆环 -->
                         <circle
                             cx="50"
                             cy="50"
-                            r="40"
+                            r="35"
                             stroke="#e5e7eb"
-                            stroke-width="8"
+                            stroke-width="6"
                             fill="none"
                         />
                         <!-- 进度圆环 -->
@@ -107,13 +107,13 @@
                             id="progress-circle"
                             cx="50"
                             cy="50"
-                            r="40"
+                            r="35"
                             stroke="url(#progressGradient)"
-                            stroke-width="8"
+                            stroke-width="6"
                             fill="none"
                             stroke-linecap="round"
-                            stroke-dasharray="251.2"
-                            stroke-dashoffset="251.2"
+                            stroke-dasharray="219.8"
+                            stroke-dashoffset="219.8"
                             class="transition-all duration-500 ease-out"
                         />
                         <!-- 渐变定义 -->
@@ -125,10 +125,10 @@
                         </defs>
                     </svg>
                     <!-- 百分比显示 -->
-                    <div class="absolute inset-0 flex items-center justify-center">
-                        <div class="text-center px-1">
-                            <div id="progress-percentage" class="text-xl font-bold text-gray-800 leading-tight">0%</div>
-                            <div class="text-xs text-gray-500 leading-tight">完成</div>
+                    <div class="absolute inset-0 flex items-center justify-center p-1">
+                        <div class="text-center">
+                            <div id="progress-percentage" class="text-lg font-bold text-gray-800 leading-none mb-0.5">0%</div>
+                            <div class="text-xs text-gray-500 leading-none">完成</div>
                         </div>
                     </div>
                 </div>
@@ -436,7 +436,7 @@ document.addEventListener('DOMContentLoaded', function() {
     // 更新圆形进度条
     function updateCircularProgress(percentage) {
         const circle = document.getElementById('progress-circle');
-        const circumference = 2 * Math.PI * 40; // r = 40
+        const circumference = 2 * Math.PI * 35; // r = 35
         const offset = circumference - (percentage / 100) * circumference;
         circle.style.strokeDashoffset = offset;
         
@@ -490,6 +490,8 @@ document.addEventListener('DOMContentLoaded', function() {
         const totalCount = document.getElementById('total-count');
         const successCount = document.getElementById('success-count');
         const failedCount = document.getElementById('failed-count');
+        const progressTitle = document.getElementById('progress-title');
+        const progressSubtitle = document.getElementById('progress-subtitle');
         const statusMessage = document.getElementById('status-message');
         const statusDetail = document.getElementById('status-detail');
 
@@ -504,15 +506,20 @@ document.addEventListener('DOMContentLoaded', function() {
 
         let status = '';
         let detail = '';
+        
         switch (task.status) {
             case 'pending':
                 status = '准备开始处理';
                 detail = '系统正在初始化处理流程';
+                if (progressTitle) progressTitle.textContent = '准备更新';
+                if (progressSubtitle) progressSubtitle.textContent = '系统正在初始化处理流程...';
                 addLogMessage('任务已创建，准备开始处理...', 'info');
                 break;
             case 'processing':
                 status = `正在处理中... (${task.processed_items}/${task.total_items})`;
                 detail = `已完成 ${task.successful_items} 个，失败 ${task.failed_items} 个`;
+                if (progressTitle) progressTitle.textContent = `更新进度 - ${percentage}%`;
+                if (progressSubtitle) progressSubtitle.textContent = `正在处理第 ${task.processed_items} / ${task.total_items} 个产品`;
                 if (task.processed_items > 0) {
                     addLogMessage(`处理进度：${task.processed_items}/${task.total_items}`, 'info');
                 }
@@ -520,14 +527,19 @@ document.addEventListener('DOMContentLoaded', function() {
             case 'completed':
                 status = '更新完成！';
                 detail = `成功处理 ${task.successful_items} 个产品，失败 ${task.failed_items} 个`;
+                if (progressTitle) progressTitle.textContent = '更新完成';
+                if (progressSubtitle) progressSubtitle.textContent = `已成功处理 ${task.successful_items} 个产品，失败 ${task.failed_items} 个`;
                 addLogMessage('所有产品处理完成！', 'success');
                 break;
             case 'failed':
                 status = '任务失败';
                 detail = '处理过程中遇到错误，请查看日志';
+                if (progressTitle) progressTitle.textContent = '更新失败';
+                if (progressSubtitle) progressSubtitle.textContent = '处理过程中遇到错误，请查看详细日志';
                 addLogMessage('任务执行失败，请检查错误信息', 'error');
                 break;
         }
+        
         statusMessage.textContent = status;
         statusDetail.textContent = detail;
     }
