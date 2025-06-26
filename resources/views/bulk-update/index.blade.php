@@ -3,6 +3,27 @@
 @section('title', '批量更新产品标题')
 
 @section('content')
+<style>
+/* 确保通知关闭按钮始终显示 */
+.close-btn {
+    opacity: 1 !important;
+    visibility: visible !important;
+    display: flex !important;
+    z-index: 9999 !important;
+}
+
+/* 防止任何悬停状态隐藏按钮 */
+.close-btn:hover {
+    opacity: 1 !important;
+    visibility: visible !important;
+}
+
+/* 通知容器确保不会隐藏子元素 */
+.notification-content .close-btn {
+    opacity: 1 !important;
+    visibility: visible !important;
+}
+</style>
 <div class="min-h-screen bg-gray-50 py-8">
     <div class="max-w-2xl mx-auto px-4">
 
@@ -606,8 +627,10 @@ document.addEventListener('DOMContentLoaded', function() {
                     justify-content: center !important;
                     color: #6b7280 !important;
                     opacity: 1 !important;
+                    visibility: visible !important;
+                    z-index: 9999 !important;
                     transition: all 0.2s ease !important;
-                " onmouseover="this.style.background='rgba(107, 114, 128, 0.2)'; this.style.color='#374151'" onmouseout="this.style.background='rgba(107, 114, 128, 0.1)'; this.style.color='#6b7280'">
+                " onmouseover="this.style.background='rgba(107, 114, 128, 0.2)'; this.style.color='#374151'; this.style.opacity='1'; this.style.visibility='visible'" onmouseout="this.style.background='rgba(107, 114, 128, 0.1)'; this.style.color='#6b7280'; this.style.opacity='1'; this.style.visibility='visible'">
                     <svg style="width: 14px !important; height: 14px !important;" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
                     </svg>
@@ -818,8 +841,11 @@ document.addEventListener('DOMContentLoaded', function() {
                     align-items: center !important;
                     justify-content: center !important;
                     color: rgba(255, 255, 255, 0.8) !important;
+                    opacity: 1 !important;
+                    visibility: visible !important;
+                    z-index: 9999 !important;
                     transition: all 0.2s ease !important;
-                " onmouseover="this.style.background='rgba(255, 255, 255, 0.2)'; this.style.color='rgba(255, 255, 255, 1)'" onmouseout="this.style.background='rgba(255, 255, 255, 0.1)'; this.style.color='rgba(255, 255, 255, 0.8)'">
+                " onmouseover="this.style.background='rgba(255, 255, 255, 0.2)'; this.style.color='rgba(255, 255, 255, 1)'; this.style.opacity='1'; this.style.visibility='visible'" onmouseout="this.style.background='rgba(255, 255, 255, 0.1)'; this.style.color='rgba(255, 255, 255, 0.8)'; this.style.opacity='1'; this.style.visibility='visible'">
                     <svg style="width: 16px !important; height: 16px !important;" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M6 18L18 6M6 6l12 12"/>
                     </svg>
