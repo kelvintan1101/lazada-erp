@@ -286,36 +286,87 @@ class ExcelProcessingService
             }
 
             $fullPath = Storage::path($filePath);
-            $fileExtension = pathinfo($fullPath, PATHINFO_EXTENSION);
+            $fileExtension = strtolower(pathinfo($fullPath, PATHINFO_EXTENSION));
             
-            if (!in_array(strtolower($fileExtension), ['xlsx', 'xls', 'csv'])) {
+            if (!in_array($fileExtension, ['xlsx', 'xls', 'csv'])) {
                 return [
                     'valid' => false,
                     'message' => '不支持的文件格式。请上传Excel文件（.xlsx, .xls）或CSV文件。'
                 ];
             }
 
-            // 尝试读取文件
-            $spreadsheet = IOFactory::load($fullPath);
-            $worksheet = $spreadsheet->getActiveSheet();
-            
-            // 检查是否有数据
-            if ($worksheet->getHighestRow() < 2) {
-                return [
-                    'valid' => false,
-                    'message' => '文件中没有数据行'
-                ];
+            // 对于CSV文件，使用简单的验证
+            if ($fileExtension === 'csv') {
+                return $this->validateCsvFile($fullPath);
             }
 
-            return [
-                'valid' => true,
-                'message' => '文件格式正确'
-            ];
+            // 对于Excel文件，尝试使用PhpSpreadsheet
+            try {
+                $spreadsheet = IOFactory::load($fullPath);
+                $worksheet = $spreadsheet->getActiveSheet();
+                
+                // 检查是否有数据
+                if ($worksheet->getHighestRow() < 2) {
+                    return [
+                        'valid' => false,
+                        'message' => '文件中没有数据行'
+                    ];
+                }
+
+                return [
+                    'valid' => true,
+                    'message' => '文件格式正确'
+                ];
+            } catch (\Exception $e) {
+                return [
+                    'valid' => false,
+                    'message' => 'Excel文件验证失败：' . $e->getMessage() . '。请确保PhpSpreadsheet包已正确安装。'
+                ];
+            }
 
         } catch (\Exception $e) {
             return [
                 'valid' => false,
                 'message' => '文件验证失败：' . $e->getMessage()
+            ];
+        }
+    }
+
+    private function validateCsvFile($fullPath)
+    {
+        try {
+            if (!is_readable($fullPath)) {
+                return [
+                    'valid' => false,
+                    'message' => 'CSV文件不可读'
+                ];
+            }
+
+            $rowCount = 0;
+            if (($handle = fopen($fullPath, 'r')) !== FALSE) {
+                while (($data = fgetcsv($handle, 1000, ',')) !== FALSE) {
+                    $rowCount++;
+                    if ($rowCount >= 2) break; // 只需要检查是否有表头和至少一行数据
+                }
+                fclose($handle);
+            }
+
+            if ($rowCount < 2) {
+                return [
+                    'valid' => false,
+                    'message' => 'CSV文件中没有数据行'
+                ];
+            }
+
+            return [
+                'valid' => true,
+                'message' => 'CSV文件格式正确'
+            ];
+
+        } catch (\Exception $e) {
+            return [
+                'valid' => false,
+                'message' => 'CSV文件验证失败：' . $e->getMessage()
             ];
         }
     }
