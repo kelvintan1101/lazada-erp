@@ -53,7 +53,7 @@
             </div>
 
             <!-- 上传按钮 -->
-            <button id="upload-btn" class="mt-6 w-full bg-blue-600 hover:bg-blue-700 disabled:bg-gray-300 disabled:cursor-not-allowed text-white py-3 px-6 rounded-xl font-semibold transition-all duration-200 shadow-sm">
+            <button id="upload-btn" class="mt-6 w-full bg-blue-600 hover:bg-blue-700 disabled:bg-gray-300 disabled:cursor-not-allowed text-white py-3 px-6 rounded-xl font-semibold transition-all duration-200 shadow-sm" disabled>
                 <span id="upload-btn-text">开始上传并更新</span>
             </button>
         </div>
@@ -139,7 +139,7 @@
 </div>
 
 <!-- 通知系统 -->
-<div id="notification-container" class="fixed top-4 right-4 z-50 space-y-3 pointer-events-none">
+<div id="notification-container" class="fixed bottom-4 right-4 z-50 space-y-3 pointer-events-none">
     <!-- 通知将在这里动态创建 -->
 </div>
 @endsection
@@ -149,14 +149,17 @@
 #notification-container {
     max-height: calc(100vh - 2rem);
     overflow: visible;
+    display: flex;
+    flex-direction: column-reverse;
 }
 
 .notification-item {
-    margin-bottom: 0.75rem !important;
+    margin-top: 0.75rem !important;
+    margin-bottom: 0 !important;
 }
 
-.notification-item:last-child {
-    margin-bottom: 0 !important;
+.notification-item:first-child {
+    margin-top: 0 !important;
 }
 </style>
 @endpush
