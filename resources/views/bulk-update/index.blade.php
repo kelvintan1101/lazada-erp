@@ -580,19 +580,34 @@ document.addEventListener('DOMContentLoaded', function() {
         }
 
         notification.innerHTML = `
-            <div class="flex items-start" style="color: #1f2937 !important;">
-                <div class="w-10 h-10 rounded-full flex items-center justify-center ${iconColors[type]} mr-4 flex-shrink-0">
-                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <div class="flex items-start" style="color: #1f2937 !important; position: relative;">
+                <div class="w-8 h-8 rounded-full flex items-center justify-center ${iconColors[type]} mr-3 flex-shrink-0" style="margin-top: 2px;">
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" style="stroke-width: 2.5;">
                         ${icons[type]}
                     </svg>
                 </div>
-                <div class="flex-1 min-w-0">
+                <div class="flex-1 min-w-0" style="padding-right: 30px;">
                     <h4 style="color: #111827 !important; font-size: 16px !important; font-weight: bold !important; margin-bottom: 4px !important;">${title}</h4>
                     <p style="color: #374151 !important; font-size: 14px !important; line-height: 1.5 !important;">${message}</p>
                     ${actionsHtml}
                 </div>
-                <button class="close-btn ml-3 flex-shrink-0 p-1 rounded-full transition-colors" style="color: #6b7280 !important;" onmouseover="this.style.color='#1f2937'" onmouseout="this.style.color='#6b7280'">
-                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <button class="close-btn" style="
+                    position: absolute !important;
+                    top: 8px !important;
+                    right: 8px !important;
+                    width: 24px !important;
+                    height: 24px !important;
+                    border-radius: 50% !important;
+                    background: rgba(107, 114, 128, 0.1) !important;
+                    border: none !important;
+                    cursor: pointer !important;
+                    display: flex !important;
+                    align-items: center !important;
+                    justify-content: center !important;
+                    color: #6b7280 !important;
+                    transition: all 0.2s ease !important;
+                " onmouseover="this.style.background='rgba(107, 114, 128, 0.2)'; this.style.color='#374151'" onmouseout="this.style.background='rgba(107, 114, 128, 0.1)'; this.style.color='#6b7280'">
+                    <svg style="width: 14px !important; height: 14px !important;" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
                     </svg>
                 </button>
@@ -777,18 +792,33 @@ document.addEventListener('DOMContentLoaded', function() {
         }
 
         notification.innerHTML = `
-            <div class="text-center">
-                <div class="w-16 h-16 bg-white bg-opacity-20 rounded-full flex items-center justify-center mx-auto mb-4">
-                    <svg class="w-8 h-8 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/>
+            <div class="text-center" style="position: relative;">
+                <div class="w-12 h-12 bg-white bg-opacity-20 rounded-full flex items-center justify-center mx-auto mb-4">
+                    <svg class="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24" style="stroke-width: 3;">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M5 13l4 4L19 7"/>
                     </svg>
                 </div>
                 <h3 class="text-xl font-bold mb-2">${title}</h3>
                 <p class="text-white text-opacity-90 mb-2">${message}</p>
                 ${actionsHtml}
-                <button class="close-btn absolute top-2 right-2 text-white text-opacity-70 hover:text-opacity-100 p-1">
-                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
+                <button class="close-btn" style="
+                    position: absolute !important;
+                    top: 12px !important;
+                    right: 12px !important;
+                    width: 28px !important;
+                    height: 28px !important;
+                    border-radius: 50% !important;
+                    background: rgba(255, 255, 255, 0.1) !important;
+                    border: none !important;
+                    cursor: pointer !important;
+                    display: flex !important;
+                    align-items: center !important;
+                    justify-content: center !important;
+                    color: rgba(255, 255, 255, 0.8) !important;
+                    transition: all 0.2s ease !important;
+                " onmouseover="this.style.background='rgba(255, 255, 255, 0.2)'; this.style.color='rgba(255, 255, 255, 1)'" onmouseout="this.style.background='rgba(255, 255, 255, 0.1)'; this.style.color='rgba(255, 255, 255, 0.8)'">
+                    <svg style="width: 16px !important; height: 16px !important;" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M6 18L18 6M6 6l12 12"/>
                     </svg>
                 </button>
             </div>
