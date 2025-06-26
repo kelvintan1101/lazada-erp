@@ -7,23 +7,8 @@
     <div class="max-w-4xl mx-auto">
         <h1 class="text-3xl font-bold text-gray-900 mb-8">批量更新产品标题</h1>
         
-        <!-- Lazada授权状态检查 -->
-        <div id="lazada-status-section" class="bg-white rounded-lg shadow-md p-6 mb-6">
-            <h2 class="text-xl font-semibold text-gray-800 mb-4">系统状态检查</h2>
-            <div id="lazada-status" class="flex items-center p-4 rounded-lg">
-                <div class="animate-spin mr-3">
-                    <svg class="w-5 h-5 text-blue-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <circle cx="12" cy="12" r="10" stroke="currentColor" stroke-width="2" fill="none" stroke-dasharray="32" stroke-dashoffset="32">
-                            <animate attributeName="stroke-dashoffset" dur="1s" values="32;0" repeatCount="indefinite"/>
-                        </circle>
-                    </svg>
-                </div>
-                <span class="text-gray-600">正在检查Lazada授权状态...</span>
-            </div>
-        </div>
-
         <!-- 文件上传区域 -->
-        <div id="upload-section" class="bg-white rounded-lg shadow-md p-6 mb-6 hidden">
+        <div id="upload-section" class="bg-white rounded-lg shadow-md p-6 mb-6">
             <h2 class="text-xl font-semibold text-gray-800 mb-4">上传Excel文件</h2>
             
             <div class="mb-4">
@@ -97,47 +82,148 @@
             </button>
         </div>
 
-        <!-- 进度显示区域 -->
-        <div id="progress-section" class="bg-white rounded-lg shadow-md p-6 hidden">
-            <h2 class="text-xl font-semibold text-gray-800 mb-4">更新进度</h2>
+        <!-- 进度显示区域 - 重新设计更人性化 -->
+        <div id="progress-section" class="bg-gradient-to-br from-white to-gray-50 rounded-2xl shadow-lg p-8 hidden">
+            <div class="text-center mb-8">
+                <h2 class="text-2xl font-bold text-gray-800 mb-2">更新进度</h2>
+                <p class="text-gray-600">正在为您处理产品信息，请稍候...</p>
+            </div>
             
-            <div class="space-y-4">
-                <div>
-                    <div class="flex justify-between text-sm text-gray-600 mb-1">
-                        <span>整体进度</span>
-                        <span id="progress-text">0%</span>
+            <!-- 圆形进度条 -->
+            <div class="flex justify-center mb-8">
+                <div class="relative w-32 h-32">
+                    <svg class="w-32 h-32 transform -rotate-90" viewBox="0 0 100 100">
+                        <!-- 背景圆环 -->
+                        <circle
+                            cx="50"
+                            cy="50"
+                            r="40"
+                            stroke="#e5e7eb"
+                            stroke-width="8"
+                            fill="none"
+                        />
+                        <!-- 进度圆环 -->
+                        <circle
+                            id="progress-circle"
+                            cx="50"
+                            cy="50"
+                            r="40"
+                            stroke="url(#progressGradient)"
+                            stroke-width="8"
+                            fill="none"
+                            stroke-linecap="round"
+                            stroke-dasharray="251.2"
+                            stroke-dashoffset="251.2"
+                            class="transition-all duration-500 ease-out"
+                        />
+                        <!-- 渐变定义 -->
+                        <defs>
+                            <linearGradient id="progressGradient" x1="0%" y1="0%" x2="100%" y2="0%">
+                                <stop offset="0%" style="stop-color:#3b82f6;stop-opacity:1" />
+                                <stop offset="100%" style="stop-color:#8b5cf6;stop-opacity:1" />
+                            </linearGradient>
+                        </defs>
+                    </svg>
+                    <!-- 百分比显示 -->
+                    <div class="absolute inset-0 flex items-center justify-center">
+                        <div class="text-center">
+                            <div id="progress-percentage" class="text-2xl font-bold text-gray-800">0%</div>
+                            <div class="text-sm text-gray-500">完成</div>
+                        </div>
                     </div>
-                    <div class="w-full bg-gray-200 rounded-full h-2">
-                        <div id="progress-bar" class="bg-blue-600 h-2 rounded-full transition-all duration-300" style="width: 0%"></div>
-                    </div>
-                </div>
-
-                <div class="grid grid-cols-3 gap-4 text-center">
-                    <div class="bg-gray-50 rounded-lg p-3">
-                        <div class="text-2xl font-bold text-gray-800" id="total-count">0</div>
-                        <div class="text-sm text-gray-600">总数</div>
-                    </div>
-                    <div class="bg-green-50 rounded-lg p-3">
-                        <div class="text-2xl font-bold text-green-600" id="success-count">0</div>
-                        <div class="text-sm text-gray-600">成功</div>
-                    </div>
-                    <div class="bg-red-50 rounded-lg p-3">
-                        <div class="text-2xl font-bold text-red-600" id="failed-count">0</div>
-                        <div class="text-sm text-gray-600">失败</div>
-                    </div>
-                </div>
-
-                <div id="status-message" class="text-center text-gray-600">
-                    准备开始...
                 </div>
             </div>
 
-            <div id="completed-actions" class="mt-6 hidden">
-                <div class="flex space-x-4">
-                    <button id="download-report-btn" class="flex-1 bg-blue-600 text-white py-2 px-4 rounded-lg hover:bg-blue-700">
+            <!-- 统计信息卡片 -->
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+                <div class="bg-white rounded-xl shadow-md p-6 border-l-4 border-blue-500">
+                    <div class="flex items-center justify-between">
+                        <div>
+                            <p class="text-sm font-medium text-gray-600">总数量</p>
+                            <p id="total-count" class="text-3xl font-bold text-gray-900">0</p>
+                        </div>
+                        <div class="w-12 h-12 bg-blue-100 rounded-lg flex items-center justify-center">
+                            <svg class="w-6 h-6 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 7h.01M7 3h5c.512 0 1.024.195 1.414.586l7 7a2 2 0 010 2.828l-7 7a2 2 0 01-2.828 0l-7-7A1.994 1.994 0 013 12V7a4 4 0 014-4z"/>
+                            </svg>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="bg-white rounded-xl shadow-md p-6 border-l-4 border-green-500">
+                    <div class="flex items-center justify-between">
+                        <div>
+                            <p class="text-sm font-medium text-gray-600">成功</p>
+                            <p id="success-count" class="text-3xl font-bold text-green-600">0</p>
+                        </div>
+                        <div class="w-12 h-12 bg-green-100 rounded-lg flex items-center justify-center">
+                            <svg class="w-6 h-6 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                            </svg>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="bg-white rounded-xl shadow-md p-6 border-l-4 border-red-500">
+                    <div class="flex items-center justify-between">
+                        <div>
+                            <p class="text-sm font-medium text-gray-600">失败</p>
+                            <p id="failed-count" class="text-3xl font-bold text-red-600">0</p>
+                        </div>
+                        <div class="w-12 h-12 bg-red-100 rounded-lg flex items-center justify-center">
+                            <svg class="w-6 h-6 text-red-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
+                            </svg>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 状态消息和动画 -->
+            <div class="bg-white rounded-xl shadow-md p-6 mb-6">
+                <div class="flex items-center space-x-4">
+                    <div id="status-icon" class="flex-shrink-0">
+                        <!-- 加载动画 -->
+                        <div class="w-8 h-8 border-4 border-blue-200 border-t-blue-600 rounded-full animate-spin"></div>
+                    </div>
+                    <div class="flex-1">
+                        <p id="status-message" class="text-lg font-medium text-gray-800">准备开始...</p>
+                        <p id="status-detail" class="text-sm text-gray-600 mt-1">系统正在初始化处理流程</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 实时日志显示 -->
+            <div id="log-section" class="bg-white rounded-xl shadow-md p-6 mb-6 hidden">
+                <h3 class="text-lg font-semibold text-gray-800 mb-4">处理日志</h3>
+                <div id="log-container" class="bg-gray-50 rounded-lg p-4 h-32 overflow-y-auto text-sm font-mono">
+                    <div class="text-gray-600">等待开始处理...</div>
+                </div>
+            </div>
+
+            <!-- 完成操作按钮 -->
+            <div id="completed-actions" class="hidden">
+                <div class="bg-green-50 border border-green-200 rounded-xl p-6 mb-6">
+                    <div class="flex items-center mb-4">
+                        <svg class="w-8 h-8 text-green-600 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                        </svg>
+                        <h3 class="text-lg font-semibold text-green-800">更新完成！</h3>
+                    </div>
+                    <p class="text-green-700 mb-4">产品标题更新任务已成功完成。您可以下载详细报告查看结果。</p>
+                </div>
+                
+                <div class="flex flex-col sm:flex-row gap-4">
+                    <button id="download-report-btn" class="flex-1 bg-gradient-to-r from-blue-600 to-blue-700 text-white py-3 px-6 rounded-lg font-semibold hover:from-blue-700 hover:to-blue-800 transition-all duration-200 flex items-center justify-center">
+                        <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/>
+                        </svg>
                         下载详细报告
                     </button>
-                    <button id="new-task-btn" class="flex-1 bg-gray-600 text-white py-2 px-4 rounded-lg hover:bg-gray-700">
+                    <button id="new-task-btn" class="flex-1 bg-gradient-to-r from-gray-600 to-gray-700 text-white py-3 px-6 rounded-lg font-semibold hover:from-gray-700 hover:to-gray-800 transition-all duration-200 flex items-center justify-center">
+                        <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/>
+                        </svg>
                         创建新任务
                     </button>
                 </div>
@@ -169,9 +255,6 @@ document.addEventListener('DOMContentLoaded', function() {
         alert('页面加载错误，请刷新页面重试');
         return;
     }
-
-    // 检查Lazada授权状态
-    checkLazadaAuth();
 
     // 文件选择处理
     fileDropZone.addEventListener('click', () => fileInput.click());
@@ -345,44 +428,109 @@ document.addEventListener('DOMContentLoaded', function() {
         }
     }
 
+    // 更新圆形进度条
+    function updateCircularProgress(percentage) {
+        const circle = document.getElementById('progress-circle');
+        const circumference = 2 * Math.PI * 40; // r = 40
+        const offset = circumference - (percentage / 100) * circumference;
+        circle.style.strokeDashoffset = offset;
+        
+        document.getElementById('progress-percentage').textContent = percentage + '%';
+    }
+
+    // 添加日志消息
+    function addLogMessage(message, type = 'info') {
+        const logContainer = document.getElementById('log-container');
+        const logSection = document.getElementById('log-section');
+        
+        if (logSection.classList.contains('hidden')) {
+            logSection.classList.remove('hidden');
+        }
+        
+        const timestamp = new Date().toLocaleTimeString();
+        const colorClass = type === 'success' ? 'text-green-600' : 
+                          type === 'error' ? 'text-red-600' : 
+                          type === 'warning' ? 'text-yellow-600' : 'text-gray-600';
+        
+        const logMessage = document.createElement('div');
+        logMessage.className = `${colorClass} mb-1`;
+        logMessage.innerHTML = `[${timestamp}] ${message}`;
+        
+        logContainer.appendChild(logMessage);
+        logContainer.scrollTop = logContainer.scrollHeight;
+    }
+
+    // 更新状态图标
+    function updateStatusIcon(status) {
+        const statusIcon = document.getElementById('status-icon');
+        
+        switch (status) {
+            case 'pending':
+                statusIcon.innerHTML = '<div class="w-8 h-8 border-4 border-blue-200 border-t-blue-600 rounded-full animate-spin"></div>';
+                break;
+            case 'processing':
+                statusIcon.innerHTML = '<div class="w-8 h-8 border-4 border-green-200 border-t-green-600 rounded-full animate-spin"></div>';
+                break;
+            case 'completed':
+                statusIcon.innerHTML = '<div class="w-8 h-8 bg-green-100 rounded-full flex items-center justify-center"><svg class="w-5 h-5 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/></svg></div>';
+                break;
+            case 'failed':
+                statusIcon.innerHTML = '<div class="w-8 h-8 bg-red-100 rounded-full flex items-center justify-center"><svg class="w-5 h-5 text-red-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg></div>';
+                break;
+        }
+    }
+
     // 更新进度显示函数
     function updateProgressDisplay(task) {
-        const progressBar = document.getElementById('progress-bar');
-        const progressText = document.getElementById('progress-text');
         const totalCount = document.getElementById('total-count');
         const successCount = document.getElementById('success-count');
         const failedCount = document.getElementById('failed-count');
         const statusMessage = document.getElementById('status-message');
+        const statusDetail = document.getElementById('status-detail');
 
         const percentage = task.progress_percentage || 0;
-        progressBar.style.width = percentage + '%';
-        progressText.textContent = percentage + '%';
+        updateCircularProgress(percentage);
         
         totalCount.textContent = task.total_items;
         successCount.textContent = task.successful_items;
         failedCount.textContent = task.failed_items;
 
+        updateStatusIcon(task.status);
+
         let status = '';
+        let detail = '';
         switch (task.status) {
             case 'pending':
-                status = '等待开始...';
+                status = '准备开始处理';
+                detail = '系统正在初始化处理流程';
+                addLogMessage('任务已创建，准备开始处理...', 'info');
                 break;
             case 'processing':
-                status = `正在处理... (${task.processed_items}/${task.total_items})`;
+                status = `正在处理中... (${task.processed_items}/${task.total_items})`;
+                detail = `已完成 ${task.successful_items} 个，失败 ${task.failed_items} 个`;
+                if (task.processed_items > 0) {
+                    addLogMessage(`处理进度：${task.processed_items}/${task.total_items} (${percentage}%)`, 'info');
+                }
                 break;
             case 'completed':
                 status = '更新完成！';
+                detail = `成功处理 ${task.successful_items} 个产品，失败 ${task.failed_items} 个`;
+                addLogMessage('所有产品处理完成！', 'success');
                 break;
             case 'failed':
                 status = '任务失败';
+                detail = '处理过程中遇到错误，请查看日志';
+                addLogMessage('任务执行失败，请检查错误信息', 'error');
                 break;
         }
         statusMessage.textContent = status;
+        statusDetail.textContent = detail;
     }
 
     // 自动执行任务函数
     function executeTaskAutomatically() {
         console.log('自动执行任务，任务ID:', currentTaskId);
+        addLogMessage('开始自动执行任务...', 'info');
         
         fetch('/bulk-update/execute', {
             method: 'POST',
@@ -397,8 +545,10 @@ document.addEventListener('DOMContentLoaded', function() {
         .then(data => {
             if (data.success) {
                 console.log('任务自动启动成功');
+                addLogMessage('任务已启动，开始处理产品...', 'success');
                 startProgressMonitoring();
             } else {
+                addLogMessage('自动启动失败: ' + data.message, 'error');
                 alert('自动启动失败: ' + data.message);
                 // 如果自动启动失败，显示任务确认页面
                 document.getElementById('progress-section').classList.add('hidden');
@@ -407,6 +557,7 @@ document.addEventListener('DOMContentLoaded', function() {
         })
         .catch(error => {
             console.error('自动启动错误:', error);
+            addLogMessage('自动启动失败，请手动执行', 'error');
             alert('自动启动失败，请手动执行');
             // 如果自动启动失败，显示任务确认页面
             document.getElementById('progress-section').classList.add('hidden');
@@ -470,92 +621,34 @@ document.addEventListener('DOMContentLoaded', function() {
         })
         .catch(error => {
             console.error('Error:', error);
+            addLogMessage('获取进度信息失败', 'error');
         });
     }
 
     function showCompletedActions() {
         document.getElementById('completed-actions').classList.remove('hidden');
+        
+        // 添加完成动画效果
+        setTimeout(() => {
+            document.getElementById('completed-actions').scrollIntoView({ 
+                behavior: 'smooth', 
+                block: 'nearest' 
+            });
+        }, 500);
     }
 
     // 下载报告
     downloadReportBtn.addEventListener('click', function() {
+        addLogMessage('开始下载报告...', 'info');
         window.location.href = `/bulk-update/download-report?task_id=${currentTaskId}`;
     });
 
     // 创建新任务
     newTaskBtn.addEventListener('click', function() {
+        addLogMessage('刷新页面创建新任务...', 'info');
         location.reload();
     });
-
-    // 检查Lazada授权状态
-    function checkLazadaAuth() {
-        const lazadaStatus = document.getElementById('lazada-status');
-        const uploadSection = document.getElementById('upload-section');
-        
-        // 简单的授权检查 - 尝试访问需要授权的接口
-        fetch('/bulk-update/auth-check', {
-            method: 'GET',
-            headers: {
-                'X-CSRF-TOKEN': csrfToken.getAttribute('content'),
-                'Accept': 'application/json'
-            }
-        })
-        .then(response => {
-            if (response.status === 403) {
-                // 没有授权
-                lazadaStatus.innerHTML = `
-                    <div class="flex items-center p-4 bg-red-50 border border-red-200 rounded-lg">
-                        <svg class="w-6 h-6 text-red-500 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.732-.833-2.5 0L3.732 16.5c-.77.833.192 2.5 1.732 2.5z"/>
-                        </svg>
-                        <div class="flex-1">
-                            <p class="text-red-800 font-medium">Lazada授权未配置</p>
-                            <p class="text-red-600 text-sm mt-1">请先在设置页面进行Lazada授权，然后再使用批量更新功能。</p>
-                        </div>
-                        <a href="/settings" class="ml-4 bg-red-600 text-white px-4 py-2 rounded-lg text-sm hover:bg-red-700">
-                            前往设置
-                        </a>
-                    </div>
-                `;
-                return;
-            } else if (response.ok) {
-                // 授权正常
-                lazadaStatus.innerHTML = `
-                    <div class="flex items-center p-4 bg-green-50 border border-green-200 rounded-lg">
-                        <svg class="w-6 h-6 text-green-500 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/>
-                        </svg>
-                        <p class="text-green-800 font-medium">Lazada授权正常，可以开始上传文件</p>
-                    </div>
-                `;
-                // 显示上传区域
-                uploadSection.classList.remove('hidden');
-                return;
-            } else {
-                throw new Error('检查授权状态失败');
-            }
-        })
-        .catch(error => {
-            // 网络错误或其他问题，假设未授权
-            console.error('授权检查失败:', error);
-            lazadaStatus.innerHTML = `
-                <div class="flex items-center p-4 bg-yellow-50 border border-yellow-200 rounded-lg">
-                    <svg class="w-6 h-6 text-yellow-500 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.732-.833-2.5 0L3.732 16.5c-.77.833.192 2.5 1.732 2.5z"/>
-                    </svg>
-                    <div class="flex-1">
-                        <p class="text-yellow-800 font-medium">无法检查授权状态</p>
-                        <p class="text-yellow-600 text-sm mt-1">请确保网络连接正常，或检查Lazada授权是否配置正确。</p>
-                    </div>
-                    <button onclick="checkLazadaAuth()" class="ml-4 bg-yellow-600 text-white px-4 py-2 rounded-lg text-sm hover:bg-yellow-700">
-                        重新检查
-                    </button>
-                </div>
-            `;
-            // 仍然显示上传区域，让用户尝试
-            uploadSection.classList.remove('hidden');
-        });
-    }
 });
 </script>
+@endpush
 @endpush
