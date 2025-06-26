@@ -95,9 +95,21 @@ class ExcelProcessingService
                     \Log::info('CSV表头', ['headers' => $headers]);
                     
                     // 验证必需的列是否存在
-                    $requiredColumns = $this->findRequiredColumns(array_flip($headers));
-                    if (!$requiredColumns['sku'] || !$requiredColumns['title']) {
-                        throw new \Exception('CSV文件必须包含SKU和产品标题列。当前列：' . implode(', ', $headers));
+                    $skuIndex = -1;
+                    $titleIndex = -1;
+                    
+                    foreach ($headers as $index => $header) {
+                        $header = strtolower(trim($header));
+                        if (in_array($header, ['sku', 'skuid', 'sku id', 'seller sku', 'sellersku', '卖家sku', '商品sku'])) {
+                            $skuIndex = $index;
+                        }
+                        if (in_array($header, ['title', 'product title', 'name', 'product name', '产品标题', '商品标题', '产品名称', '商品名称'])) {
+                            $titleIndex = $index;
+                        }
+                    }
+                    
+                    if ($skuIndex === -1 || $titleIndex === -1) {
+                        throw new \Exception('CSV文件必须包含SKU和产品标题列。当前列：' . implode(', ', $headers) . '。找到SKU列：' . ($skuIndex >= 0 ? '是' : '否') . '，找到标题列：' . ($titleIndex >= 0 ? '是' : '否'));
                     }
                     continue;
                 }
@@ -108,21 +120,9 @@ class ExcelProcessingService
                     continue;
                 }
                 
-                $rowData = array_combine($headers, $data);
-                
-                // 查找SKU和标题
-                $sku = '';
-                $title = '';
-                
-                foreach ($rowData as $key => $value) {
-                    $key = strtolower(trim($key));
-                    if (in_array($key, ['sku', 'skuid', 'sku id', 'seller sku', 'sellersku'])) {
-                        $sku = trim($value);
-                    }
-                    if (in_array($key, ['title', 'product title', 'name', 'product name', '产品标题', '商品标题'])) {
-                        $title = trim($value);
-                    }
-                }
+                // 直接使用索引获取SKU和标题
+                $sku = isset($data[$skuIndex]) ? trim($data[$skuIndex]) : '';
+                $title = isset($data[$titleIndex]) ? trim($data[$titleIndex]) : '';
                 
                 if (empty($sku)) {
                     $errors[] = "第{$rowNumber}行：SKU不能为空";
