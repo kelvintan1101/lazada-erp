@@ -162,31 +162,41 @@
 </div>
 
 <!-- 通知系统 -->
-<div id="notification-container" class="fixed bottom-4 right-4 z-50 max-w-sm pointer-events-none">
+<div id="notification-container" style="position: fixed; bottom: 20px; right: 20px; z-index: 99999; max-width: 400px; pointer-events: none;">
     <!-- 通知将在这里动态创建 -->
 </div>
 @endsection
 
 @push('styles')
 <style>
-/* 通知容器样式 */
+/* 通知容器样式 - 完全重写 */
 #notification-container {
-    max-height: calc(100vh - 2rem);
-    overflow: visible;
-    display: flex;
-    flex-direction: column-reverse;
-    gap: 0.75rem;
-    z-index: 9999 !important;
+    position: fixed !important;
+    bottom: 20px !important;
+    right: 20px !important;
+    z-index: 99999 !important;
+    max-width: 400px !important;
+    pointer-events: none !important;
+    display: flex !important;
+    flex-direction: column-reverse !important;
+    gap: 12px !important;
 }
 
-/* 通知项样式 */
+/* 通知项样式 - 完全重写 */
 .notification-item {
     pointer-events: auto !important;
+    background: white !important;
+    border: 1px solid #e5e7eb !important;
+    border-radius: 12px !important;
+    box-shadow: 0 10px 25px rgba(0, 0, 0, 0.15) !important;
+    padding: 16px !important;
+    width: 100% !important;
+    max-width: 380px !important;
+    position: relative !important;
+    z-index: 100000 !important;
     transform: translateX(100%) !important;
     opacity: 0 !important;
-    transition: all 0.3s ease-in-out !important;
-    position: relative !important;
-    z-index: 10000 !important;
+    transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1) !important;
 }
 
 .notification-item.show {
@@ -468,27 +478,39 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     });
 
-    // 新的通知系统
+    // 完全重写的通知系统
     function showNotification(type, title, message, actions = []) {
-        console.log('显示通知:', type, title, message);
+        console.log('🔔 显示通知:', type, title, message);
 
         const container = document.getElementById('notification-container');
         if (!container) {
-            console.error('通知容器未找到');
+            console.error('❌ 通知容器未找到');
+            alert(`通知: ${title} - ${message}`); // 备用方案
             return;
         }
 
-        const notificationId = 'notification-' + Date.now();
+        const notificationId = 'notification-' + Date.now() + '-' + Math.random().toString(36).substr(2, 9);
         const notification = document.createElement('div');
         notification.id = notificationId;
-        notification.className = 'notification-item bg-white border border-gray-200 rounded-lg shadow-lg p-4 w-80 mb-3';
+        notification.className = 'notification-item';
 
-        // 确保初始状态
-        notification.style.transform = 'translateX(100%)';
-        notification.style.opacity = '0';
-        notification.style.position = 'relative';
-        notification.style.zIndex = '10000';
-        notification.style.pointerEvents = 'auto';
+        // 强制设置样式
+        notification.style.cssText = `
+            pointer-events: auto !important;
+            background: white !important;
+            border: 1px solid #e5e7eb !important;
+            border-radius: 12px !important;
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.15) !important;
+            padding: 16px !important;
+            width: 100% !important;
+            max-width: 380px !important;
+            position: relative !important;
+            z-index: 100000 !important;
+            transform: translateX(100%) !important;
+            opacity: 0 !important;
+            transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1) !important;
+            margin-bottom: 12px !important;
+        `;
 
         const iconColors = {
             success: 'text-green-600 bg-green-100',
@@ -533,12 +555,15 @@ document.addEventListener('DOMContentLoaded', function() {
 
         // 添加到容器
         container.appendChild(notification);
-        console.log('通知已添加到容器:', notification);
+        console.log('✅ 通知已添加到容器:', notification);
+        console.log('📍 容器位置:', container.getBoundingClientRect());
+        console.log('📍 通知位置:', notification.getBoundingClientRect());
 
         // 添加关闭事件
         const closeBtn = notification.querySelector('.close-btn');
         if (closeBtn) {
             closeBtn.addEventListener('click', () => {
+                console.log('🔴 点击关闭按钮');
                 hideNotification(notificationId);
             });
         }
@@ -548,6 +573,7 @@ document.addEventListener('DOMContentLoaded', function() {
         actionButtons.forEach(btn => {
             btn.addEventListener('click', (e) => {
                 const action = btn.getAttribute('data-action');
+                console.log('🔵 点击操作按钮:', action);
                 if (action === 'download') {
                     downloadReport(currentTaskId);
                 } else if (action === 'new-task') {
@@ -557,13 +583,14 @@ document.addEventListener('DOMContentLoaded', function() {
             });
         });
 
-        // 强制显示动画
+        // 强制显示动画 - 立即执行
+        console.log('🎬 开始显示动画');
         setTimeout(() => {
-            console.log('开始显示动画');
-            notification.style.transform = 'translateX(0)';
-            notification.style.opacity = '1';
+            notification.style.transform = 'translateX(0) !important';
+            notification.style.opacity = '1 !important';
             notification.classList.add('show');
-        }, 50);
+            console.log('✨ 动画已触发');
+        }, 100);
 
         // 自动消失（除非有操作按钮）
         if (actions.length === 0) {
@@ -898,35 +925,52 @@ document.addEventListener('DOMContentLoaded', function() {
     }
 
     function testSimpleNotification() {
-        console.log('测试简单通知');
+        console.log('🧪 测试简单通知');
         const container = document.getElementById('notification-container');
         if (!container) {
-            console.error('通知容器不存在!');
+            console.error('❌ 通知容器不存在!');
+            alert('通知容器不存在!');
             return;
         }
 
+        console.log('📦 容器信息:', {
+            element: container,
+            style: window.getComputedStyle(container),
+            position: container.getBoundingClientRect()
+        });
+
         const testDiv = document.createElement('div');
-        testDiv.innerHTML = '简单测试通知';
+        testDiv.innerHTML = `
+            <div style="display: flex; align-items: center; justify-content: space-between;">
+                <span>🔴 简单测试通知 - ${new Date().toLocaleTimeString()}</span>
+                <button onclick="this.parentElement.parentElement.remove()" style="background: none; border: none; color: white; font-size: 18px; cursor: pointer;">×</button>
+            </div>
+        `;
         testDiv.style.cssText = `
-            background: red;
-            color: white;
-            padding: 20px;
-            border-radius: 8px;
-            margin-bottom: 10px;
-            position: relative;
-            z-index: 10000;
-            pointer-events: auto;
+            background: linear-gradient(135deg, #ff6b6b, #ee5a24) !important;
+            color: white !important;
+            padding: 16px !important;
+            border-radius: 12px !important;
+            margin-bottom: 12px !important;
+            position: relative !important;
+            z-index: 100000 !important;
+            pointer-events: auto !important;
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.15) !important;
+            transform: translateX(0) !important;
+            opacity: 1 !important;
+            width: 100% !important;
+            max-width: 380px !important;
         `;
 
         container.appendChild(testDiv);
-        console.log('简单测试通知已添加');
+        console.log('✅ 简单测试通知已添加');
 
         setTimeout(() => {
             if (testDiv.parentNode) {
                 testDiv.parentNode.removeChild(testDiv);
-                console.log('简单测试通知已移除');
+                console.log('🗑️ 简单测试通知已移除');
             }
-        }, 3000);
+        }, 5000);
     }
 
     // 将函数暴露到全局作用域
