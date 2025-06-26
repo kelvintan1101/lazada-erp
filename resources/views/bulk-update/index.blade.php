@@ -580,7 +580,7 @@ document.addEventListener('DOMContentLoaded', function() {
         }
 
         notification.innerHTML = `
-            <div class="flex items-start" style="color: #1f2937 !important; position: relative;">
+            <div class="notification-content flex items-start" style="color: #1f2937 !important; position: relative;">
                 <div class="w-8 h-8 rounded-full flex items-center justify-center ${iconColors[type]} mr-3 flex-shrink-0" style="margin-top: 2px;">
                     <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" style="stroke-width: 2.5;">
                         ${icons[type]}
@@ -605,6 +605,7 @@ document.addEventListener('DOMContentLoaded', function() {
                     align-items: center !important;
                     justify-content: center !important;
                     color: #6b7280 !important;
+                    opacity: 1 !important;
                     transition: all 0.2s ease !important;
                 " onmouseover="this.style.background='rgba(107, 114, 128, 0.2)'; this.style.color='#374151'" onmouseout="this.style.background='rgba(107, 114, 128, 0.1)'; this.style.color='#6b7280'">
                     <svg style="width: 14px !important; height: 14px !important;" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -628,6 +629,8 @@ document.addEventListener('DOMContentLoaded', function() {
                 hideNotification(notificationId);
             });
         }
+
+
 
         // 添加操作按钮事件
         const actionButtons = notification.querySelectorAll('[data-action]');
