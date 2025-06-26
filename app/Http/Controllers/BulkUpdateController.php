@@ -87,21 +87,61 @@ class BulkUpdateController extends Controller
 
     public function upload(Request $request)
     {
-        $validator = Validator::make($request->all(), [
-            'excel_file' => 'required|file|mimes:xlsx,xls,csv|max:10240', // 最大10MB
-        ], [
-            'excel_file.required' => '请选择要上传的文件',
-            'excel_file.file' => '上传的必须是文件',
-            'excel_file.mimes' => '只支持Excel文件（.xlsx, .xls）和CSV文件',
-            'excel_file.max' => '文件大小不能超过10MB'
-        ]);
-
-        if ($validator->fails()) {
+        // 自定义文件验证，支持更多CSV MIME types
+        $file = $request->file('excel_file');
+        
+        if (!$file) {
             return response()->json([
                 'success' => false,
-                'message' => $validator->errors()->first()
+                'message' => '请选择要上传的文件'
             ], 422);
         }
+
+        // 检查文件大小 (10MB)
+        if ($file->getSize() > 10 * 1024 * 1024) {
+            return response()->json([
+                'success' => false,
+                'message' => '文件大小不能超过10MB'
+            ], 422);
+        }
+
+        // 检查文件扩展名
+        $allowedExtensions = ['xlsx', 'xls', 'csv'];
+        $extension = strtolower($file->getClientOriginalExtension());
+        
+        if (!in_array($extension, $allowedExtensions)) {
+            return response()->json([
+                'success' => false,
+                'message' => '只支持Excel文件（.xlsx, .xls）和CSV文件'
+            ], 422);
+        }
+
+        // 对于CSV文件，记录MIME type信息用于调试
+        if ($extension === 'csv') {
+            $allowedCsvMimeTypes = [
+                'text/csv',
+                'text/plain',
+                'application/csv',
+                'application/vnd.ms-excel',
+                'text/comma-separated-values',
+                'application/octet-stream'
+            ];
+            
+            $mimeType = $file->getMimeType();
+            \Log::info('CSV文件MIME type检测', [
+                'file_name' => $file->getClientOriginalName(),
+                'detected_mime_type' => $mimeType,
+                'file_size' => $file->getSize()
+            ]);
+        }
+
+        // 记录文件信息用于调试
+        \Log::info('文件上传验证通过', [
+            'file_name' => $file->getClientOriginalName(),
+            'file_size' => $file->getSize(),
+            'file_extension' => $extension,
+            'mime_type' => $file->getMimeType()
+        ]);
 
         try {
             // 确保bulk_updates目录存在
@@ -110,7 +150,6 @@ class BulkUpdateController extends Controller
             }
 
             // 保存上传的文件
-            $file = $request->file('excel_file');
             $fileName = 'bulk_updates/' . time() . '_' . $file->getClientOriginalName();
             
             // 使用store方法并指定磁盘
