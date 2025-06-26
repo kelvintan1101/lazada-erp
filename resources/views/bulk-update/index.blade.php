@@ -139,8 +139,27 @@
 </div>
 
 <!-- 通知系统 -->
-<div id="notification-container" class="fixed top-20 right-4 z-50 space-y-3"></div>
+<div id="notification-container" class="fixed top-4 right-4 z-50 space-y-3 pointer-events-none">
+    <!-- 通知将在这里动态创建 -->
+</div>
 @endsection
+
+@push('styles')
+<style>
+#notification-container {
+    max-height: calc(100vh - 2rem);
+    overflow: visible;
+}
+
+.notification-item {
+    margin-bottom: 0.75rem !important;
+}
+
+.notification-item:last-child {
+    margin-bottom: 0 !important;
+}
+</style>
+@endpush
 
 @push('scripts')
 <script>
@@ -361,7 +380,7 @@ document.addEventListener('DOMContentLoaded', function() {
         
         const notification = document.createElement('div');
         notification.id = notificationId;
-        notification.className = 'bg-white border border-gray-200 rounded-lg shadow-lg p-4 w-80 transform transition-all duration-300 translate-x-full opacity-0 mb-3';
+        notification.className = 'notification-item bg-white border border-gray-200 rounded-lg shadow-lg p-4 w-80 transform transition-all duration-300 translate-x-full opacity-0 pointer-events-auto';
         
         const iconColors = {
             success: 'text-green-600 bg-green-100',
@@ -378,7 +397,7 @@ document.addEventListener('DOMContentLoaded', function() {
         let actionsHtml = '';
         if (actions.length > 0) {
             actionsHtml = '<div class="mt-3 flex space-x-2">';
-            actions.forEach(action => {
+            actions.forEach((action, index) => {
                 actionsHtml += `<button data-action="${action.action}" class="${action.className}">${action.text}</button>`;
             });
             actionsHtml += '</div>';
@@ -391,34 +410,41 @@ document.addEventListener('DOMContentLoaded', function() {
                         ${icons[type]}
                     </svg>
                 </div>
-                <div class="flex-1">
+                <div class="flex-1 min-w-0">
                     <h4 class="text-sm font-semibold text-gray-900">${title}</h4>
                     <p class="text-sm text-gray-600 mt-1">${message}</p>
                     ${actionsHtml}
                 </div>
-                <button class="close-btn ml-2 text-gray-400 hover:text-gray-600 flex-shrink-0">
-                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <button class="close-btn ml-2 text-gray-400 hover:text-gray-600 flex-shrink-0 p-1">
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
                     </svg>
                 </button>
             </div>
         `;
         
+        // 先添加到容器
         container.appendChild(notification);
         
-        // 添加事件监听器
+        // 添加关闭按钮事件监听器
         const closeBtn = notification.querySelector('.close-btn');
-        closeBtn.addEventListener('click', () => closeNotification(notificationId));
+        closeBtn.addEventListener('click', (e) => {
+            e.preventDefault();
+            e.stopPropagation();
+            closeNotification(notificationId);
+        });
         
         // 添加操作按钮事件监听器
         const actionButtons = notification.querySelectorAll('[data-action]');
         actionButtons.forEach(btn => {
-            btn.addEventListener('click', () => {
+            btn.addEventListener('click', (e) => {
+                e.preventDefault();
+                e.stopPropagation();
                 const action = btn.getAttribute('data-action');
                 if (action === 'download') {
-                    downloadReport(currentTaskId);
+                    window.downloadReport(currentTaskId);
                 } else if (action === 'new-task') {
-                    startNewTask();
+                    window.startNewTask();
                 }
                 closeNotification(notificationId);
             });
@@ -431,9 +457,14 @@ document.addEventListener('DOMContentLoaded', function() {
         
         // 自动消失（除非有操作按钮）
         if (actions.length === 0) {
-            setTimeout(() => {
+            const autoCloseTimer = setTimeout(() => {
                 closeNotification(notificationId);
             }, 5000);
+            
+            // 鼠标悬停时暂停自动关闭
+            notification.addEventListener('mouseenter', () => {
+                clearTimeout(autoCloseTimer);
+            });
         }
         
         return notificationId;
@@ -442,11 +473,15 @@ document.addEventListener('DOMContentLoaded', function() {
     // 关闭通知
     function closeNotification(notificationId) {
         const notification = document.getElementById(notificationId);
-        if (notification) {
+        if (notification && notification.parentNode) {
             notification.classList.add('translate-x-full', 'opacity-0');
             setTimeout(() => {
-                if (notification.parentNode) {
-                    notification.parentNode.removeChild(notification);
+                try {
+                    if (notification.parentNode) {
+                        notification.parentNode.removeChild(notification);
+                    }
+                } catch (e) {
+                    console.log('通知已被移除');
                 }
             }, 300);
         }
