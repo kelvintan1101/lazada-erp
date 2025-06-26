@@ -337,62 +337,80 @@ class LazadaApiService
     }
 
     public function updateProduct($sellerSku, $updateData)
-    {
-        // 根据 Lazada API 文档构建正确的更新请求格式
-        // https://open.lazada.com/apps/doc/api?path=%2Fproduct%2Fupdate
-        $payload = [
-            'Request' => [
-                'Product' => [
-                    'Skus' => [
-                        [
-                            'SellerSku' => $sellerSku,
-                            // 产品标题更新
-                            'Name' => $updateData['name'] ?? null,
-                            // 其他可能的更新字段
-                            'Description' => $updateData['description'] ?? null,
-                            'Brand' => $updateData['brand'] ?? null,
-                            'Status' => $updateData['status'] ?? null,
-                            'Price' => $updateData['price'] ?? null,
-                            'SalePrice' => $updateData['sale_price'] ?? null,
-                            'Quantity' => $updateData['quantity'] ?? null,
-                            // 移除 null 值
-                        ]
-                    ]
-                ]
+{
+    // 根据用户提供的API例子构建正确的XML payload格式
+    $xmlPayload = '<?xml version="1.0" encoding="UTF-8"?>
+<Request>
+    <Product>
+        <Attributes>
+            <name>' . htmlspecialchars($updateData['name'], ENT_XML1, 'UTF-8') . '</name>
+        </Attributes>
+        <Skus>
+            <Sku>
+                <SkuId>' . htmlspecialchars($sellerSku, ENT_XML1, 'UTF-8') . '</SkuId>
+            </Sku>
+        </Skus>
+    </Product>
+</Request>';
+
+    // 获取settings中的参数
+    $appKey = env('LAZADA_APP_KEY', Setting::getSetting('lazada_app_key', ''));
+    $token = LazadaToken::latest()->first();
+    
+    if (!$token) {
+        throw new \Exception('No Lazada token available. Please authorize with Lazada first.');
+    }
+
+    $params = [
+        'payload' => $xmlPayload,
+        'app_key' => $appKey,
+        'sign_method' => 'sha256',
+        'access_token' => $token->access_token,
+        'timestamp' => round(microtime(true) * 1000)
+    ];
+
+    Log::info('更新产品 - Lazada API请求', [
+        'seller_sku' => $sellerSku,
+        'update_data' => $updateData,
+        'xml_payload' => $xmlPayload,
+        'params' => array_diff_key($params, ['access_token' => ''])
+    ]);
+
+    try {
+        // 使用马来西亚域名
+        $apiDomain = 'https://api.lazada.com.my/rest';
+        $apiPath = '/product/update';
+        
+        // 生成签名
+        $sign = $this->generateSignature($apiPath, $params);
+        $params['sign'] = $sign;
+
+        $response = $this->client->request('POST', $apiDomain . $apiPath, [
+            'form_params' => $params,
+            'headers' => [
+                'Content-Type' => 'application/x-www-form-urlencoded'
             ]
-        ];
-
-        // 清理 null 值
-        $payload = $this->removeNullValues($payload);
-
-        $params = [
-            'payload' => json_encode($payload)
-        ];
-
-        Log::info('更新产品 - Lazada API请求', [
-            'seller_sku' => $sellerSku,
-            'update_data' => $updateData,
-            'payload' => $payload
         ]);
 
-        try {
-            $response = $this->makeRequest('/product/update', $params, 'POST');
-            
-            Log::info('更新产品 - Lazada API响应', [
-                'seller_sku' => $sellerSku,
-                'response' => $response
-            ]);
+        $responseBody = $response->getBody()->getContents();
+        $data = json_decode($responseBody, true);
+        
+        Log::info('更新产品 - Lazada API响应', [
+            'seller_sku' => $sellerSku,
+            'status_code' => $response->getStatusCode(),
+            'response' => $data
+        ]);
 
-            return $response;
-        } catch (\Exception $e) {
-            Log::error('更新产品失败', [
-                'seller_sku' => $sellerSku,
-                'error' => $e->getMessage(),
-                'trace' => $e->getTraceAsString()
-            ]);
-            throw $e;
-        }
+        return $data;
+    } catch (\Exception $e) {
+        Log::error('更新产品失败', [
+            'seller_sku' => $sellerSku,
+            'error' => $e->getMessage(),
+            'trace' => $e->getTraceAsString()
+        ]);
+        throw $e;
     }
+}
 
     /**
      * 递归移除数组中的null值

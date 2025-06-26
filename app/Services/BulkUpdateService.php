@@ -283,34 +283,43 @@ class BulkUpdateService
         }
     }
 
-    /**
-     * 验证产品是否存在
-     * 
-     * @param array $products 产品列表
-     * @return array 验证结果
-     */
     private function validateProducts($products)
-    {
-        $validProducts = [];
-        $errors = [];
+{
+    $validProducts = [];
+    $errors = [];
 
-        foreach ($products as $product) {
-            // 检查产品是否存在于本地数据库
-            $localProduct = Product::where('sku', $product['sku'])->first();
-            
-            if (!$localProduct) {
-                $errors[] = "SKU {$product['sku']} 在本地数据库中不存在";
-                continue;
-            }
-
-            $validProducts[] = $product;
+    foreach ($products as $product) {
+        // 基本验证，不检查本地数据库
+        if (empty($product['sku'])) {
+            $errors[] = "SKU不能为空";
+            continue;
+        }
+        
+        if (empty($product['title'])) {
+            $errors[] = "产品标题不能为空";
+            continue;
         }
 
-        return [
-            'valid_products' => $validProducts,
-            'errors' => $errors
-        ];
+        // 验证SKU格式 (通常是数字)
+        if (!preg_match('/^[0-9]+$/', $product['sku'])) {
+            $errors[] = "SKU {$product['sku']} 格式不正确，应为纯数字";
+            continue;
+        }
+
+        // 验证标题长度
+        if (strlen($product['title']) > 255) {
+            $errors[] = "SKU {$product['sku']} 的产品标题过长（超过255字符）";
+            continue;
+        }
+
+        $validProducts[] = $product;
     }
+
+    return [
+        'valid_products' => $validProducts,
+        'errors' => $errors
+    ];
+}
 
     /**
      * 更新本地产品信息

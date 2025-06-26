@@ -129,35 +129,35 @@ class ExcelProcessingService
         }
     }
 
-    /**
-     * 查找必需的列
-     * 
-     * @param array $headers 表头数组
-     * @return array 列位置
-     */
     private function findRequiredColumns($headers)
-    {
-        $columns = [
-            'sku' => null,
-            'title' => null
-        ];
+{
+    $columns = [
+        'sku' => null,
+        'title' => null
+    ];
 
-        foreach ($headers as $col => $header) {
-            $header = strtolower(trim($header));
-            
-            // 查找SKU列
-            if (in_array($header, ['sku', 'seller sku', '卖家sku', '商品sku'])) {
-                $columns['sku'] = $col;
-            }
-            
-            // 查找标题列
-            if (in_array($header, ['title', 'product title', 'name', 'product name', '产品标题', '商品标题', '产品名称', '商品名称'])) {
-                $columns['title'] = $col;
-            }
+    foreach ($headers as $col => $header) {
+        $header = strtolower(trim($header));
+        
+        // 查找SKU列 - 支持更多格式
+        if (in_array($header, [
+            'sku', 'skuid', 'sku id', 'seller sku', 'sellersku',
+            '卖家sku', '商品sku', 'sku编号', 'sku号'
+        ])) {
+            $columns['sku'] = $col;
         }
-
-        return $columns;
+        
+        // 查找标题列 - 支持更多格式  
+        if (in_array($header, [
+            'title', 'product title', 'name', 'product name', 'productname',
+            '产品标题', '商品标题', '产品名称', '商品名称', 'product_name', 'product_title'
+        ])) {
+            $columns['title'] = $col;
+        }
     }
+
+    return $columns;
+}
 
     /**
      * 验证Excel文件格式

@@ -32,17 +32,18 @@
                     <ul class="text-sm text-blue-700 space-y-1">
                         <li>• 支持Excel文件（.xlsx, .xls）和CSV文件</li>
                         <li>• 第一行必须是表头</li>
-                        <li>• 必须包含"SKU"列和"产品标题"列（或类似名称）</li>
+                        <li>• 必须包含"SKU"或"SKU ID"列</li>
+                        <li>• 必须包含"Product Name"或"产品标题"列</li>
                         <li>• 文件大小不超过10MB</li>
                     </ul>
                     <div class="mt-3">
                         <a href="/templates/product_title_update_template.csv"
                            download="产品标题更新模板.csv"
-                           class="inline-flex items-center text-sm text-blue-600 hover:text-blue-800">
+                           class="inline-flex items-center text-sm text-blue-600 hover:text-blue-800 font-medium">
                             <svg class="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path>
                             </svg>
-                            下载Excel模板文件
+                            📁 下载CSV模板文件 (SKU ID + Product Name 格式)
                         </a>
                     </div>
                 </div>
@@ -66,11 +67,11 @@
                 </div>
             </div>
 
-            <button id="upload-btn" class="mt-4 w-full bg-gradient-to-r from-blue-600 to-blue-700 text-white py-3 px-6 rounded-lg font-semibold text-lg shadow-lg hover:from-blue-700 hover:to-blue-800 disabled:bg-gray-400 disabled:cursor-not-allowed transform hover:scale-105 transition-all duration-200" disabled>
-                <svg class="w-5 h-5 inline-block mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12"/>
+            <button id="upload-btn" class="mt-6 w-full bg-gradient-to-r from-green-600 to-green-700 text-white py-4 px-8 rounded-lg font-bold text-xl shadow-xl hover:from-green-700 hover:to-green-800 disabled:bg-gray-400 disabled:cursor-not-allowed transform hover:scale-105 transition-all duration-200 border-2 border-green-500" disabled>
+                <svg class="w-6 h-6 inline-block mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12"/>
                 </svg>
-                上传文件
+                🚀 开始上传并更新产品标题
             </button>
         </div>
 
@@ -250,7 +251,15 @@ document.addEventListener('DOMContentLoaded', function() {
         .then(response => {
             console.log('上传响应状态:', response.status);
             if (!response.ok) {
-                throw new Error(`HTTP错误! 状态: ${response.status}`);
+                // 尝试获取错误详情
+                return response.text().then(text => {
+                    try {
+                        const errorData = JSON.parse(text);
+                        throw new Error(errorData.message || `HTTP错误! 状态: ${response.status}`);
+                    } catch (e) {
+                        throw new Error(`服务器错误 (${response.status}): ${text.substring(0, 100)}...`);
+                    }
+                });
             }
             return response.json();
         })
@@ -280,9 +289,14 @@ document.addEventListener('DOMContentLoaded', function() {
         })
         .finally(() => {
             uploadBtn.disabled = false;
-            uploadBtn.textContent = '上传文件';
+            uploadBtn.innerHTML = `
+                <svg class="w-6 h-6 inline-block mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12"/>
+                </svg>
+                🚀 开始上传并更新产品标题
+            `;
             uploadBtn.classList.remove('bg-gray-400');
-            uploadBtn.classList.add('bg-blue-600', 'hover:bg-blue-700');
+            uploadBtn.classList.add('bg-green-600', 'hover:bg-green-700');
         });
     });
 

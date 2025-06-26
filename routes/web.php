@@ -76,16 +76,12 @@ Route::middleware(['auth', 'admin'])->group(function () {
 Route::middleware(['auth'])->group(function () {
     Route::prefix('bulk-update')->group(function () {
         Route::get('/', [BulkUpdateController::class, 'index'])->name('bulk-update.index');
-
-        // Routes that need Lazada token
-        Route::middleware(['lazada.token'])->group(function () {
-            Route::get('/auth-check', [BulkUpdateController::class, 'authCheck'])->name('bulk-update.auth-check');
-            Route::get('/test-connection', [BulkUpdateController::class, 'testLazadaConnection'])->name('bulk-update.test-connection');
-            Route::post('/upload', [BulkUpdateController::class, 'upload'])->name('bulk-update.upload');
-            Route::post('/execute', [BulkUpdateController::class, 'execute'])->name('bulk-update.execute');
-            Route::get('/status', [BulkUpdateController::class, 'status'])->name('bulk-update.status');
-            Route::get('/download-report', [BulkUpdateController::class, 'downloadReport'])->name('bulk-update.download-report');
-        });
+        Route::get('/auth-check', [BulkUpdateController::class, 'authCheck'])->name('bulk-update.auth-check');
+        Route::get('/test-connection', [BulkUpdateController::class, 'testLazadaConnection'])->name('bulk-update.test-connection');
+        Route::post('/upload', [BulkUpdateController::class, 'upload'])->name('bulk-update.upload');
+        Route::post('/execute', [BulkUpdateController::class, 'execute'])->name('bulk-update.execute');
+        Route::get('/status', [BulkUpdateController::class, 'status'])->name('bulk-update.status');
+        Route::get('/download-report', [BulkUpdateController::class, 'downloadReport'])->name('bulk-update.download-report');
     });
 });
 

@@ -28,24 +28,38 @@ class BulkUpdateController extends Controller
         return view('bulk-update.index');
     }
 
-    /**
-     * 检查Lazada授权状态
-     */
     public function authCheck()
-    {
-        try {
-            // 简单的授权检查，通过中间件会自动处理
-            return response()->json([
-                'success' => true,
-                'message' => 'Lazada授权正常'
-            ]);
-        } catch (\Exception $e) {
+{
+    try {
+        // 直接检查数据库中是否有有效的token
+        $token = \App\Models\LazadaToken::latest()->first();
+        
+        if (!$token) {
             return response()->json([
                 'success' => false,
-                'message' => 'Lazada授权检查失败: ' . $e->getMessage()
-            ], 500);
+                'message' => 'Lazada授权不存在，请先在设置页面进行授权'
+            ], 403);
         }
+
+        // 检查token是否过期
+        if ($token->expires_at && now()->gt($token->expires_at)) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Lazada授权已过期，请重新授权'
+            ], 403);
+        }
+
+        return response()->json([
+            'success' => true,
+            'message' => 'Lazada授权正常'
+        ]);
+    } catch (\Exception $e) {
+        return response()->json([
+            'success' => false,
+            'message' => 'Lazada授权检查失败: ' . $e->getMessage()
+        ], 500);
     }
+}
 
     /**
      * 测试Lazada API连接和产品更新功能
