@@ -18,37 +18,51 @@ class BulkUpdateService
         $this->excelService = $excelService;
     }
 
-    /**
-     * 创建批量更新任务
-     * 
-     * @param string $filePath 上传的文件路径
-     * @return array 创建结果
-     */
     public function createBulkUpdateTask($filePath)
     {
         try {
+            \Log::info('开始创建批量更新任务', [
+                'file_path' => $filePath,
+                'file_exists' => Storage::exists($filePath)
+            ]);
+
             // 验证文件
+            \Log::info('开始验证文件');
             $validation = $this->excelService->validateExcelFile($filePath);
             if (!$validation['valid']) {
+                \Log::warning('文件验证失败', ['message' => $validation['message']]);
                 return [
                     'success' => false,
                     'message' => $validation['message']
                 ];
             }
+            \Log::info('文件验证成功');
 
             // 解析文件
+            \Log::info('开始解析文件');
             $parseResult = $this->excelService->parseProductUpdateFile($filePath);
             if (!$parseResult['success']) {
+                \Log::warning('文件解析失败', ['message' => $parseResult['message']]);
                 return [
                     'success' => false,
                     'message' => $parseResult['message']
                 ];
             }
+            \Log::info('文件解析成功', [
+                'products_count' => count($parseResult['products']),
+                'errors_count' => count($parseResult['errors'])
+            ]);
 
             // 验证产品是否存在于本地数据库
+            \Log::info('开始验证产品');
             $validatedProducts = $this->validateProducts($parseResult['products']);
+            \Log::info('产品验证完成', [
+                'valid_products' => count($validatedProducts['valid_products']),
+                'validation_errors' => count($validatedProducts['errors'])
+            ]);
 
             // 创建任务记录
+            \Log::info('开始创建任务记录');
             $task = BulkUpdateTask::create([
                 'type' => 'product_title_update',
                 'status' => 'pending',
@@ -79,7 +93,10 @@ class BulkUpdateService
         } catch (\Exception $e) {
             Log::error('创建批量更新任务失败', [
                 'file_path' => $filePath,
-                'error' => $e->getMessage()
+                'error' => $e->getMessage(),
+                'line' => $e->getLine(),
+                'file_location' => $e->getFile(),
+                'trace' => $e->getTraceAsString()
             ]);
 
             return [

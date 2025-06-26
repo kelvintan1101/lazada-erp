@@ -147,28 +147,58 @@ class BulkUpdateController extends Controller
             // 确保bulk_updates目录存在
             if (!Storage::exists('bulk_updates')) {
                 Storage::makeDirectory('bulk_updates');
+                \Log::info('创建bulk_updates目录');
             }
 
             // 保存上传的文件
-            $fileName = 'bulk_updates/' . time() . '_' . $file->getClientOriginalName();
-            
-            // 使用store方法并指定磁盘
-            $filePath = $file->storeAs('bulk_updates', time() . '_' . $file->getClientOriginalName(), 'local');
+            $fileName = time() . '_' . $file->getClientOriginalName();
+            $filePath = $file->storeAs('bulk_updates', $fileName, 'local');
 
             // 验证文件是否成功保存
             if (!Storage::exists($filePath)) {
+                \Log::error('文件保存失败', [
+                    'file_path' => $filePath,
+                    'storage_path' => Storage::path($filePath)
+                ]);
                 return response()->json([
                     'success' => false,
                     'message' => '文件保存失败'
                 ], 500);
             }
 
+            \Log::info('文件保存成功', [
+                'file_path' => $filePath,
+                'full_path' => Storage::path($filePath),
+                'file_exists' => file_exists(Storage::path($filePath))
+            ]);
+
+            // 检查文件是否可读
+            $fullPath = Storage::path($filePath);
+            if (!is_readable($fullPath)) {
+                \Log::error('文件不可读', [
+                    'file_path' => $filePath,
+                    'full_path' => $fullPath
+                ]);
+                Storage::delete($filePath);
+                return response()->json([
+                    'success' => false,
+                    'message' => '文件保存后无法读取'
+                ], 500);
+            }
+
             // 创建批量更新任务
+            \Log::info('开始创建批量更新任务', ['file_path' => $filePath]);
+            
             $result = $this->bulkUpdateService->createBulkUpdateTask($filePath);
 
             if (!$result['success']) {
                 // 删除上传的文件
                 Storage::delete($filePath);
+                
+                \Log::warning('创建任务失败，删除文件', [
+                    'file_path' => $filePath,
+                    'error' => $result['message']
+                ]);
                 
                 return response()->json([
                     'success' => false,
@@ -190,6 +220,8 @@ class BulkUpdateController extends Controller
                 $response['message'] .= '，但有一些产品存在问题';
             }
 
+            \Log::info('任务创建成功', $response);
+
             return response()->json($response);
 
         } catch (\Exception $e) {
@@ -197,8 +229,10 @@ class BulkUpdateController extends Controller
             \Log::error('批量更新文件上传失败', [
                 'error' => $e->getMessage(),
                 'trace' => $e->getTraceAsString(),
-                'file_name' => $request->file('excel_file')->getClientOriginalName() ?? 'unknown',
-                'file_size' => $request->file('excel_file')->getSize() ?? 0
+                'file_name' => $file->getClientOriginalName(),
+                'file_size' => $file->getSize(),
+                'line' => $e->getLine(),
+                'file_location' => $e->getFile()
             ]);
 
             return response()->json([
