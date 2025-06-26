@@ -162,41 +162,71 @@
 </div>
 
 <!-- 通知系统 -->
-<div id="notification-container" style="position: fixed; bottom: 20px; right: 20px; z-index: 99999; max-width: 400px; pointer-events: none;">
+<div id="notification-container" style="position: fixed; bottom: 20px; right: 20px; z-index: 999999; max-width: 420px; pointer-events: none;">
     <!-- 通知将在这里动态创建 -->
 </div>
 @endsection
 
 @push('styles')
 <style>
+/* 添加脉冲动画 */
+@keyframes pulse {
+    0% { transform: translate(-50%, -50%) scale(1); }
+    50% { transform: translate(-50%, -50%) scale(1.05); }
+    100% { transform: translate(-50%, -50%) scale(1); }
+}
+
+/* 添加通知进入动画 */
+@keyframes slideInRight {
+    from {
+        transform: translateX(100%);
+        opacity: 0;
+    }
+    to {
+        transform: translateX(0);
+        opacity: 1;
+    }
+}
+
+@keyframes slideOutRight {
+    from {
+        transform: translateX(0);
+        opacity: 1;
+    }
+    to {
+        transform: translateX(100%);
+        opacity: 0;
+    }
+}
 /* 通知容器样式 - 完全重写 */
 #notification-container {
     position: fixed !important;
     bottom: 20px !important;
     right: 20px !important;
-    z-index: 99999 !important;
-    max-width: 400px !important;
+    z-index: 999999 !important;
+    max-width: 420px !important;
     pointer-events: none !important;
     display: flex !important;
     flex-direction: column-reverse !important;
-    gap: 12px !important;
+    gap: 16px !important;
 }
 
 /* 通知项样式 - 完全重写 */
 .notification-item {
     pointer-events: auto !important;
     background: white !important;
-    border: 1px solid #e5e7eb !important;
+    border: 2px solid #e5e7eb !important;
     border-radius: 12px !important;
-    box-shadow: 0 10px 25px rgba(0, 0, 0, 0.15) !important;
-    padding: 16px !important;
+    box-shadow: 0 20px 40px rgba(0, 0, 0, 0.25) !important;
+    padding: 20px !important;
     width: 100% !important;
-    max-width: 380px !important;
+    max-width: 400px !important;
     position: relative !important;
-    z-index: 100000 !important;
+    z-index: 1000000 !important;
     transform: translateX(100%) !important;
     opacity: 0 !important;
     transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1) !important;
+    backdrop-filter: blur(10px) !important;
 }
 
 .notification-item.show {
@@ -498,24 +528,25 @@ document.addEventListener('DOMContentLoaded', function() {
         notification.style.cssText = `
             pointer-events: auto !important;
             background: white !important;
-            border: 1px solid #e5e7eb !important;
+            border: 2px solid #e5e7eb !important;
             border-radius: 12px !important;
-            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.15) !important;
-            padding: 16px !important;
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.25) !important;
+            padding: 20px !important;
             width: 100% !important;
-            max-width: 380px !important;
+            max-width: 400px !important;
             position: relative !important;
-            z-index: 100000 !important;
+            z-index: 999999 !important;
             transform: translateX(100%) !important;
             opacity: 0 !important;
             transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1) !important;
-            margin-bottom: 12px !important;
+            margin-bottom: 16px !important;
+            backdrop-filter: blur(10px) !important;
         `;
 
         const iconColors = {
-            success: 'text-green-600 bg-green-100',
-            error: 'text-red-600 bg-red-100',
-            info: 'text-blue-600 bg-blue-100'
+            success: 'text-green-700 bg-green-200',
+            error: 'text-red-700 bg-red-200',
+            info: 'text-blue-700 bg-blue-200'
         };
 
         const icons = {
@@ -535,18 +566,18 @@ document.addEventListener('DOMContentLoaded', function() {
 
         notification.innerHTML = `
             <div class="flex items-start">
-                <div class="w-8 h-8 rounded-full flex items-center justify-center ${iconColors[type]} mr-3 flex-shrink-0">
-                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <div class="w-10 h-10 rounded-full flex items-center justify-center ${iconColors[type]} mr-4 flex-shrink-0">
+                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         ${icons[type]}
                     </svg>
                 </div>
                 <div class="flex-1 min-w-0">
-                    <h4 class="text-sm font-semibold text-gray-900">${title}</h4>
-                    <p class="text-sm text-gray-600 mt-1">${message}</p>
+                    <h4 class="text-base font-bold text-gray-900 mb-1">${title}</h4>
+                    <p class="text-sm text-gray-700 leading-relaxed">${message}</p>
                     ${actionsHtml}
                 </div>
-                <button class="close-btn ml-2 text-gray-400 hover:text-gray-600 flex-shrink-0 p-1">
-                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <button class="close-btn ml-3 text-gray-500 hover:text-gray-800 flex-shrink-0 p-1 rounded-full hover:bg-gray-100 transition-colors">
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
                     </svg>
                 </button>
@@ -588,9 +619,10 @@ document.addEventListener('DOMContentLoaded', function() {
         setTimeout(() => {
             notification.style.transform = 'translateX(0) !important';
             notification.style.opacity = '1 !important';
+            notification.style.animation = 'slideInRight 0.4s ease-out forwards !important';
             notification.classList.add('show');
             console.log('✨ 动画已触发');
-        }, 100);
+        }, 50);
 
         // 自动消失（除非有操作按钮）
         if (actions.length === 0) {
@@ -606,6 +638,7 @@ document.addEventListener('DOMContentLoaded', function() {
         console.log('隐藏通知:', notificationId);
         const notification = document.getElementById(notificationId);
         if (notification) {
+            notification.style.animation = 'slideOutRight 0.3s ease-in forwards !important';
             notification.style.transform = 'translateX(100%)';
             notification.style.opacity = '0';
             notification.classList.add('hide');
@@ -938,6 +971,51 @@ document.addEventListener('DOMContentLoaded', function() {
             style: window.getComputedStyle(container),
             position: container.getBoundingClientRect()
         });
+
+        // 创建一个非常明显的测试通知
+        const testNotification = document.createElement('div');
+        testNotification.style.cssText = `
+            position: fixed !important;
+            top: 50% !important;
+            left: 50% !important;
+            transform: translate(-50%, -50%) !important;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%) !important;
+            color: white !important;
+            padding: 30px !important;
+            border-radius: 15px !important;
+            box-shadow: 0 25px 50px rgba(0, 0, 0, 0.3) !important;
+            z-index: 9999999 !important;
+            font-size: 18px !important;
+            font-weight: bold !important;
+            text-align: center !important;
+            min-width: 300px !important;
+            animation: pulse 2s infinite !important;
+        `;
+        testNotification.innerHTML = `
+            <div>🔔 测试通知显示成功！</div>
+            <div style="font-size: 14px; margin-top: 10px; opacity: 0.9;">
+                如果您能看到这个通知，说明通知系统正常工作
+            </div>
+            <button onclick="this.parentElement.remove()" style="
+                background: rgba(255,255,255,0.2);
+                border: 1px solid rgba(255,255,255,0.3);
+                color: white;
+                padding: 8px 16px;
+                border-radius: 8px;
+                margin-top: 15px;
+                cursor: pointer;
+                font-size: 14px;
+            ">关闭</button>
+        `;
+
+        document.body.appendChild(testNotification);
+
+        // 3秒后自动移除
+        setTimeout(() => {
+            if (testNotification.parentElement) {
+                testNotification.remove();
+            }
+        }, 5000);
 
         const testDiv = document.createElement('div');
         testDiv.innerHTML = `
