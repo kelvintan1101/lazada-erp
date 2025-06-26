@@ -139,7 +139,7 @@
 </div>
 
 <!-- 通知系统 -->
-<div id="notification-container" class="fixed top-4 right-4 z-50 space-y-3"></div>
+<div id="notification-container" class="fixed top-20 right-4 z-50 space-y-3"></div>
 @endsection
 
 @push('scripts')
@@ -361,7 +361,7 @@ document.addEventListener('DOMContentLoaded', function() {
         
         const notification = document.createElement('div');
         notification.id = notificationId;
-        notification.className = 'bg-white border border-gray-200 rounded-lg shadow-lg p-4 min-w-80 max-w-sm transform transition-all duration-300 translate-x-full opacity-0';
+        notification.className = 'bg-white border border-gray-200 rounded-lg shadow-lg p-4 w-80 transform transition-all duration-300 translate-x-full opacity-0 mb-3';
         
         const iconColors = {
             success: 'text-green-600 bg-green-100',
@@ -379,7 +379,7 @@ document.addEventListener('DOMContentLoaded', function() {
         if (actions.length > 0) {
             actionsHtml = '<div class="mt-3 flex space-x-2">';
             actions.forEach(action => {
-                actionsHtml += `<button onclick="${action.onclick}" class="${action.className}">${action.text}</button>`;
+                actionsHtml += `<button data-action="${action.action}" class="${action.className}">${action.text}</button>`;
             });
             actionsHtml += '</div>';
         }
@@ -396,7 +396,7 @@ document.addEventListener('DOMContentLoaded', function() {
                     <p class="text-sm text-gray-600 mt-1">${message}</p>
                     ${actionsHtml}
                 </div>
-                <button onclick="closeNotification('${notificationId}')" class="ml-2 text-gray-400 hover:text-gray-600 flex-shrink-0">
+                <button class="close-btn ml-2 text-gray-400 hover:text-gray-600 flex-shrink-0">
                     <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
                     </svg>
@@ -405,6 +405,24 @@ document.addEventListener('DOMContentLoaded', function() {
         `;
         
         container.appendChild(notification);
+        
+        // 添加事件监听器
+        const closeBtn = notification.querySelector('.close-btn');
+        closeBtn.addEventListener('click', () => closeNotification(notificationId));
+        
+        // 添加操作按钮事件监听器
+        const actionButtons = notification.querySelectorAll('[data-action]');
+        actionButtons.forEach(btn => {
+            btn.addEventListener('click', () => {
+                const action = btn.getAttribute('data-action');
+                if (action === 'download') {
+                    downloadReport(currentTaskId);
+                } else if (action === 'new-task') {
+                    startNewTask();
+                }
+                closeNotification(notificationId);
+            });
+        });
         
         // 动画显示
         setTimeout(() => {
@@ -427,10 +445,15 @@ document.addEventListener('DOMContentLoaded', function() {
         if (notification) {
             notification.classList.add('translate-x-full', 'opacity-0');
             setTimeout(() => {
-                notification.remove();
+                if (notification.parentNode) {
+                    notification.parentNode.removeChild(notification);
+                }
             }, 300);
         }
     }
+    
+    // 确保函数在全局作用域
+    window.closeNotification = closeNotification;
 
     // 显示成功通知
     function showSuccessNotification(task) {
@@ -440,12 +463,12 @@ document.addEventListener('DOMContentLoaded', function() {
             {
                 text: '下载报告',
                 className: 'bg-blue-600 hover:bg-blue-700 text-white text-xs py-1 px-3 rounded font-medium transition-colors',
-                onclick: `downloadReport('${currentTaskId}')`
+                action: 'download'
             },
             {
                 text: '新任务',
                 className: 'bg-gray-100 hover:bg-gray-200 text-gray-700 text-xs py-1 px-3 rounded font-medium transition-colors',
-                onclick: 'startNewTask()'
+                action: 'new-task'
             }
         ];
         
