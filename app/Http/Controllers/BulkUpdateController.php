@@ -87,63 +87,56 @@ class BulkUpdateController extends Controller
 
     public function upload(Request $request)
     {
-        // 自定义文件验证，支持更多CSV MIME types
-        $file = $request->file('excel_file');
-        
-        if (!$file) {
-            return response()->json([
-                'success' => false,
-                'message' => '请选择要上传的文件'
-            ], 422);
-        }
-
-        // 检查文件大小 (10MB)
-        if ($file->getSize() > 10 * 1024 * 1024) {
-            return response()->json([
-                'success' => false,
-                'message' => '文件大小不能超过10MB'
-            ], 422);
-        }
-
-        // 检查文件扩展名
-        $allowedExtensions = ['xlsx', 'xls', 'csv'];
-        $extension = strtolower($file->getClientOriginalExtension());
-        
-        if (!in_array($extension, $allowedExtensions)) {
-            return response()->json([
-                'success' => false,
-                'message' => '只支持Excel文件（.xlsx, .xls）和CSV文件'
-            ], 422);
-        }
-
-        // 对于CSV文件，记录MIME type信息用于调试
-        if ($extension === 'csv') {
-            $allowedCsvMimeTypes = [
-                'text/csv',
-                'text/plain',
-                'application/csv',
-                'application/vnd.ms-excel',
-                'text/comma-separated-values',
-                'application/octet-stream'
-            ];
-            
-            $mimeType = $file->getMimeType();
-            \Log::info('CSV文件MIME type检测', [
-                'file_name' => $file->getClientOriginalName(),
-                'detected_mime_type' => $mimeType,
-                'file_size' => $file->getSize()
-            ]);
-        }
-
-        // 记录文件信息用于调试
-        \Log::info('文件上传验证通过', [
-            'file_name' => $file->getClientOriginalName(),
-            'file_size' => $file->getSize(),
-            'file_extension' => $extension,
-            'mime_type' => $file->getMimeType()
-        ]);
-
         try {
+            // 基础调试信息
+            \Log::info('=== 开始处理文件上传请求 ===');
+            \Log::info('请求基本信息', [
+                'method' => $request->method(),
+                'has_file' => $request->hasFile('excel_file'),
+                'files_count' => count($request->allFiles())
+            ]);
+            
+            // 自定义文件验证，支持更多CSV MIME types
+            $file = $request->file('excel_file');
+            
+            if (!$file) {
+                \Log::warning('文件上传失败：没有文件');
+                return response()->json([
+                    'success' => false,
+                    'message' => '请选择要上传的文件'
+                ], 422);
+            }
+
+            \Log::info('文件基本信息', [
+                'original_name' => $file->getClientOriginalName(),
+                'size' => $file->getSize(),
+                'mime_type' => $file->getMimeType(),
+                'extension' => $file->getClientOriginalExtension()
+            ]);
+
+            // 检查文件大小 (10MB)
+            if ($file->getSize() > 10 * 1024 * 1024) {
+                \Log::warning('文件大小超限', ['size' => $file->getSize()]);
+                return response()->json([
+                    'success' => false,
+                    'message' => '文件大小不能超过10MB'
+                ], 422);
+            }
+
+            // 检查文件扩展名
+            $allowedExtensions = ['xlsx', 'xls', 'csv'];
+            $extension = strtolower($file->getClientOriginalExtension());
+            
+            if (!in_array($extension, $allowedExtensions)) {
+                \Log::warning('不支持的文件扩展名', ['extension' => $extension]);
+                return response()->json([
+                    'success' => false,
+                    'message' => '只支持Excel文件（.xlsx, .xls）和CSV文件'
+                ], 422);
+            }
+
+            \Log::info('文件验证通过，开始保存文件');
+
             // 确保bulk_updates目录存在
             if (!Storage::exists('bulk_updates')) {
                 Storage::makeDirectory('bulk_updates');
@@ -153,6 +146,11 @@ class BulkUpdateController extends Controller
             // 保存上传的文件
             $fileName = time() . '_' . $file->getClientOriginalName();
             $filePath = $file->storeAs('bulk_updates', $fileName, 'local');
+
+            \Log::info('文件保存结果', [
+                'file_path' => $filePath,
+                'storage_exists' => Storage::exists($filePath)
+            ]);
 
             // 验证文件是否成功保存
             if (!Storage::exists($filePath)) {
@@ -165,12 +163,6 @@ class BulkUpdateController extends Controller
                     'message' => '文件保存失败'
                 ], 500);
             }
-
-            \Log::info('文件保存成功', [
-                'file_path' => $filePath,
-                'full_path' => Storage::path($filePath),
-                'file_exists' => file_exists(Storage::path($filePath))
-            ]);
 
             // 检查文件是否可读
             $fullPath = Storage::path($filePath);
@@ -186,9 +178,18 @@ class BulkUpdateController extends Controller
                 ], 500);
             }
 
+            \Log::info('文件保存成功，开始创建批量更新任务');
+
+            // 检查服务是否正确注入
+            if (!$this->bulkUpdateService) {
+                \Log::error('BulkUpdateService 未正确注入');
+                return response()->json([
+                    'success' => false,
+                    'message' => '服务初始化失败'
+                ], 500);
+            }
+
             // 创建批量更新任务
-            \Log::info('开始创建批量更新任务', ['file_path' => $filePath]);
-            
             $result = $this->bulkUpdateService->createBulkUpdateTask($filePath);
 
             if (!$result['success']) {
@@ -220,17 +221,17 @@ class BulkUpdateController extends Controller
                 $response['message'] .= '，但有一些产品存在问题';
             }
 
-            \Log::info('任务创建成功', $response);
+            \Log::info('=== 任务创建成功 ===', $response);
 
             return response()->json($response);
 
         } catch (\Exception $e) {
             // 记录详细的错误信息
-            \Log::error('批量更新文件上传失败', [
+            \Log::error('=== 批量更新文件上传失败 ===', [
                 'error' => $e->getMessage(),
                 'trace' => $e->getTraceAsString(),
-                'file_name' => $file->getClientOriginalName(),
-                'file_size' => $file->getSize(),
+                'file_name' => $request->hasFile('excel_file') ? $request->file('excel_file')->getClientOriginalName() : 'unknown',
+                'file_size' => $request->hasFile('excel_file') ? $request->file('excel_file')->getSize() : 0,
                 'line' => $e->getLine(),
                 'file_location' => $e->getFile()
             ]);

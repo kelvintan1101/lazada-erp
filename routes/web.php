@@ -10,6 +10,7 @@ use App\Http\Controllers\BulkUpdateController;
 use App\Http\Controllers\Auth\AuthenticatedSessionController;
 use App\Http\Controllers\Auth\PasswordController;
 use Illuminate\Support\Facades\Route;
+use Illuminate\Support\Facades\Storage;
 
 // Authentication routes
 Route::redirect('/', '/login');
@@ -410,3 +411,49 @@ function generateSignature($apiPath, $params, $appSecret) {
     // Create HMAC-SHA256 signature with the app secret
     return strtoupper(hash_hmac('sha256', $signString, $appSecret));
 }
+
+// 添加测试路由
+Route::get('/bulk-update/test', function() {
+    try {
+        \Log::info('测试路由被访问');
+        
+        // 测试Storage
+        $storageWorks = Storage::exists('bulk_updates');
+        \Log::info('Storage测试', ['works' => $storageWorks]);
+        
+        // 测试BulkUpdateService
+        $bulkService = app(\App\Services\BulkUpdateService::class);
+        \Log::info('BulkUpdateService注入测试', ['service_exists' => !is_null($bulkService)]);
+        
+        // 测试ExcelProcessingService
+        $excelService = app(\App\Services\ExcelProcessingService::class);
+        \Log::info('ExcelProcessingService注入测试', ['service_exists' => !is_null($excelService)]);
+        
+        // 测试BulkUpdateTask模型
+        $taskCount = \App\Models\BulkUpdateTask::count();
+        \Log::info('BulkUpdateTask模型测试', ['count' => $taskCount]);
+        
+        return response()->json([
+            'success' => true,
+            'message' => '所有测试通过',
+            'details' => [
+                'storage_works' => $storageWorks,
+                'bulk_service_exists' => !is_null($bulkService),
+                'excel_service_exists' => !is_null($excelService),
+                'task_count' => $taskCount
+            ]
+        ]);
+        
+    } catch (\Exception $e) {
+        \Log::error('测试失败', [
+            'error' => $e->getMessage(),
+            'line' => $e->getLine(),
+            'file' => $e->getFile()
+        ]);
+        
+        return response()->json([
+            'success' => false,
+            'message' => '测试失败: ' . $e->getMessage()
+        ], 500);
+    }
+})->middleware(['auth']);
