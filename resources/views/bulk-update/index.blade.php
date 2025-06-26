@@ -256,6 +256,39 @@ document.addEventListener('DOMContentLoaded', function() {
         return;
     }
 
+    // 初始化页面状态
+    function initializePage() {
+        // 确保进度条初始状态正确
+        updateCircularProgress(0);
+        
+        // 清空统计显示
+        document.getElementById('total-count').textContent = '0';
+        document.getElementById('success-count').textContent = '0';
+        document.getElementById('failed-count').textContent = '0';
+        
+        // 重置状态
+        document.getElementById('status-message').textContent = '等待上传文件';
+        document.getElementById('status-detail').textContent = '请选择要上传的Excel或CSV文件';
+        
+        // 确保只显示上传区域
+        document.getElementById('upload-section').classList.remove('hidden');
+        document.getElementById('task-section').classList.add('hidden');
+        document.getElementById('progress-section').classList.add('hidden');
+        
+        // 重置变量
+        currentTaskId = null;
+        lastLoggedStatus = '';
+        lastLoggedProgress = -1;
+        
+        if (progressInterval) {
+            clearInterval(progressInterval);
+            progressInterval = null;
+        }
+    }
+    
+    // 页面加载时初始化
+    initializePage();
+
     // 文件选择处理
     fileDropZone.addEventListener('click', () => fileInput.click());
     
@@ -431,11 +464,21 @@ document.addEventListener('DOMContentLoaded', function() {
     // 更新圆形进度条
     function updateCircularProgress(percentage) {
         const circle = document.getElementById('progress-circle');
-        const circumference = 2 * Math.PI * 40; // r = 40
-        const offset = circumference - (percentage / 100) * circumference;
-        circle.style.strokeDashoffset = offset;
+        const progressText = document.getElementById('progress-percentage');
         
-        document.getElementById('progress-percentage').textContent = percentage + '%';
+        if (!circle || !progressText) {
+            console.warn('Progress circle elements not found');
+            return;
+        }
+        
+        // 确保百分比在0-100范围内
+        const validPercentage = Math.max(0, Math.min(100, percentage || 0));
+        
+        const circumference = 2 * Math.PI * 40; // r = 40
+        const offset = circumference - (validPercentage / 100) * circumference;
+        
+        circle.style.strokeDashoffset = offset;
+        progressText.textContent = Math.round(validPercentage) + '%';
     }
 
     // 添加日志消息
@@ -480,6 +523,10 @@ document.addEventListener('DOMContentLoaded', function() {
         }
     }
 
+    // 跟踪日志状态，避免重复消息
+    let lastLoggedStatus = '';
+    let lastLoggedProgress = -1;
+
     // 更新进度显示函数
     function updateProgressDisplay(task) {
         const totalCount = document.getElementById('total-count');
@@ -491,36 +538,55 @@ document.addEventListener('DOMContentLoaded', function() {
         const percentage = task.progress_percentage || 0;
         updateCircularProgress(percentage);
         
-        totalCount.textContent = task.total_items;
-        successCount.textContent = task.successful_items;
-        failedCount.textContent = task.failed_items;
+        totalCount.textContent = task.total_items || 0;
+        successCount.textContent = task.successful_items || 0;
+        failedCount.textContent = task.failed_items || 0;
 
         updateStatusIcon(task.status);
 
         let status = '';
         let detail = '';
+        
+        // 只在状态变化时添加日志
         switch (task.status) {
             case 'pending':
                 status = '准备开始处理';
                 detail = '系统正在初始化处理流程';
-                addLogMessage('任务已创建，准备开始处理...', 'info');
+                if (lastLoggedStatus !== 'pending') {
+                    addLogMessage('任务已创建，准备开始处理...', 'info');
+                    lastLoggedStatus = 'pending';
+                }
                 break;
             case 'processing':
-                status = `正在处理中... (${task.processed_items}/${task.total_items})`;
-                detail = `已完成 ${task.successful_items} 个，失败 ${task.failed_items} 个`;
-                if (task.processed_items > 0) {
+                status = `正在处理中... (${task.processed_items || 0}/${task.total_items || 0})`;
+                detail = `已完成 ${task.successful_items || 0} 个，失败 ${task.failed_items || 0} 个`;
+                
+                // 只在进度有明显变化时记录日志（每10%或状态改变时）
+                const progressStep = Math.floor(percentage / 10) * 10;
+                if (lastLoggedStatus !== 'processing') {
+                    addLogMessage('开始处理产品...', 'info');
+                    lastLoggedStatus = 'processing';
+                    lastLoggedProgress = 0;
+                } else if (progressStep > lastLoggedProgress && progressStep > 0) {
                     addLogMessage(`处理进度：${task.processed_items}/${task.total_items} (${percentage}%)`, 'info');
+                    lastLoggedProgress = progressStep;
                 }
                 break;
             case 'completed':
                 status = '更新完成！';
-                detail = `成功处理 ${task.successful_items} 个产品，失败 ${task.failed_items} 个`;
-                addLogMessage('所有产品处理完成！', 'success');
+                detail = `成功处理 ${task.successful_items || 0} 个产品，失败 ${task.failed_items || 0} 个`;
+                if (lastLoggedStatus !== 'completed') {
+                    addLogMessage('所有产品处理完成！', 'success');
+                    lastLoggedStatus = 'completed';
+                }
                 break;
             case 'failed':
                 status = '任务失败';
                 detail = '处理过程中遇到错误，请查看日志';
-                addLogMessage('任务执行失败，请检查错误信息', 'error');
+                if (lastLoggedStatus !== 'failed') {
+                    addLogMessage('任务执行失败，请检查错误信息', 'error');
+                    lastLoggedStatus = 'failed';
+                }
                 break;
         }
         statusMessage.textContent = status;
@@ -645,10 +711,12 @@ document.addEventListener('DOMContentLoaded', function() {
 
     // 创建新任务
     newTaskBtn.addEventListener('click', function() {
-        addLogMessage('刷新页面创建新任务...', 'info');
-        location.reload();
+        addLogMessage('重置页面，准备新任务...', 'info');
+        // 使用初始化函数而不是刷新页面，提供更好的用户体验
+        setTimeout(() => {
+            initializePage();
+        }, 1000);
     });
 });
 </script>
-@endpush
 @endpush
