@@ -1,98 +1,85 @@
-# Lazada ERP 系统
+# Lazada ERP System
 
-基于Laravel框架开发的Lazada电商管理系统，支持产品管理、订单处理和批量操作。
+A comprehensive Laravel-based e-commerce management system designed specifically for Lazada platform integration. Built with modern PHP 8.2 and Laravel 12.0, featuring advanced bulk operations, real-time synchronization, and intelligent API management.
 
-## 主要功能
+## 🚀 Key Features
 
-### 🛍️ 产品管理
-- 从Lazada同步产品信息
-- 库存管理和调整
-- **批量更新产品标题** - 通过Excel文件批量修改产品名称
+### 📦 Product Management
+- **Real-time Product Sync** - Automatic synchronization with Lazada platform
+- **Inventory Management** - Track and adjust stock levels with audit trails
+- **Bulk Title Updates** - Mass update product titles via Excel import with API rate limiting
+- **Product Details** - Comprehensive product information and history tracking
 
-### 📦 订单管理
-- 订单同步和状态更新
-- 订单详情查看
+### 🛒 Order Management
+- **Order Synchronization** - Automatic order data sync from Lazada
+- **Status Management** - Update and track order status changes
+- **Order Analytics** - Detailed order information and reporting
+- **Multi-status Support** - Handle various order states efficiently
 
-### ⚙️ 系统设置
-- Lazada API配置
-- 系统参数设置
+### 🔧 System Administration
+- **Lazada API Configuration** - Secure API credential management
+- **Token Management** - Automated token refresh and validation
+- **User Role Management** - Admin and user access control
+- **System Settings** - Flexible configuration management
 
-## 批量产品标题更新功能
+### ⚡ Advanced Bulk Operations
+- **Excel File Processing** - Support for .xlsx, .xls, and .csv formats
+- **Data Validation** - Comprehensive SKU and product data validation
+- **API Rate Limiting** - Intelligent API call throttling (1-2 requests/second)
+- **Asynchronous Processing** - Queue-based processing for large datasets
+- **Progress Tracking** - Real-time progress monitoring and reporting
+- **Error Handling** - Robust error recovery and detailed logging
+- **Report Generation** - Downloadable detailed operation reports
 
-### 功能特点
-- **Excel文件上传** - 支持.xlsx, .xls, .csv格式
-- **数据验证** - 自动验证SKU和产品标题格式
-- **API限制处理** - 智能控制API调用频率，避免超出Lazada限制
-- **异步处理** - 大批量数据使用队列异步处理，避免超时
-- **实时进度** - 显示更新进度和成功/失败统计
-- **详细报告** - 可下载详细的更新结果报告
-- **错误处理** - 完善的错误处理和重试机制
+## 🏗️ Technical Architecture
 
-### 使用方法
+### Technology Stack
+- **Backend**: PHP 8.2+ with Laravel 12.0
+- **Frontend**: TailwindCSS + Alpine.js + Vite
+- **Database**: MySQL/SQLite with optimized indexing
+- **Queue System**: Redis (recommended) / Database Queue
+- **API Integration**: Guzzle HTTP Client with Lazada Open API
+- **Excel Processing**: PhpSpreadsheet with memory optimization
+- **Authentication**: Laravel Breeze with role-based access
 
-1. **准备Excel文件**
-   - 下载模板文件：`/templates/product_title_update_template.csv`
-   - 文件必须包含两列：`SKU` 和 `产品标题`
-   - 第一行为表头
+### Architecture Highlights
+- **Service Layer Pattern** - Clean separation of business logic
+- **Repository Pattern** - Abstracted data access layer
+- **Event-Driven Architecture** - Decoupled system components
+- **API-First Design** - RESTful API endpoints
+- **Queue-Based Processing** - Scalable background job handling
+- **Comprehensive Logging** - Detailed operation tracking
 
-2. **上传和执行**
-   - 访问 `/bulk-update` 页面
-   - 上传Excel文件
-   - 系统会验证文件格式和数据
-   - 点击"开始执行更新"启动批量更新
+## 🛠️ Installation & Setup
 
-3. **监控进度**
-   - 实时查看更新进度
-   - 查看成功/失败统计
-   - 下载详细报告
+### Prerequisites
+- PHP 8.2 or higher
+- Composer 2.x
+- Node.js 18+ and NPM
+- MySQL 8.0+ or SQLite
+- Redis Server (recommended for queue processing)
 
-### 技术实现
+### Installation Steps
 
-#### API限制处理
-- 每个API调用间隔1秒，确保不超出Lazada API限制
-- 实现重试机制处理临时失败
-- 详细的日志记录便于问题排查
-
-#### 用户体验优化
-- 异步队列处理避免页面超时
-- 实时进度更新
-- 友好的错误提示
-- 可下载的结果报告
-
-#### 数据安全
-- 文件上传验证
-- SKU存在性检查
-- 事务处理确保数据一致性
-
-## 安装和配置
-
-### 环境要求
-- PHP 8.2+
-- Laravel 12.0+
-- MySQL/SQLite数据库
-- Redis（用于队列处理）
-
-### 安装步骤
-
-1. **克隆项目**
+1. **Clone the Repository**
    ```bash
    git clone <repository-url>
    cd lazada-erp
    ```
 
-2. **安装依赖**
+2. **Install Dependencies**
    ```bash
    composer install
    npm install
    ```
 
-3. **环境配置**
+3. **Environment Configuration**
    ```bash
    cp .env.example .env
    php artisan key:generate
    ```
 
-4. **配置数据库**
+4. **Database Configuration**
    ```env
    DB_CONNECTION=mysql
    DB_HOST=127.0.0.1
@@ -102,65 +89,329 @@
    DB_PASSWORD=your_password
    ```
 
-5. **配置Lazada API**
+5. **Lazada API Configuration**
    ```env
    LAZADA_APP_KEY=your_app_key
    LAZADA_APP_SECRET=your_app_secret
    ```
 
-6. **运行迁移**
-   ```bash
-   php artisan migrate
-   ```
-
-7. **配置队列**
+6. **Queue Configuration**
    ```env
    QUEUE_CONNECTION=redis
+   REDIS_HOST=127.0.0.1
+   REDIS_PORT=6379
    ```
 
-8. **启动服务**
+7. **Database Migration**
    ```bash
-   # 启动Web服务器
-   php artisan serve
-
-   # 启动队列处理器
-   php artisan queue:work
-
-   # 启动前端构建
-   npm run dev
+   php artisan migrate
+   php artisan db:seed --class=AdminUserSeeder
    ```
 
-## 项目结构
+8. **Start Services**
+   ```bash
+   # Start all services with one command
+   composer run dev
+   
+   # Or start individually:
+   php artisan serve          # Web server (http://localhost:8000)
+   php artisan queue:work     # Queue processor
+   npm run dev               # Frontend build (hot reload)
+   php artisan pail          # Real-time logs
+   ```
 
-### 核心文件
-- `app/Services/LazadaApiService.php` - Lazada API集成
-- `app/Services/BulkUpdateService.php` - 批量更新业务逻辑
-- `app/Services/ExcelProcessingService.php` - Excel文件处理
-- `app/Jobs/ProcessBulkUpdateJob.php` - 异步队列任务
-- `app/Http/Controllers/BulkUpdateController.php` - 批量更新控制器
+## 📚 API Documentation
 
-### 数据模型
-- `app/Models/Product.php` - 产品模型
-- `app/Models/BulkUpdateTask.php` - 批量更新任务模型
-- `app/Models/LazadaToken.php` - Lazada认证令牌
+### Lazada API Integration
+The system integrates with the following Lazada API endpoints:
+- `/auth/token/create` - Access token generation
+- `/auth/token/refresh` - Token refresh
+- `/products/get` - Product data retrieval
+- `/product/update` - Product information updates
+- `/orders/get` - Order data synchronization
+- `/order/items/get` - Order item details
 
-### 前端界面
-- `resources/views/bulk-update/index.blade.php` - 批量更新页面
+### Internal API Endpoints
+- `POST /bulk-update/upload` - Excel file upload
+- `POST /bulk-update/execute/{taskId}` - Execute bulk update task
+- `GET /bulk-update/status/{taskId}` - Task status monitoring
+- `GET /bulk-update/download-report/{taskId}` - Download operation report
 
-## API文档
+### Authentication Flow
+```php
+// 1. Redirect to Lazada authorization
+$authUrl = $lazadaService->getAuthorizationUrl();
 
-### Lazada API集成
-系统集成了以下Lazada API端点：
-- `/product/update` - 更新产品信息
-- `/products/get` - 获取产品列表
-- `/auth/token/create` - 获取访问令牌
+// 2. Handle callback and exchange code for token
+$tokenData = $lazadaService->getAccessToken($authCode);
 
-### 内部API
-- `POST /bulk-update/upload` - 上传Excel文件
-- `POST /bulk-update/execute` - 执行批量更新
-- `GET /bulk-update/status` - 获取任务状态
-- `GET /bulk-update/download-report` - 下载结果报告
+// 3. Save token for future API calls
+$lazadaService->saveToken($tokenData);
+```
 
-## 许可证
+## 🔄 Bulk Update Process
 
-本项目基于 [MIT license](https://opensource.org/licenses/MIT) 开源。
+### Excel File Format
+Download template: `/templates/product_title_update_template.csv`
+
+Required columns:
+- `SKU` - Product SKU (numeric)
+- `Product Title` - New product title (max 255 characters)
+
+### Processing Workflow
+1. **File Upload & Validation** - Format and data validation
+2. **Data Parsing** - Extract and validate product information
+3. **Queue Processing** - Asynchronous API updates with rate limiting
+4. **Progress Monitoring** - Real-time status updates
+5. **Report Generation** - Detailed success/failure analysis
+
+### API Rate Limiting Strategy
+```php
+// Intelligent rate limiting implementation
+foreach ($products as $index => $product) {
+    if ($index > 0) {
+        sleep(2); // 2-second delay between API calls
+    }
+    $result = $this->lazadaApiService->updateProduct($product);
+    // Process result and update progress
+}
+```
+
+## 🏛️ Project Structure
+
+```
+lazada-erp/
+├── app/
+│   ├── Console/Commands/          # Artisan commands
+│   │   └── RefreshLazadaToken.php # Token refresh automation
+│   ├── Http/Controllers/          # Request handling
+│   │   ├── Auth/                 # Authentication controllers
+│   │   ├── BulkUpdateController.php # Bulk operations
+│   │   ├── LazadaAuthController.php # Lazada OAuth
+│   │   ├── ProductController.php  # Product management
+│   │   └── OrderController.php    # Order management
+│   ├── Jobs/                     # Queue jobs
+│   │   └── ProcessBulkUpdateJob.php # Async bulk processing
+│   ├── Models/                   # Eloquent models
+│   │   ├── Product.php          # Product model
+│   │   ├── Order.php            # Order model
+│   │   ├── BulkUpdateTask.php   # Task tracking
+│   │   └── LazadaToken.php      # Token management
+│   ├── Services/                # Business logic
+│   │   ├── LazadaApiService.php # Lazada API integration
+│   │   ├── BulkUpdateService.php # Bulk operations logic
+│   │   ├── ExcelProcessingService.php # Excel handling
+│   │   ├── ProductService.php   # Product business logic
+│   │   └── OrderService.php     # Order business logic
+│   └── Middleware/              # Custom middleware
+│       ├── AdminMiddleware.php  # Admin access control
+│       └── CheckLazadaToken.php # Token validation
+├── resources/views/             # Blade templates
+├── database/migrations/         # Database schema
+├── routes/                     # Route definitions
+└── public/templates/           # File templates
+```
+
+## 🔒 Security Features
+
+### API Security
+- **HMAC-SHA256 Signature** - Secure API request signing
+- **Token Management** - Automatic token refresh and validation
+- **Rate Limiting** - API abuse prevention
+- **Input Validation** - Comprehensive data sanitization
+
+### Application Security
+- **CSRF Protection** - Laravel's built-in CSRF protection
+- **XSS Prevention** - Blade template escaping
+- **SQL Injection Protection** - Eloquent ORM parameterized queries
+- **Role-Based Access** - Admin middleware and user permissions
+
+## 📊 Performance Optimizations
+
+### Database Optimizations
+- **Indexed Columns** - Optimized queries on SKU, order_id, etc.
+- **Connection Pooling** - Efficient database connections
+- **Query Optimization** - Eager loading and query reduction
+
+### Caching Strategy
+```php
+// Redis caching for frequently accessed data
+Cache::remember('products_list', 3600, function () {
+    return Product::with('adjustments')->get();
+});
+```
+
+### Queue Performance
+- **Job Batching** - Efficient bulk processing
+- **Failed Job Handling** - Automatic retry mechanisms
+- **Memory Management** - Optimized for large datasets
+
+## 🧪 Testing
+
+### Running Tests
+```bash
+# Run all tests
+composer test
+
+# Run specific test types
+php artisan test --filter=Feature
+php artisan test --filter=Unit
+
+# Generate coverage report
+./vendor/bin/pest --coverage
+```
+
+### Test Coverage
+- **Unit Tests** - Service layer and business logic
+- **Feature Tests** - API endpoints and user workflows
+- **Integration Tests** - Lazada API integration
+- **Browser Tests** - End-to-end user scenarios
+
+## 🚀 Deployment
+
+### Production Configuration
+```env
+APP_ENV=production
+APP_DEBUG=false
+QUEUE_CONNECTION=redis
+CACHE_DRIVER=redis
+SESSION_DRIVER=redis
+```
+
+### Server Requirements
+- **Web Server** - Nginx or Apache with PHP-FPM
+- **PHP Extensions** - mbstring, openssl, PDO, tokenizer, XML, ctype, JSON
+- **Database** - MySQL 8.0+ with InnoDB engine
+- **Redis** - Version 6.0+ for caching and queues
+- **SSL Certificate** - Required for Lazada API integration
+
+### Deployment Commands
+```bash
+# Deploy to production
+php artisan config:cache
+php artisan route:cache
+php artisan view:cache
+npm run build
+
+# Start queue workers
+php artisan queue:restart
+supervisor start laravel-worker
+```
+
+## 🔧 Configuration
+
+### Queue Workers
+```bash
+# Supervisor configuration for queue workers
+[program:laravel-worker]
+process_name=%(program_name)s_%(process_num)02d
+command=php /path/to/artisan queue:work redis --sleep=3 --tries=3 --max-time=3600
+autostart=true
+autorestart=true
+numprocs=8
+```
+
+### Scheduled Tasks
+```bash
+# Add to crontab for automated token refresh
+* * * * * cd /path/to/project && php artisan schedule:run >> /dev/null 2>&1
+```
+
+## 📈 Monitoring & Logging
+
+### Log Channels
+- **API Logs** - Lazada API request/response tracking
+- **Bulk Update Logs** - Detailed bulk operation monitoring
+- **Error Logs** - System error tracking and debugging
+- **Performance Logs** - Query and response time monitoring
+
+### Health Checks
+```php
+// Monitor system health
+php artisan health:check
+php artisan queue:monitor
+php artisan lazada:token:check
+```
+
+## 🤝 Contributing
+
+### Development Workflow
+1. Fork the repository
+2. Create a feature branch (`git checkout -b feature/amazing-feature`)
+3. Commit your changes (`git commit -m 'Add amazing feature'`)
+4. Push to the branch (`git push origin feature/amazing-feature`)
+5. Open a Pull Request
+
+### Code Standards
+- **PSR-12** - PHP coding standards
+- **Laravel Pint** - Code formatting (`./vendor/bin/pint`)
+- **PHPStan** - Static analysis
+- **Pest** - Testing framework
+
+## 📞 Support & Documentation
+
+### Useful Commands
+```bash
+# Development helpers
+composer run dev          # Start all development services
+php artisan tinker        # Interactive shell
+php artisan route:list    # View all routes
+php artisan config:clear  # Clear configuration cache
+
+# Maintenance
+php artisan down          # Enable maintenance mode
+php artisan up           # Disable maintenance mode
+php artisan migrate:status # Check migration status
+```
+
+### Environment Configuration
+Ensure your `.env` file includes all required configuration:
+```env
+# Application
+APP_NAME="Lazada ERP"
+APP_ENV=local
+APP_KEY=base64:...
+
+# Database
+DB_CONNECTION=mysql
+DB_DATABASE=lazada_erp
+
+# Lazada API
+LAZADA_APP_KEY=your_app_key
+LAZADA_APP_SECRET=your_app_secret
+
+# Queue & Cache
+QUEUE_CONNECTION=redis
+CACHE_DRIVER=redis
+REDIS_HOST=127.0.0.1
+
+# Mail (for notifications)
+MAIL_MAILER=smtp
+MAIL_HOST=smtp.mailtrap.io
+```
+
+## 📄 License
+
+This project is licensed under the [MIT License](https://opensource.org/licenses/MIT).
+
+## 🎯 Roadmap
+
+### Planned Features
+- [ ] **Advanced Analytics Dashboard** - Sales insights and performance metrics
+- [ ] **Multi-platform Support** - Shopee and other marketplace integrations
+- [ ] **Price Management System** - Dynamic pricing and competitor analysis
+- [ ] **Inventory Forecasting** - AI-powered stock level predictions
+- [ ] **Mobile App** - React Native mobile application
+- [ ] **API Rate Optimization** - Advanced throttling and batching
+- [ ] **Real-time Notifications** - WebSocket-based live updates
+- [ ] **Advanced Reporting** - Customizable report builder
+
+### Version History
+- **v1.0.0** - Initial release with core functionality
+- **v1.1.0** - Enhanced bulk update features
+- **v1.2.0** - Improved API integration and error handling
+- **v2.0.0** - Laravel 12 upgrade and performance optimizations
+
+---
+
+**Developed with ❤️ using Laravel 12.0 and modern PHP practices**

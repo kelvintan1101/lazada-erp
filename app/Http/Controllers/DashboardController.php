@@ -21,21 +21,38 @@ class DashboardController extends Controller
 
     public function index()
     {
-        // Summary data for dashboard
-        $totalProducts = Product::count();
+        // Aggregated query optimization - merge multiple individual queries into 2 efficient queries
+        
+        // 1. Product statistics - single query
+        $productStats = Product::selectRaw('COUNT(*) as total_products')->first();
+        
+        // 2. Order statistics - aggregated query (reduced from 6 queries to 1)
+        $orderStats = Order::selectRaw('
+            COUNT(*) as total_orders,
+            COUNT(CASE WHEN status = "pending" THEN 1 END) as pending_orders,
+            COUNT(CASE WHEN status = "ready_to_ship" THEN 1 END) as processing_orders,
+            COUNT(CASE WHEN status = "shipped" THEN 1 END) as shipped_orders,
+            COALESCE(SUM(total_amount), 0) as total_sales,
+            COALESCE(SUM(CASE 
+                WHEN MONTH(created_at) = ? AND YEAR(created_at) = ? 
+                THEN total_amount 
+                ELSE 0 
+            END), 0) as monthly_sales
+        ', [now()->month, now()->year])->first();
+        
+        // 3. Get low stock products (unchanged, as specific product data is needed)
         $lowStockProducts = $this->productService->getProductsWithLowStock(5);
+        
+        // 4. Get recent orders (unchanged, as specific order data is needed)
         $recentOrders = $this->orderService->getRecentOrders(5);
         
-        // Order statistics
-        $pendingOrders = Order::byStatus('pending')->count();
-        $processingOrders = Order::byStatus('ready_to_ship')->count();
-        $shippedOrders = Order::byStatus('shipped')->count();
-        
-        // Sales data
-        $totalSales = Order::sum('total_amount');
-        $monthlySales = Order::whereMonth('created_at', now()->month)
-            ->whereYear('created_at', now()->year)
-            ->sum('total_amount');
+        // Extract data from aggregated results
+        $totalProducts = $productStats->total_products;
+        $pendingOrders = $orderStats->pending_orders;
+        $processingOrders = $orderStats->processing_orders;
+        $shippedOrders = $orderStats->shipped_orders;
+        $totalSales = $orderStats->total_sales;
+        $monthlySales = $orderStats->monthly_sales;
         
         return view('dashboard.index', compact(
             'totalProducts',

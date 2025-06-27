@@ -21,7 +21,7 @@ class BulkUpdateController extends Controller
     }
 
     /**
-     * 显示批量更新页面
+     * Display bulk update page
      */
     public function index()
     {
@@ -31,55 +31,55 @@ class BulkUpdateController extends Controller
     public function authCheck()
 {
     try {
-        // 直接检查数据库中是否有有效的token
+        // Check directly if there's a valid token in the database
         $token = \App\Models\LazadaToken::latest()->first();
         
         if (!$token) {
             return response()->json([
                 'success' => false,
-                'message' => 'Lazada授权不存在，请先在设置页面进行授权'
+                'message' => 'Lazada authorization does not exist, please authorize first in the settings page'
             ], 403);
         }
 
-        // 检查token是否过期
+        // Check if token has expired
         if ($token->expires_at && now()->gt($token->expires_at)) {
             return response()->json([
                 'success' => false,
-                'message' => 'Lazada授权已过期，请重新授权'
+                'message' => 'Lazada authorization has expired, please re-authorize'
             ], 403);
         }
 
         return response()->json([
             'success' => true,
-            'message' => 'Lazada授权正常'
+            'message' => 'Lazada authorization is valid'
         ]);
     } catch (\Exception $e) {
         return response()->json([
             'success' => false,
-            'message' => 'Lazada授权检查失败: ' . $e->getMessage()
+            'message' => 'Lazada authorization check failed: ' . $e->getMessage()
         ], 500);
     }
 }
 
     /**
-     * 测试Lazada API连接和产品更新功能
+     * Test Lazada API connection and product update functionality
      */
     public function testLazadaConnection()
     {
         try {
-            // 获取少量产品来测试连接
+            // Get few products to test connection
             $result = app(LazadaApiService::class)->getProducts(0, 5);
             
             return response()->json([
                 'success' => true,
-                'message' => 'Lazada API连接正常',
+                'message' => 'Lazada API connection is normal',
                 'sample_data' => $result,
                 'timestamp' => now()->toDateTimeString()
             ]);
         } catch (\Exception $e) {
             return response()->json([
                 'success' => false,
-                'message' => 'Lazada API连接测试失败: ' . $e->getMessage(),
+                'message' => 'Lazada API connection test failed: ' . $e->getMessage(),
                 'timestamp' => now()->toDateTimeString()
             ], 500);
         }
@@ -88,115 +88,115 @@ class BulkUpdateController extends Controller
     public function upload(Request $request)
     {
         try {
-            // 基础调试信息
-            \Log::info('=== 开始处理文件上传请求 ===');
-            \Log::info('请求基本信息', [
+            // Basic debug information
+            \Log::info('=== Starting file upload request processing ===');
+            \Log::info('Request basic information', [
                 'method' => $request->method(),
                 'has_file' => $request->hasFile('excel_file'),
                 'files_count' => count($request->allFiles())
             ]);
             
-            // 自定义文件验证，支持更多CSV MIME types
+            // Custom file validation, support more CSV MIME types
             $file = $request->file('excel_file');
             
             if (!$file) {
-                \Log::warning('文件上传失败：没有文件');
+                \Log::warning('File upload failed: no file');
                 return response()->json([
                     'success' => false,
-                    'message' => '请选择要上传的文件'
+                    'message' => 'Please select a file to upload'
                 ], 422);
             }
 
-            \Log::info('文件基本信息', [
+            \Log::info('File basic information', [
                 'original_name' => $file->getClientOriginalName(),
                 'size' => $file->getSize(),
                 'mime_type' => $file->getMimeType(),
                 'extension' => $file->getClientOriginalExtension()
             ]);
 
-            // 检查文件大小 (10MB)
+            // Check file size (10MB)
             if ($file->getSize() > 10 * 1024 * 1024) {
-                \Log::warning('文件大小超限', ['size' => $file->getSize()]);
+                \Log::warning('File size exceeded', ['size' => $file->getSize()]);
                 return response()->json([
                     'success' => false,
-                    'message' => '文件大小不能超过10MB'
+                    'message' => 'File size cannot exceed 10MB'
                 ], 422);
             }
 
-            // 检查文件扩展名
+            // Check file extension
             $allowedExtensions = ['xlsx', 'xls', 'csv'];
             $extension = strtolower($file->getClientOriginalExtension());
             
             if (!in_array($extension, $allowedExtensions)) {
-                \Log::warning('不支持的文件扩展名', ['extension' => $extension]);
+                \Log::warning('Unsupported file extension', ['extension' => $extension]);
                 return response()->json([
                     'success' => false,
-                    'message' => '只支持Excel文件（.xlsx, .xls）和CSV文件'
+                    'message' => 'Only Excel files (.xlsx, .xls) and CSV files are supported'
                 ], 422);
             }
 
-            \Log::info('文件验证通过，开始保存文件');
+            \Log::info('File validation passed, starting to save file');
 
-            // 确保bulk_updates目录存在
+            // Ensure bulk_updates directory exists
             if (!Storage::exists('bulk_updates')) {
                 Storage::makeDirectory('bulk_updates');
-                \Log::info('创建bulk_updates目录');
+                \Log::info('Created bulk_updates directory');
             }
 
-            // 保存上传的文件
+            // Save uploaded file
             $fileName = time() . '_' . $file->getClientOriginalName();
             $filePath = $file->storeAs('bulk_updates', $fileName, 'local');
 
-            \Log::info('文件保存结果', [
+            \Log::info('File save result', [
                 'file_path' => $filePath,
                 'storage_exists' => Storage::exists($filePath)
             ]);
 
-            // 验证文件是否成功保存
+            // Verify if file was saved successfully
             if (!Storage::exists($filePath)) {
-                \Log::error('文件保存失败', [
+                \Log::error('File save failed', [
                     'file_path' => $filePath,
                     'storage_path' => Storage::path($filePath)
                 ]);
                 return response()->json([
                     'success' => false,
-                    'message' => '文件保存失败'
+                    'message' => 'File save failed'
                 ], 500);
             }
 
-            // 检查文件是否可读
+            // Check if file is readable
             $fullPath = Storage::path($filePath);
             if (!is_readable($fullPath)) {
-                \Log::error('文件不可读', [
+                \Log::error('File is not readable', [
                     'file_path' => $filePath,
                     'full_path' => $fullPath
                 ]);
                 Storage::delete($filePath);
                 return response()->json([
                     'success' => false,
-                    'message' => '文件保存后无法读取'
+                    'message' => 'Unable to read file after saving'
                 ], 500);
             }
 
-            \Log::info('文件保存成功，开始创建批量更新任务');
+            \Log::info('File saved successfully, starting to create bulk update task');
 
-            // 检查服务是否正确注入
+            // Check if service is properly injected
             if (!$this->bulkUpdateService) {
-                \Log::error('BulkUpdateService 未正确注入');
+                \Log::error('BulkUpdateService not properly injected');
                 return response()->json([
                     'success' => false,
-                    'message' => '服务初始化失败'
+                    'message' => 'Service initialization failed'
                 ], 500);
             }
 
-            // 创建批量更新任务
+            // Create bulk update task
             $result = $this->bulkUpdateService->createBulkUpdateTask($filePath);
 
             if (!$result['success']) {
-                // 删除上传的文件
+                // Delete uploaded file
                 Storage::delete($filePath);
                 
-                \Log::warning('创建任务失败，删除文件', [
+                \Log::warning('Task creation failed, deleting file', [
                     'file_path' => $filePath,
                     'error' => $result['message']
                 ]);
@@ -207,10 +207,10 @@ class BulkUpdateController extends Controller
                 ], 400);
             }
 
-            // 如果有错误但仍有有效产品，显示警告
+            // If there are errors but still valid products, show warning
             $response = [
                 'success' => true,
-                'message' => '文件上传成功，任务已创建',
+                'message' => 'File uploaded successfully, task created',
                 'task_id' => $result['task_id'],
                 'total_items' => $result['total_items'],
                 'valid_products' => $result['valid_products']
@@ -218,16 +218,16 @@ class BulkUpdateController extends Controller
 
             if (!empty($result['errors'])) {
                 $response['warnings'] = $result['errors'];
-                $response['message'] .= '，但有一些产品存在问题';
+                $response['message'] .= ', but some products have issues';
             }
 
-            \Log::info('=== 任务创建成功 ===', $response);
+            \Log::info('=== Task created successfully ===', $response);
 
             return response()->json($response);
 
         } catch (\Exception $e) {
-            // 记录详细的错误信息
-            \Log::error('=== 批量更新文件上传失败 ===', [
+            // Record detailed error information
+            \Log::error('=== Bulk update file upload failed ===', [
                 'error' => $e->getMessage(),
                 'trace' => $e->getTraceAsString(),
                 'file_name' => $request->hasFile('excel_file') ? $request->file('excel_file')->getClientOriginalName() : 'unknown',
@@ -238,13 +238,13 @@ class BulkUpdateController extends Controller
 
             return response()->json([
                 'success' => false,
-                'message' => '文件处理失败：' . $e->getMessage()
+                'message' => 'File processing failed: ' . $e->getMessage()
             ], 500);
         }
     }
 
     /**
-     * 开始执行批量更新任务
+     * Start executing bulk update task
      */
     public function execute(Request $request)
     {
@@ -262,7 +262,7 @@ class BulkUpdateController extends Controller
         try {
             $taskId = $request->input('task_id');
 
-            // 检查任务状态
+            // Check task status
             $statusResult = $this->bulkUpdateService->getTaskStatus($taskId);
             if (!$statusResult['success']) {
                 return response()->json([
@@ -275,29 +275,29 @@ class BulkUpdateController extends Controller
             if ($task['status'] !== 'pending') {
                 return response()->json([
                     'success' => false,
-                    'message' => '任务状态不正确，无法执行'
+                    'message' => 'Task status is incorrect, cannot execute'
                 ], 400);
             }
 
-            // 将任务加入队列异步处理
+            // Add task to queue for async processing
             ProcessBulkUpdateJob::dispatch($taskId);
 
             return response()->json([
                 'success' => true,
-                'message' => '任务已开始执行，请稍后查看进度',
+                'message' => 'Task has started executing, please check progress later',
                 'task_id' => $taskId
             ]);
 
         } catch (\Exception $e) {
             return response()->json([
                 'success' => false,
-                'message' => '启动任务失败：' . $e->getMessage()
+                'message' => 'Task startup failed: ' . $e->getMessage()
             ], 500);
         }
     }
 
     /**
-     * 获取任务状态和进度
+     * Get task status and progress
      */
     public function status(Request $request)
     {
@@ -321,13 +321,13 @@ class BulkUpdateController extends Controller
         } catch (\Exception $e) {
             return response()->json([
                 'success' => false,
-                'message' => '获取任务状态失败：' . $e->getMessage()
+                'message' => 'Failed to get task status: ' . $e->getMessage()
             ], 500);
         }
     }
 
     /**
-     * 下载任务结果报告
+     * Download task result report
      */
     public function downloadReport(Request $request)
     {
@@ -358,11 +358,11 @@ class BulkUpdateController extends Controller
             if (!$task['completed_at']) {
                 return response()->json([
                     'success' => false,
-                    'message' => '任务尚未完成，无法下载报告'
+                    'message' => 'Task not yet completed, cannot download report'
                 ], 400);
             }
 
-            // 生成CSV报告
+            // Generate CSV report
             $csvContent = $this->generateCsvReport($task);
             $fileName = "bulk_update_report_{$taskId}_" . date('Y-m-d_H-i-s') . '.csv';
 
@@ -373,24 +373,24 @@ class BulkUpdateController extends Controller
         } catch (\Exception $e) {
             return response()->json([
                 'success' => false,
-                'message' => '生成报告失败：' . $e->getMessage()
+                'message' => 'Failed to generate report: ' . $e->getMessage()
             ], 500);
         }
     }
 
     /**
-     * 生成CSV报告
+     * Generate CSV report
      */
     private function generateCsvReport($task)
     {
-        $csv = "SKU,产品标题,状态,消息,处理时间\n";
+        $csv = "SKU,Product Title,Status,Message,Processing Time\n";
         
         foreach ($task['results'] as $result) {
             $csv .= sprintf(
                 "%s,%s,%s,%s,%s\n",
                 $result['sku'],
                 '"' . str_replace('"', '""', $result['title']) . '"',
-                $result['status'] === 'success' ? '成功' : '失败',
+                $result['status'] === 'success' ? 'Success' : 'Failed',
                 '"' . str_replace('"', '""', $result['message']) . '"',
                 date('Y-m-d H:i:s')
             );

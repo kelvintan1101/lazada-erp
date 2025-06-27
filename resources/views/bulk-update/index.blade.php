@@ -1,10 +1,10 @@
 @extends('layouts.app')
 
-@section('title', '批量更新产品标题')
+@section('title', 'Bulk Update Product Titles')
 
 @section('content')
 <style>
-/* 确保通知关闭按钮始终显示 */
+/* Ensure notification close button is always visible */
 .close-btn {
     opacity: 1 !important;
     visibility: visible !important;
@@ -12,12 +12,12 @@
     z-index: 9999 !important;
 }
 
-/* 通知样式优化 */
+/* Notification style optimization */
 .notification-item {
     transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1) !important;
 }
 
-/* 淡出动画 */
+/* Fade out animation */
 @keyframes fadeOut {
     0% {
         opacity: 1;
@@ -43,74 +43,74 @@
 <div class="min-h-screen bg-gray-50 py-8">
     <div class="max-w-2xl mx-auto px-4">
 
-        <!-- 文件上传区域 -->
+        <!-- File upload area -->
         <div id="upload-section" class="bg-white rounded-xl shadow-lg border border-gray-200 p-8">
             <div class="text-center mb-8">
-                <h1 class="text-2xl font-bold text-gray-900 mb-3">批量更新产品标题</h1>
-                <p class="text-gray-600">上传包含SKU和产品标题的Excel/CSV文件</p>
+                <h1 class="text-2xl font-bold text-gray-900 mb-3">Bulk Update Product Titles</h1>
+                <p class="text-gray-600">Upload Excel/CSV file containing SKU and product titles</p>
             </div>
 
-            <!-- 格式提示 -->
+            <!-- Format hint -->
             <div class="bg-blue-50 border border-blue-200 rounded-lg p-4 mb-6">
                 <div class="flex items-center justify-between">
                     <div class="flex items-center">
                         <svg class="w-5 h-5 text-blue-500 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
                         </svg>
-                        <span class="text-sm text-blue-700 font-medium">需要包含SKU和产品标题列</span>
+                        <span class="text-sm text-blue-700 font-medium">Must contain SKU and product title columns</span>
                     </div>
                     <a href="/templates/product_title_update_template.csv"
-                       download="产品标题更新模板.csv"
+                       download="product_title_update_template.csv"
                        class="text-sm text-blue-600 hover:text-blue-800 font-medium underline">
-                        下载模板
+                        Download Template
                     </a>
                 </div>
             </div>
 
-            <!-- 文件选择区域 -->
+            <!-- File selection area -->
             <div class="border-2 border-dashed border-gray-300 rounded-xl p-8 text-center hover:border-blue-400 hover:bg-blue-50 transition-all duration-200 mb-6">
                 <input type="file" id="excel-file" accept=".xlsx,.xls,.csv" class="hidden">
                 <div id="file-drop-zone" class="cursor-pointer">
                     <svg class="mx-auto h-12 w-12 text-gray-400 mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12"/>
                     </svg>
-                    <p class="text-lg font-semibold text-gray-700 mb-1">选择文件或拖拽到这里</p>
-                    <p class="text-sm text-gray-500">支持 .xlsx, .xls, .csv 格式，最大10MB</p>
+                    <p class="text-lg font-semibold text-gray-700 mb-1">Select file or drag and drop here</p>
+                    <p class="text-sm text-gray-500">Supports .xlsx, .xls, .csv formats, max 10MB</p>
                 </div>
 
-                <!-- 文件信息显示 -->
+                <!-- File info display -->
                 <div id="file-info" class="hidden mt-4 p-3 bg-green-50 border border-green-200 rounded-lg">
                     <div class="flex items-center justify-center">
                         <svg class="w-5 h-5 text-green-500 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/>
                         </svg>
                         <span class="text-sm text-green-700">
-                            已选择：<span id="file-name" class="font-medium"></span>
+                            Selected: <span id="file-name" class="font-medium"></span>
                         </span>
                     </div>
                 </div>
             </div>
 
-            <!-- 上传按钮 -->
+            <!-- Upload button -->
             <div class="flex justify-center">
                 <button id="upload-btn"
                         type="button"
                         class="w-full max-w-md px-6 py-3 font-semibold rounded-lg shadow-lg border-2 transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-offset-2"
                         disabled>
-                    <span id="upload-btn-text">请先选择文件</span>
+                    <span id="upload-btn-text">Please select a file first</span>
                 </button>
             </div>
         </div>
 
 
 
-        <!-- 进度显示区域 -->
+        <!-- Progress display area -->
         <div id="progress-section" class="bg-white rounded-xl shadow-sm border border-gray-100 p-6 hidden">
-            <!-- 圆形进度条 -->
+            <!-- Circular progress bar -->
             <div class="flex justify-center mb-6">
                 <div class="relative w-24 h-24">
                     <svg class="w-full h-full transform -rotate-90" viewBox="0 0 100 100">
-                        <!-- 背景圆环 -->
+                        <!-- Background circle -->
                         <circle
                             cx="50"
                             cy="50"
@@ -119,7 +119,7 @@
                             stroke-width="6"
                             fill="none"
                         />
-                        <!-- 进度圆环 -->
+                        <!-- Progress circle -->
                         <circle
                             id="progress-circle"
                             cx="50"
@@ -133,7 +133,7 @@
                             stroke-dashoffset="219.8"
                             class="transition-all duration-500 ease-out"
                         />
-                        <!-- 渐变定义 -->
+                        <!-- Gradient definition -->
                         <defs>
                             <linearGradient id="progressGradient" x1="0%" y1="0%" x2="100%" y2="0%">
                                 <stop offset="0%" style="stop-color:#3b82f6;stop-opacity:1" />
@@ -141,79 +141,79 @@
                             </linearGradient>
                         </defs>
                     </svg>
-                    <!-- 百分比显示 -->
+                    <!-- Percentage display -->
                     <div class="absolute inset-0 flex items-center justify-center">
                         <div class="text-center">
                             <div id="progress-percentage" class="text-lg font-bold text-gray-800 leading-none">0%</div>
-                            <div class="text-xs text-gray-500 mt-1">完成</div>
+                            <div class="text-xs text-gray-500 mt-1">Complete</div>
                         </div>
                     </div>
                 </div>
             </div>
 
-            <!-- 状态信息 -->
+            <!-- Status information -->
             <div class="text-center mb-6">
-                <h3 id="status-message" class="text-lg font-semibold text-gray-800 mb-1">准备开始...</h3>
-                <p id="status-detail" class="text-sm text-gray-600">正在初始化处理流程</p>
+                <h3 id="status-message" class="text-lg font-semibold text-gray-800 mb-1">Ready to start...</h3>
+                <p id="status-detail" class="text-sm text-gray-600">Initializing processing flow</p>
             </div>
 
-            <!-- 统计信息 -->
+            <!-- Statistics -->
             <div class="grid grid-cols-3 gap-4 mb-6">
                 <div class="text-center">
                     <div class="bg-blue-50 rounded-lg p-3">
                         <p class="text-2xl font-bold text-blue-600" id="total-count">0</p>
-                        <p class="text-xs text-gray-600">总数量</p>
+                        <p class="text-xs text-gray-600">Total</p>
                     </div>
                 </div>
                 <div class="text-center">
                     <div class="bg-green-50 rounded-lg p-3">
                         <p class="text-2xl font-bold text-green-600" id="success-count">0</p>
-                        <p class="text-xs text-gray-600">成功</p>
+                        <p class="text-xs text-gray-600">Success</p>
                     </div>
                 </div>
                 <div class="text-center">
                     <div class="bg-red-50 rounded-lg p-3">
                         <p class="text-2xl font-bold text-red-600" id="failed-count">0</p>
-                        <p class="text-xs text-gray-600">失败</p>
+                        <p class="text-xs text-gray-600">Failed</p>
                     </div>
                 </div>
             </div>
         </div>
 
-        <!-- 调试面板 -->
+        <!-- Debug panel -->
         <div id="debug-panel" class="mt-6 bg-gray-100 border border-gray-300 rounded-lg p-4 text-sm">
-            <h3 class="font-bold text-gray-700 mb-2">🔧 调试信息</h3>
+            <h3 class="font-bold text-gray-700 mb-2">🔧 Debug Information</h3>
             <div class="space-y-1 text-gray-600">
-                <div>按钮状态: <span id="debug-btn-status" class="font-mono">检查中...</span></div>
-                <div>按钮可见性: <span id="debug-btn-visibility" class="font-mono">检查中...</span></div>
-                <div>文件选择状态: <span id="debug-file-status" class="font-mono">未选择</span></div>
+                <div>Button Status: <span id="debug-btn-status" class="font-mono">Checking...</span></div>
+                <div>Button Visibility: <span id="debug-btn-visibility" class="font-mono">Checking...</span></div>
+                <div>File Selection Status: <span id="debug-file-status" class="font-mono">Not selected</span></div>
                 <div class="mt-2">
-                    <button onclick="window.testSimpleNotification()" class="bg-red-500 text-white px-3 py-1 rounded text-xs mr-2">简单测试</button>
-                    <button onclick="window.testNotification()" class="bg-blue-500 text-white px-3 py-1 rounded text-xs mr-2">测试通知</button>
-                    <button onclick="window.testSuccessNotification()" class="bg-green-500 text-white px-3 py-1 rounded text-xs mr-2">测试成功通知</button>
-                    <button onclick="window.debugButtonStatus()" class="bg-yellow-500 text-white px-3 py-1 rounded text-xs">刷新状态</button>
+                    <button onclick="window.testSimpleNotification()" class="bg-red-500 text-white px-3 py-1 rounded text-xs mr-2">Simple Test</button>
+                    <button onclick="window.testNotification()" class="bg-blue-500 text-white px-3 py-1 rounded text-xs mr-2">Test Notification</button>
+                    <button onclick="window.testSuccessNotification()" class="bg-green-500 text-white px-3 py-1 rounded text-xs mr-2">Test Success Notification</button>
+                    <button onclick="window.debugButtonStatus()" class="bg-yellow-500 text-white px-3 py-1 rounded text-xs">Refresh Status</button>
                 </div>
             </div>
         </div>
     </div>
 </div>
 
-<!-- 通知系统 -->
+<!-- Notification system -->
 <div id="notification-container" style="position: fixed; bottom: 20px; right: 20px; z-index: 999999; max-width: 420px; pointer-events: none;">
-    <!-- 通知将在这里动态创建 -->
+    <!-- Notifications will be dynamically created here -->
 </div>
 @endsection
 
 @push('styles')
 <style>
-/* 添加脉冲动画 */
+/* Add pulse animation */
 @keyframes pulse {
     0% { transform: translate(-50%, -50%) scale(1); }
     50% { transform: translate(-50%, -50%) scale(1.05); }
     100% { transform: translate(-50%, -50%) scale(1); }
 }
 
-/* 添加通知进入动画 */
+/* Add notification enter animation */
 @keyframes slideInRight {
     from {
         transform: translateX(100%);
@@ -235,7 +235,7 @@
         opacity: 0;
     }
 }
-/* 通知容器样式 - 完全重写 */
+/* Notification container style - complete rewrite */
 #notification-container {
     position: fixed !important;
     bottom: 20px !important;
@@ -248,7 +248,7 @@
     gap: 16px !important;
 }
 
-/* 通知项样式 - 完全重写 */
+/* Notification item style - complete rewrite */
 .notification-item {
     pointer-events: auto !important;
     background: white !important;
@@ -267,7 +267,7 @@
     color: #1f2937 !important;
 }
 
-/* 确保通知内的文字颜色正确 */
+/* Ensure text color inside notifications is correct */
 .notification-item * {
     color: inherit !important;
 }
@@ -290,14 +290,14 @@
     opacity: 0 !important;
 }
 
-/* 按钮样式确保显示 */
+/* Button style ensure display */
 #upload-btn {
     display: block !important;
     visibility: visible !important;
     min-height: 48px !important;
 }
 
-/* 按钮状态样式 */
+/* Button state styles */
 #upload-btn:disabled {
     background-color: #9CA3AF !important;
     color: #FFFFFF !important;
@@ -320,7 +320,7 @@
     box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
 }
 
-/* 确保按钮文本显示 */
+/* Ensure button text display */
 #upload-btn-text {
     display: inline !important;
     visibility: visible !important;
@@ -332,9 +332,9 @@
 @push('scripts')
 <script>
 document.addEventListener('DOMContentLoaded', function() {
-    console.log('页面加载完成，初始化批量更新功能...');
+    console.log('Page loaded, initializing bulk update functionality...');
 
-    // 获取DOM元素
+    // Get DOM elements
     const fileInput = document.getElementById('excel-file');
     const fileDropZone = document.getElementById('file-drop-zone');
     const fileInfo = document.getElementById('file-info');
@@ -342,9 +342,9 @@ document.addEventListener('DOMContentLoaded', function() {
     const uploadBtn = document.getElementById('upload-btn');
     const uploadBtnText = document.getElementById('upload-btn-text');
 
-    // 检查关键元素是否存在
+    // Check if key elements exist
     if (!fileInput || !fileDropZone || !uploadBtn || !uploadBtnText) {
-        console.error('关键DOM元素未找到', {
+        console.error('Key DOM elements not found', {
             fileInput: !!fileInput,
             fileDropZone: !!fileDropZone,
             uploadBtn: !!uploadBtn,
@@ -353,7 +353,7 @@ document.addEventListener('DOMContentLoaded', function() {
         return;
     }
 
-    console.log('所有DOM元素找到:', {
+    console.log('All DOM elements found:', {
         uploadBtn: uploadBtn,
         uploadBtnText: uploadBtnText,
         uploadBtnVisible: window.getComputedStyle(uploadBtn).display,
@@ -363,86 +363,86 @@ document.addEventListener('DOMContentLoaded', function() {
     let currentTaskId = null;
     let progressInterval = null;
 
-    // 检查CSRF token
+    // Check CSRF token
     const csrfToken = document.querySelector('meta[name="csrf-token"]');
     if (!csrfToken) {
         console.error('CSRF token not found');
-        showNotification('error', '页面错误', '请刷新页面重试');
+        showNotification('error', 'Page Error', 'Please refresh the page and try again');
         return;
     }
 
-    // 初始化按钮状态
-    disableUploadButton('请先选择文件');
-    console.log('按钮初始化完成，当前状态:', {
+    // Initialize button state
+    disableUploadButton('Please select a file first');
+    console.log('Button initialization complete, current state:', {
         disabled: uploadBtn.disabled,
         className: uploadBtn.className,
         text: uploadBtnText.textContent
     });
 
-    console.log('初始化完成，设置事件监听器...');
+    console.log('Initialization complete, setting up event listeners...');
 
-    // 文件选择处理
+    // File selection handling
     fileDropZone.addEventListener('click', function() {
-        console.log('点击文件选择区域');
+        console.log('Click file selection area');
         fileInput.click();
     });
 
     fileInput.addEventListener('change', function(e) {
         const file = e.target.files[0];
-        console.log('文件选择变化:', file ? file.name : '无文件');
+        console.log('File selection changed:', file ? file.name : 'No file');
 
         if (file) {
-            // 验证文件类型
+            // Validate file type
             const allowedTypes = ['application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
                                 'application/vnd.ms-excel', 'text/csv'];
             const allowedExtensions = ['.xlsx', '.xls', '.csv'];
 
             if (!allowedTypes.includes(file.type) && !allowedExtensions.some(ext => file.name.toLowerCase().endsWith(ext))) {
-                showNotification('error', '文件格式错误', '请选择Excel文件（.xlsx, .xls）或CSV文件');
+                showNotification('error', 'File Format Error', 'Please select Excel files (.xlsx, .xls) or CSV files');
                 resetFileSelection();
                 return;
             }
 
-            // 验证文件大小 (10MB)
+            // Validate file size (10MB)
             if (file.size > 10 * 1024 * 1024) {
-                showNotification('error', '文件过大', '文件大小不能超过10MB');
+                showNotification('error', 'File Too Large', 'File size cannot exceed 10MB');
                 resetFileSelection();
                 return;
             }
 
-            // 显示文件信息
+            // Display file information
             fileName.textContent = file.name;
             fileInfo.classList.remove('hidden');
 
-            // 启用上传按钮
+            // Enable upload button
             enableUploadButton();
             updateDebugPanel();
-            console.log('文件验证通过，按钮已启用');
+            console.log('File validation passed, button enabled');
         } else {
             resetFileSelection();
             updateDebugPanel();
         }
     });
 
-    // 辅助函数
+    // Helper functions
     function enableUploadButton() {
-        console.log('启用上传按钮');
+        console.log('Enable upload button');
         uploadBtn.disabled = false;
         uploadBtn.className = 'w-full max-w-md px-6 py-3 font-semibold rounded-lg shadow-lg border-2 transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-offset-2';
-        uploadBtnText.textContent = '开始上传并更新';
+        uploadBtnText.textContent = 'Start Upload and Update';
 
-        // 强制重新渲染
+        // Force re-render
         uploadBtn.style.display = 'block';
         uploadBtn.style.visibility = 'visible';
     }
 
-    function disableUploadButton(text = '请先选择文件') {
-        console.log('禁用上传按钮:', text);
+    function disableUploadButton(text = 'Please select a file first') {
+        console.log('Disable upload button:', text);
         uploadBtn.disabled = true;
         uploadBtn.className = 'w-full max-w-md px-6 py-3 font-semibold rounded-lg shadow-lg border-2 transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-offset-2';
         uploadBtnText.textContent = text;
 
-        // 强制重新渲染
+        // Force re-render
         uploadBtn.style.display = 'block';
         uploadBtn.style.visibility = 'visible';
     }
@@ -454,7 +454,7 @@ document.addEventListener('DOMContentLoaded', function() {
         updateDebugPanel();
     }
 
-    // 拖拽上传
+    // Drag and drop upload
     fileDropZone.addEventListener('dragover', function(e) {
         e.preventDefault();
         fileDropZone.classList.add('border-blue-500', 'bg-blue-50');
@@ -477,21 +477,21 @@ document.addEventListener('DOMContentLoaded', function() {
         }
     });
 
-    // 上传文件处理
+    // File upload handling
     uploadBtn.addEventListener('click', function() {
-        console.log('点击上传按钮');
+        console.log('Click upload button');
 
         if (!fileInput.files[0]) {
-            showNotification('error', '请选择文件', '请先选择一个Excel或CSV文件');
+            showNotification('error', 'Please Select File', 'Please select an Excel or CSV file first');
             return;
         }
 
         const formData = new FormData();
         formData.append('excel_file', fileInput.files[0]);
 
-        // 更新按钮状态
-        disableUploadButton('上传中...');
-        console.log('开始上传文件...');
+        // Update button state
+        disableUploadButton('Uploading...');
+        console.log('Starting file upload...');
 
         fetch('/bulk-update/upload', {
             method: 'POST',
@@ -506,27 +506,27 @@ document.addEventListener('DOMContentLoaded', function() {
                 return response.text().then(text => {
                     try {
                         const errorData = JSON.parse(text);
-                        throw new Error(errorData.message || `HTTP错误! 状态: ${response.status}`);
+                        throw new Error(errorData.message || `HTTP error! Status: ${response.status}`);
                     } catch (e) {
-                        throw new Error(`服务器错误 (${response.status}): ${text.substring(0, 100)}...`);
+                        throw new Error(`Server error (${response.status}): ${text.substring(0, 100)}...`);
                     }
                 });
             }
             return response.json();
         })
         .then(data => {
-            console.log('上传响应:', data);
+            console.log('Upload response:', data);
             if (data.success) {
                 currentTaskId = data.task_id;
 
-                // 显示开始处理通知
-                showNotification('info', '开始处理', `已上传 ${data.total_items} 个产品，正在开始更新...`);
+                // Show start processing notification
+                showNotification('info', 'Start Processing', `Uploaded ${data.total_items} products, starting update...`);
 
-                // 隐藏上传区域，显示进度区域
+                // Hide upload area, show progress area
                 document.getElementById('upload-section').classList.add('hidden');
                 document.getElementById('progress-section').classList.remove('hidden');
 
-                // 初始化进度显示
+                // Initialize progress display
                 updateProgressDisplay({
                     status: 'pending',
                     progress_percentage: 0,
@@ -536,22 +536,22 @@ document.addEventListener('DOMContentLoaded', function() {
                     failed_items: 0
                 });
 
-                // 自动执行任务
+                // Auto execute task
                 executeTaskAutomatically();
             } else {
-                showNotification('error', '上传失败', data.message || '未知错误');
+                showNotification('error', 'Upload Failed', data.message || 'Unknown error');
             }
         })
         .catch(error => {
-            console.error('上传错误:', error);
+            console.error('Upload error:', error);
             if (error.message.includes('403')) {
-                showNotification('error', '授权失败', '没有Lazada授权。请先在设置页面进行Lazada授权。');
+                showNotification('error', 'Authorization Failed', 'No Lazada authorization. Please authorize Lazada in the settings page first.');
             } else if (error.message.includes('422')) {
-                showNotification('error', '文件错误', '文件格式或大小不符合要求。');
+                showNotification('error', 'File Error', 'File format or size does not meet requirements.');
             } else if (error.message.includes('500')) {
-                showNotification('error', '服务器错误', '服务器错误，请稍后重试。');
+                showNotification('error', 'Server Error', 'Server error, please try again later.');
             } else {
-                showNotification('error', '上传失败', error.message);
+                showNotification('error', 'Upload Failed', error.message);
             }
         })
         .finally(() => {
@@ -561,14 +561,14 @@ document.addEventListener('DOMContentLoaded', function() {
 
 
 
-    // 完全重写的通知系统
+    // Completely rewritten notification system
     function showNotification(type, title, message, actions = []) {
-        console.log('🔔 显示通知:', type, title, message);
+        console.log('🔔 Show notification:', type, title, message);
 
         const container = document.getElementById('notification-container');
         if (!container) {
-            console.error('❌ 通知容器未找到');
-            alert(`通知: ${title} - ${message}`); // 备用方案
+            console.error('❌ Notification container not found');
+            alert(`Notification: ${title} - ${message}`); // Fallback solution
             return;
         }
 
@@ -577,7 +577,7 @@ document.addEventListener('DOMContentLoaded', function() {
         notification.id = notificationId;
         notification.className = 'notification-item';
 
-        // 强制设置样式
+        // Force set styles
         notification.style.cssText = `
             pointer-events: auto !important;
             background: white !important;
@@ -634,25 +634,25 @@ document.addEventListener('DOMContentLoaded', function() {
             </div>
         `;
 
-        // 添加到容器
+        // Add to container
         container.appendChild(notification);
-        console.log('✅ 通知已添加到容器:', notification);
-        console.log('📍 容器位置:', container.getBoundingClientRect());
-        console.log('📍 通知位置:', notification.getBoundingClientRect());
+        console.log('✅ Notification added to container:', notification);
+        console.log('📍 Container position:', container.getBoundingClientRect());
+        console.log('📍 Notification position:', notification.getBoundingClientRect());
 
-        // 通知将自动在6秒后开始淡出消失
+        // Notification will automatically start fading out after 6 seconds
         setTimeout(() => {
             hideNotification(notificationId);
         }, 6000);
 
 
 
-        // 添加操作按钮事件
+        // Add action button events
         const actionButtons = notification.querySelectorAll('[data-action]');
         actionButtons.forEach(btn => {
             btn.addEventListener('click', (e) => {
                 const action = btn.getAttribute('data-action');
-                console.log('🔵 点击操作按钮:', action);
+                console.log('🔵 Action button clicked:', action);
                 if (action === 'download') {
                     downloadReport(currentTaskId);
                 } else if (action === 'new-task') {
@@ -662,8 +662,8 @@ document.addEventListener('DOMContentLoaded', function() {
             });
         });
 
-        // 强制显示动画 - 立即执行
-        console.log('🎬 开始显示动画');
+        // Force show animation - execute immediately
+        console.log('🎬 Starting show animation');
         setTimeout(() => {
             notification.style.transform = 'translateX(0) !important';
             notification.style.opacity = '1 !important';
@@ -671,10 +671,10 @@ document.addEventListener('DOMContentLoaded', function() {
             notification.classList.add('show');
 
 
-            console.log('✨ 动画已触发');
+            console.log('✨ Animation triggered');
         }, 50);
 
-        // 自动消失（除非有操作按钮）
+        // Auto disappear (unless there are action buttons)
         if (actions.length === 0) {
             setTimeout(() => {
                 hideNotification(notificationId);
@@ -685,23 +685,23 @@ document.addEventListener('DOMContentLoaded', function() {
     }
 
     function hideNotification(notificationId) {
-        console.log('🌅 开始优雅淡出通知:', notificationId);
+        console.log('🌅 Starting elegant fade out notification:', notificationId);
         const notification = document.getElementById(notificationId);
         if (notification) {
-            // 添加淡出CSS类，触发动画
+            // Add fade-out CSS class to trigger animation
             notification.classList.add('hide');
 
-            console.log('🎭 淡出动画已开始，2秒后优雅移除');
+            console.log('🎭 Fade out animation started, elegant removal in 2 seconds');
             setTimeout(() => {
                 if (notification.parentNode) {
                     notification.parentNode.removeChild(notification);
-                    console.log('✨ 通知已优雅移除:', notificationId);
+                    console.log('✨ Notification elegantly removed:', notificationId);
                 }
-            }, 2000); // 2秒的淡出时间，与CSS动画同步
+            }, 2000); // 2 seconds fade out time, synchronized with CSS animation
         }
     }
 
-    // 更新圆形进度条
+    // Update circular progress bar
     function updateCircularProgress(percentage) {
         const circle = document.getElementById('progress-circle');
         const circumference = 2 * Math.PI * 35; // r = 35
@@ -711,7 +711,7 @@ document.addEventListener('DOMContentLoaded', function() {
         document.getElementById('progress-percentage').textContent = percentage + '%';
     }
 
-    // 更新进度显示函数
+    // Update progress display function
     function updateProgressDisplay(task) {
         const totalCount = document.getElementById('total-count');
         const successCount = document.getElementById('success-count');
@@ -731,20 +731,20 @@ document.addEventListener('DOMContentLoaded', function() {
         
         switch (task.status) {
             case 'pending':
-                status = '准备开始处理';
-                detail = '系统正在初始化处理流程';
+                status = 'Ready to start processing';
+                detail = 'System is initializing processing workflow';
                 break;
             case 'processing':
-                status = `正在处理中... (${task.processed_items}/${task.total_items})`;
-                detail = `已完成 ${task.successful_items} 个，失败 ${task.failed_items} 个`;
+                status = `Processing.... (${task.processed_items}/${task.total_items})`;
+                detail = `Completed ${task.successful_items} items, failed ${task.failed_items} items`;
                 break;
             case 'completed':
-                status = '更新完成！';
-                detail = `成功处理 ${task.successful_items} 个产品，失败 ${task.failed_items} 个`;
+                status = 'Update completed!';
+                detail = `Successfully processed ${task.successful_items} products, failed ${task.failed_items} items`;
                 break;
             case 'failed':
-                status = '更新失败';
-                detail = '处理过程中遇到错误，请重试';
+                status = 'Update failed';
+                detail = 'Encountered errors during processing, please retry';
                 break;
         }
         
@@ -752,41 +752,41 @@ document.addEventListener('DOMContentLoaded', function() {
         statusDetail.textContent = detail;
     }
 
-    // 兼容旧的函数名
+    // Compatible with old function names
     function createNotification(type, title, message, actions = []) {
         return showNotification(type, title, message, actions);
     }
 
-    // 显示成功通知
+    // Show success notification
     function showSuccessNotification(task) {
-        console.log('显示成功通知:', task);
+        console.log('Show success notification:', task);
 
-        const message = `🎉 成功处理 ${task.successful_items} 个产品${task.failed_items > 0 ? `，失败 ${task.failed_items} 个` : ''}`;
+        const message = `🎉 Successfully processed ${task.successful_items} products${task.failed_items > 0 ? `, failed ${task.failed_items} items` : ''}`;
 
         const actions = [
             {
-                text: '📥 下载报告',
+                text: '📥 Download Report',
                 className: 'bg-blue-600 hover:bg-blue-700 text-white text-sm py-2 px-4 rounded-lg font-medium transition-colors shadow-md',
                 action: 'download'
             },
             {
-                text: '🔄 新任务',
+                text: '🔄 New Task',
                 className: 'bg-green-600 hover:bg-green-700 text-white text-sm py-2 px-4 rounded-lg font-medium transition-colors shadow-md',
                 action: 'new-task'
             }
         ];
 
-        // 显示大型成功通知
-        showLargeSuccessNotification('✅ 批量更新完成！', message, actions);
+        // Show large success notification
+        showLargeSuccessNotification('✅ Bulk update completed!', message, actions);
     }
 
-    // 大型成功通知
+    // Large success notification
     function showLargeSuccessNotification(title, message, actions = []) {
-        console.log('显示大型成功通知');
+        console.log('Show large success notification');
 
         const container = document.getElementById('notification-container');
         if (!container) {
-            console.error('通知容器未找到');
+            console.error('Notification container not found');
             return;
         }
 
@@ -795,7 +795,7 @@ document.addEventListener('DOMContentLoaded', function() {
         notification.id = notificationId;
         notification.className = 'notification-item bg-gradient-to-r from-green-500 to-blue-600 border-0 rounded-xl shadow-2xl p-6 w-96 mb-4 text-white';
 
-        // 确保初始状态
+        // Ensure initial state
         notification.style.transform = 'translateX(100%)';
         notification.style.opacity = '0';
         notification.style.position = 'relative';
@@ -827,16 +827,16 @@ document.addEventListener('DOMContentLoaded', function() {
 
         notification.style.position = 'relative';
 
-        // 添加到容器
+        // Add to container
         container.appendChild(notification);
-        console.log('大型成功通知已添加到容器:', notification);
+        console.log('Large success notification added to container:', notification);
 
-        // 大型通知将在8秒后开始淡出消失
+        // Large notification will start fading out after 8 seconds
         setTimeout(() => {
             hideNotification(notificationId);
         }, 8000);
 
-        // 添加操作按钮事件
+        // Add action button events
         const actionButtons = notification.querySelectorAll('[data-action]');
         actionButtons.forEach(btn => {
             btn.addEventListener('click', (e) => {
@@ -850,16 +850,16 @@ document.addEventListener('DOMContentLoaded', function() {
             });
         });
 
-        // 强制显示动画
+        // Force show animation
         setTimeout(() => {
-            console.log('开始显示大型成功通知动画');
+            console.log('Starting large success notification animation');
             notification.style.transform = 'translateX(0)';
             notification.style.opacity = '1';
             notification.classList.add('show');
 
         }, 50);
 
-        // 10秒后自动消失
+        // Auto disappear after 10 seconds
         setTimeout(() => {
             hideNotification(notificationId);
         }, 10000);
@@ -867,7 +867,7 @@ document.addEventListener('DOMContentLoaded', function() {
         return notificationId;
     }
 
-    // 自动执行任务函数
+    // Auto execute task function
     function executeTaskAutomatically() {
         fetch('/bulk-update/execute', {
             method: 'POST',
@@ -883,23 +883,23 @@ document.addEventListener('DOMContentLoaded', function() {
             if (data.success) {
                 startProgressMonitoring();
             } else {
-                showNotification('error', '启动失败', data.message);
+                showNotification('error', 'Startup Failed', data.message);
                 document.getElementById('progress-section').classList.add('hidden');
                 document.getElementById('upload-section').classList.remove('hidden');
             }
         })
         .catch(error => {
-            console.error('启动错误:', error);
-            showNotification('error', '启动失败', '任务启动失败，请重试');
+            console.error('Startup error:', error);
+            showNotification('error', 'Startup Failed', 'Task startup failed, please retry');
             document.getElementById('progress-section').classList.add('hidden');
             document.getElementById('upload-section').classList.remove('hidden');
         });
     }
 
-    // 监控进度
+    // Monitor progress
     function startProgressMonitoring() {
-        progressInterval = setInterval(updateProgress, 2000); // 每2秒更新一次
-        updateProgress(); // 立即更新一次
+        progressInterval = setInterval(updateProgress, 2000); // Update every 2 seconds
+        updateProgress(); // Update immediately once
     }
 
     function updateProgress() {
@@ -914,20 +914,20 @@ document.addEventListener('DOMContentLoaded', function() {
                     clearInterval(progressInterval);
                     showSuccessNotification(task);
                     
-                    // 几秒后返回上传页面
+                    // Return to upload page after a few seconds
                     setTimeout(() => {
                         document.getElementById('progress-section').classList.add('hidden');
                         document.getElementById('upload-section').classList.remove('hidden');
-                        // 重置文件选择
+                        // Reset file selection
                         document.getElementById('excel-file').value = '';
                         document.getElementById('file-info').classList.add('hidden');
                         document.getElementById('upload-btn').disabled = true;
                     }, 3000);
                 } else if (task.status === 'failed') {
                     clearInterval(progressInterval);
-                    showNotification('error', '更新失败', task.error_message || '处理过程中遇到错误，请重试');
+                    showNotification('error', 'Update Failed', task.error_message || 'Encountered errors during processing, please retry');
 
-                    // 返回上传页面
+                    // Return to upload page
                     setTimeout(() => {
                         document.getElementById('progress-section').classList.add('hidden');
                         document.getElementById('upload-section').classList.remove('hidden');
@@ -940,27 +940,27 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     }
 
-    // 全局函数供通知使用
+    // Global functions for notification use
     function downloadReport(taskId) {
-        console.log('下载报告:', taskId);
+        console.log('Download report:', taskId);
         window.location.href = `/bulk-update/download-report?task_id=${taskId}`;
     }
 
     function startNewTask() {
-        console.log('开始新任务');
+        console.log('Start new task');
         document.getElementById('progress-section').classList.add('hidden');
         document.getElementById('upload-section').classList.remove('hidden');
         resetFileSelection();
     }
 
-    // 调试函数
+    // Debug functions
     function updateDebugPanel() {
         const debugBtnStatus = document.getElementById('debug-btn-status');
         const debugBtnVisibility = document.getElementById('debug-btn-visibility');
         const debugFileStatus = document.getElementById('debug-file-status');
 
         if (debugBtnStatus) {
-            debugBtnStatus.textContent = uploadBtn.disabled ? '禁用' : '启用';
+            debugBtnStatus.textContent = uploadBtn.disabled ? 'Disabled' : 'Enabled';
         }
 
         if (debugBtnVisibility) {
@@ -969,31 +969,31 @@ document.addEventListener('DOMContentLoaded', function() {
         }
 
         if (debugFileStatus) {
-            debugFileStatus.textContent = fileInput.files.length > 0 ? `已选择: ${fileInput.files[0].name}` : '未选择';
+            debugFileStatus.textContent = fileInput.files.length > 0 ? `Selected: ${fileInput.files[0].name}` : 'Not selected';
         }
     }
 
     function debugButtonStatus() {
-        console.log('=== 按钮调试信息 ===');
-        console.log('按钮元素:', uploadBtn);
-        console.log('按钮禁用状态:', uploadBtn.disabled);
-        console.log('按钮类名:', uploadBtn.className);
-        console.log('按钮样式:', window.getComputedStyle(uploadBtn));
-        console.log('按钮文本:', uploadBtnText.textContent);
+        console.log('=== Button Debug Information ===');
+        console.log('Button element:', uploadBtn);
+        console.log('Button disabled state:', uploadBtn.disabled);
+        console.log('Button class name:', uploadBtn.className);
+        console.log('Button styles:', window.getComputedStyle(uploadBtn));
+        console.log('Button text:', uploadBtnText.textContent);
         updateDebugPanel();
     }
 
-    // 测试函数
+    // Test functions
     function testNotification() {
-        console.log('测试通知显示');
+        console.log('Test notification display');
         const container = document.getElementById('notification-container');
-        console.log('通知容器:', container);
-        console.log('容器样式:', window.getComputedStyle(container));
-        showNotification('success', '测试通知', '这是一个测试通知，用于验证通知系统是否正常工作');
+        console.log('Notification container:', container);
+        console.log('Container styles:', window.getComputedStyle(container));
+        showNotification('success', 'Test Notification', 'This is a test notification to verify if the notification system is working properly');
     }
 
     function testSuccessNotification() {
-        console.log('测试成功通知');
+        console.log('Test success notification');
         const mockTask = {
             successful_items: 5,
             failed_items: 1
@@ -1002,21 +1002,21 @@ document.addEventListener('DOMContentLoaded', function() {
     }
 
     function testSimpleNotification() {
-        console.log('🧪 测试简单通知');
+        console.log('🧪 Test simple notification');
         const container = document.getElementById('notification-container');
         if (!container) {
-            console.error('❌ 通知容器不存在!');
-            alert('通知容器不存在!');
+            console.error('❌ Notification container does not exist!');
+            alert('Notification container does not exist!');
             return;
         }
 
-        console.log('📦 容器信息:', {
+        console.log('📦 Container info:', {
             element: container,
             style: window.getComputedStyle(container),
             position: container.getBoundingClientRect()
         });
 
-        // 创建一个非常明显的测试通知
+        // Create a very obvious test notification
         const testNotification = document.createElement('div');
         testNotification.style.cssText = `
             position: fixed !important;
@@ -1036,9 +1036,9 @@ document.addEventListener('DOMContentLoaded', function() {
             animation: pulse 2s infinite !important;
         `;
         testNotification.innerHTML = `
-            <div>🔔 测试通知显示成功！</div>
+            <div>🔔 Test notification display successful!</div>
             <div style="font-size: 14px; margin-top: 10px; opacity: 0.9;">
-                如果您能看到这个通知，说明通知系统正常工作
+                If you can see this notification, the notification system is working properly
             </div>
             <button onclick="this.parentElement.remove()" style="
                 background: rgba(255,255,255,0.2);
@@ -1049,12 +1049,12 @@ document.addEventListener('DOMContentLoaded', function() {
                 margin-top: 15px;
                 cursor: pointer;
                 font-size: 14px;
-            ">关闭</button>
+            ">Close</button>
         `;
 
         document.body.appendChild(testNotification);
 
-        // 3秒后自动移除
+        // Auto remove after 3 seconds
         setTimeout(() => {
             if (testNotification.parentElement) {
                 testNotification.remove();
@@ -1064,7 +1064,7 @@ document.addEventListener('DOMContentLoaded', function() {
         const testDiv = document.createElement('div');
         testDiv.innerHTML = `
             <div style="display: flex; align-items: center; justify-content: space-between;">
-                <span>🔴 简单测试通知 - ${new Date().toLocaleTimeString()}</span>
+                <span>🔴 Simple test notification - ${new Date().toLocaleTimeString()}</span>
                 <button onclick="this.parentElement.parentElement.remove()" style="background: none; border: none; color: white; font-size: 18px; cursor: pointer;">×</button>
             </div>
         `;
@@ -1085,17 +1085,17 @@ document.addEventListener('DOMContentLoaded', function() {
         `;
 
         container.appendChild(testDiv);
-        console.log('✅ 简单测试通知已添加');
+        console.log('✅ Simple test notification added');
 
         setTimeout(() => {
             if (testDiv.parentNode) {
                 testDiv.parentNode.removeChild(testDiv);
-                console.log('🗑️ 简单测试通知已移除');
+                console.log('🗑️ Simple test notification removed');
             }
         }, 5000);
     }
 
-    // 将函数暴露到全局作用域
+    // Expose functions to global scope
     window.downloadReport = downloadReport;
     window.startNewTask = startNewTask;
     window.showNotification = showNotification;
@@ -1106,19 +1106,19 @@ document.addEventListener('DOMContentLoaded', function() {
     window.debugButtonStatus = debugButtonStatus;
     window.updateDebugPanel = updateDebugPanel;
 
-    // 初始化调试面板
+    // Initialize debug panel
     setTimeout(() => {
         updateDebugPanel();
         debugButtonStatus();
     }, 500);
 
-    // 显示欢迎通知
+    // Show welcome notification
     setTimeout(() => {
-        console.log('显示欢迎通知');
-        showNotification('info', '页面加载完成', '批量更新功能已准备就绪！按钮应该在上方可见。');
+        console.log('Show welcome notification');
+        showNotification('info', 'Page Load Complete', 'Bulk update functionality is ready! Button should be visible above.');
     }, 1000);
 
-    console.log('批量更新功能初始化完成');
+    console.log('Bulk update functionality initialization complete');
 });
 </script>
 @endpush

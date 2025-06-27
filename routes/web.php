@@ -78,7 +78,8 @@ Route::middleware(['auth'])->group(function () {
     Route::prefix('bulk-update')->group(function () {
         Route::get('/', [BulkUpdateController::class, 'index'])->name('bulk-update.index');
         Route::get('/auth-check', [BulkUpdateController::class, 'authCheck'])->name('bulk-update.auth-check');
-        Route::get('/test-connection', [BulkUpdateController::class, 'testLazadaConnection'])->name('bulk-update.test-connection');
+        // COMMENTED OUT - Test connection route (remove in production)
+    // Route::get('/test-connection', [BulkUpdateController::class, 'testLazadaConnection'])->name('bulk-update.test-connection');
         Route::post('/upload', [BulkUpdateController::class, 'upload'])->name('bulk-update.upload');
         Route::post('/execute', [BulkUpdateController::class, 'execute'])->name('bulk-update.execute');
         Route::get('/status', [BulkUpdateController::class, 'status'])->name('bulk-update.status');
@@ -90,11 +91,13 @@ Route::middleware(['auth'])->group(function () {
 Route::middleware(['auth', 'admin'])->group(function () {
     Route::get('/lazada/auth', [LazadaAuthController::class, 'redirect'])->name('lazada.auth');
     Route::get('/lazada/callback', [LazadaAuthController::class, 'callback'])->name('lazada.callback');
-    Route::get('/lazada/debug-callback', [LazadaAuthController::class, 'debugCallback'])->name('lazada.debug.callback');
+    // COMMENTED OUT - Debug callback route (remove in production)
+    // Route::get('/lazada/debug-callback', [LazadaAuthController::class, 'debugCallback'])->name('lazada.debug.callback');
     Route::post('/lazada/generate-token', [LazadaAuthController::class, 'generateToken'])->name('lazada.generate.token');
 });
 
-// Debug route without auth
+// COMMENTED OUT - Debug route (remove in production)
+/*
 Route::get('/lazada/test-db', function() {
     try {
         // Test database connection
@@ -113,8 +116,10 @@ Route::get('/lazada/test-db', function() {
         ], 500);
     }
 });
+*/
 
-// Direct token test route without auth
+// COMMENTED OUT - Direct token test route (remove in production)
+/*
 Route::get('/lazada/test-token/{code}', function($code) {
     try {
         \Illuminate\Support\Facades\Log::info('Direct token test route called', ['code' => $code]);
@@ -138,8 +143,10 @@ Route::get('/lazada/test-token/{code}', function($code) {
         ], 500);
     }
 });
+*/
 
-// Simpler test route that manually creates the Guzzle client
+// COMMENTED OUT - Direct token manual test route (remove in production)
+/*
 Route::get('/lazada/direct-token/{code}', function($code) {
     try {
         // Get configuration from environment or provide fallbacks
@@ -250,8 +257,10 @@ Route::get('/lazada/direct-token/{code}', function($code) {
         ], 500);
     }
 });
+*/
 
-// Minimal test route for basic debugging
+// COMMENTED OUT - Minimal test route for basic debugging (remove in production)
+/*
 Route::get('/lazada/basic-test/{code}', function($code) {
     try {
         return response()->json([
@@ -268,8 +277,10 @@ Route::get('/lazada/basic-test/{code}', function($code) {
         ], 500);
     }
 });
+*/
 
-// Completely isolated test route
+// COMMENTED OUT - Completely isolated test route (remove in production)
+/*
 Route::get('/test', function() {
     return [
         'success' => true,
@@ -277,7 +288,12 @@ Route::get('/test', function() {
         'time' => date('Y-m-d H:i:s')
     ];
 });
+*/
 
+// COMMENTED OUT - This route is never executed because the route at line 92 matches first
+// The route: Route::get('/lazada/callback', [LazadaAuthController::class, 'callback']) 
+// takes precedence due to Laravel's route matching order (first defined, first matched)
+/*
 // Lazada callback route - stores token similar to the example code
 Route::get('/lazada/callback', function() {
     try {
@@ -313,6 +329,7 @@ Route::get('/lazada/callback', function() {
         ]);
     }
 })->name('lazada.callback.new');
+*/
 
 // No-logging version of token exchange to avoid permission issues
 Route::get('/lazada/simple-token/{code}', function($code) {
@@ -412,7 +429,8 @@ function generateSignature($apiPath, $params, $appSecret) {
     return strtoupper(hash_hmac('sha256', $signString, $appSecret));
 }
 
-// 添加测试路由
+// COMMENTED OUT - Bulk update test route (remove in production)
+/*
 Route::get('/bulk-update/test', function() {
     try {
         \Log::info('测试路由被访问');
@@ -457,8 +475,10 @@ Route::get('/bulk-update/test', function() {
         ], 500);
     }
 })->middleware(['auth']);
+*/
 
-// 添加直接执行最新任务的路由
+// COMMENTED OUT - Direct execute latest task route (remove in production)
+/*
 Route::post('/bulk-update/execute-latest', function() {
     try {
         // 获取最新的待执行任务
@@ -490,8 +510,10 @@ Route::post('/bulk-update/execute-latest', function() {
         ], 500);
     }
 })->middleware(['auth']);
+*/
 
-// 添加查看任务状态的路由
+// COMMENTED OUT - View latest task status route (remove in production)
+/*
 Route::get('/bulk-update/latest-task', function() {
     try {
         $latestTask = \App\Models\BulkUpdateTask::latest()->first();
@@ -526,3 +548,4 @@ Route::get('/bulk-update/latest-task', function() {
         ], 500);
     }
 })->middleware(['auth']);
+*/

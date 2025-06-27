@@ -338,7 +338,7 @@ class LazadaApiService
 
     public function updateProduct($sellerSku, $updateData)
 {
-    // 根据用户提供的API例子构建正确的XML payload格式
+    // Build correct XML payload format based on user-provided API example
     $xmlPayload = '<?xml version="1.0" encoding="UTF-8"?>
 <Request>
     <Product>
@@ -353,7 +353,7 @@ class LazadaApiService
     </Product>
 </Request>';
 
-    // 获取settings中的参数
+    // Get parameters from settings
     $appKey = env('LAZADA_APP_KEY', Setting::getSetting('lazada_app_key', ''));
     $token = LazadaToken::latest()->first();
     
@@ -369,7 +369,7 @@ class LazadaApiService
         'timestamp' => round(microtime(true) * 1000)
     ];
 
-    Log::info('更新产品 - Lazada API请求', [
+    Log::info('Update product - Lazada API request', [
         'seller_sku' => $sellerSku,
         'update_data' => $updateData,
         'xml_payload' => $xmlPayload,
@@ -377,11 +377,11 @@ class LazadaApiService
     ]);
 
     try {
-        // 使用马来西亚域名
+        // Use Malaysia domain
         $apiDomain = 'https://api.lazada.com.my/rest';
         $apiPath = '/product/update';
         
-        // 生成签名
+        // Generate signature
         $sign = $this->generateSignature($apiPath, $params);
         $params['sign'] = $sign;
 
@@ -395,7 +395,7 @@ class LazadaApiService
         $responseBody = $response->getBody()->getContents();
         $data = json_decode($responseBody, true);
         
-        Log::info('更新产品 - Lazada API响应', [
+        Log::info('Update product - Lazada API response', [
             'seller_sku' => $sellerSku,
             'status_code' => $response->getStatusCode(),
             'response' => $data
@@ -403,7 +403,7 @@ class LazadaApiService
 
         return $data;
     } catch (\Exception $e) {
-        Log::error('更新产品失败', [
+        Log::error('Product update failed', [
             'seller_sku' => $sellerSku,
             'error' => $e->getMessage(),
             'trace' => $e->getTraceAsString()
@@ -413,14 +413,14 @@ class LazadaApiService
 }
 
     /**
-     * 递归移除数组中的null值
+     * Recursively remove null values from array
      */
     private function removeNullValues($array)
     {
         foreach ($array as $key => $value) {
             if (is_array($value)) {
                 $array[$key] = $this->removeNullValues($value);
-                // 如果数组变空了，也删除它
+                // If array becomes empty, also delete it
                 if (empty($array[$key])) {
                     unset($array[$key]);
                 }
@@ -432,10 +432,10 @@ class LazadaApiService
     }
 
     /**
-     * 批量更新产品标题
+     * Batch update product titles
      *
-     * @param array $products 产品数组，每个元素包含 sku 和 title
-     * @return array 更新结果
+     * @param array $products Product array, each element contains sku and title
+     * @return array Update results
      */
     public function batchUpdateProductTitles($products)
     {
@@ -445,7 +445,7 @@ class LazadaApiService
 
         foreach ($products as $product) {
             try {
-                // 添加延迟以避免API限制 (Lazada通常限制每秒2-5个请求)
+                // Add delay to avoid API limits (Lazada usually limits 2-5 requests per second)
                 sleep(1);
 
                 $result = $this->updateProduct($product['sku'], [

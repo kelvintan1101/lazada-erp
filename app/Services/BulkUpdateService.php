@@ -22,48 +22,48 @@ class BulkUpdateService
     public function createBulkUpdateTask($filePath)
     {
         try {
-            \Log::info('开始创建批量更新任务', [
+            \Log::info('Starting to create bulk update task', [
                 'file_path' => $filePath,
                 'file_exists' => Storage::exists($filePath)
             ]);
 
-            // 验证文件
-            \Log::info('开始验证文件');
+            // Validate file
+            \Log::info('Starting file validation');
             $validation = $this->excelService->validateExcelFile($filePath);
             if (!$validation['valid']) {
-                \Log::warning('文件验证失败', ['message' => $validation['message']]);
+                \Log::warning('File validation failed', ['message' => $validation['message']]);
                 return [
                     'success' => false,
                     'message' => $validation['message']
                 ];
             }
-            \Log::info('文件验证成功');
+            \Log::info('File validation successful');
 
-            // 解析文件
-            \Log::info('开始解析文件');
+            // Parse file
+            \Log::info('Starting to parse file');
             $parseResult = $this->excelService->parseProductUpdateFile($filePath);
             if (!$parseResult['success']) {
-                \Log::warning('文件解析失败', ['message' => $parseResult['message']]);
+                \Log::warning('File parsing failed', ['message' => $parseResult['message']]);
                 return [
                     'success' => false,
                     'message' => $parseResult['message']
                 ];
             }
-            \Log::info('文件解析成功', [
+            \Log::info('File parsing successful', [
                 'products_count' => count($parseResult['products']),
                 'errors_count' => count($parseResult['errors'])
             ]);
 
-            // 验证产品是否存在于本地数据库
-            \Log::info('开始验证产品');
+            // Validate if products exist in local database
+            \Log::info('Starting product validation');
             $validatedProducts = $this->validateProducts($parseResult['products']);
-            \Log::info('产品验证完成', [
+            \Log::info('Product validation completed', [
                 'valid_products' => count($validatedProducts['valid_products']),
                 'validation_errors' => count($validatedProducts['errors'])
             ]);
 
-            // 创建任务记录
-            \Log::info('开始创建任务记录');
+            // Create task record
+            \Log::info('Starting to create task record');
             $task = BulkUpdateTask::create([
                 'type' => 'product_title_update',
                 'status' => 'pending',
@@ -77,7 +77,7 @@ class BulkUpdateService
                 'errors' => array_merge($parseResult['errors'], $validatedProducts['errors'])
             ]);
 
-            Log::info('批量更新任务已创建', [
+            Log::info('Bulk update task created', [
                 'task_id' => $task->id,
                 'total_items' => $task->total_items,
                 'file_path' => $filePath
@@ -92,7 +92,7 @@ class BulkUpdateService
             ];
 
         } catch (\Exception $e) {
-            Log::error('创建批量更新任务失败', [
+            Log::error('Failed to create bulk update task', [
                 'file_path' => $filePath,
                 'error' => $e->getMessage(),
                 'line' => $e->getLine(),
@@ -102,7 +102,7 @@ class BulkUpdateService
 
             return [
                 'success' => false,
-                'message' => '创建任务失败：' . $e->getMessage()
+                'message' => 'Task creation failed: ' . $e->getMessage()
             ];
         }
     }
@@ -113,19 +113,19 @@ class BulkUpdateService
         if (!$task) {
             return [
                 'success' => false,
-                'message' => '任务不存在'
+                'message' => 'Task does not exist'
             ];
         }
 
         if ($task->status !== 'pending') {
             return [
                 'success' => false,
-                'message' => '任务状态不正确，无法执行'
+                'message' => 'Task status is incorrect, cannot execute'
             ];
         }
 
         try {
-            // 更新任务状态
+            // Update task status
             $task->update([
                 'status' => 'processing',
                 'started_at' => now()
@@ -136,19 +136,19 @@ class BulkUpdateService
             $successCount = 0;
             $failCount = 0;
 
-            Log::info('开始执行批量更新任务', [
+            Log::info('Starting bulk update task execution', [
                 'task_id' => $taskId,
                 'total_products' => count($products)
             ]);
 
             foreach ($products as $index => $product) {
                 try {
-                    // 添加延迟以避免API限制 (Lazada API 推荐每秒最多2个请求)
+                    // Add delay to avoid API limits (Lazada API recommends max 2 requests per second)
                     if ($index > 0) {
-                        sleep(2); // 2秒延迟，保守处理
+                        sleep(2); // 2 second delay, conservative handling
                     }
 
-                    Log::info('正在更新产品', [
+                    Log::info('Updating product', [
                         'task_id' => $taskId,
                         'index' => $index + 1,
                         'total' => count($products),
@@ -156,33 +156,33 @@ class BulkUpdateService
                         'new_title' => $product['title']
                     ]);
 
-                    // 调用Lazada API更新产品标题
+                    // Call Lazada API to update product title
                     $apiResult = $this->lazadaApiService->updateProduct($product['sku'], [
                         'name' => $product['title']
                     ]);
 
-                    // 检查API响应
+                    // Check API response
                     $isSuccess = false;
                     $message = '';
 
                     if ($apiResult) {
-                        // Lazada API 成功响应通常有 code: "0"
+                        // Lazada API successful response usually has code: "0"
                         if (isset($apiResult['code']) && $apiResult['code'] === '0') {
                             $isSuccess = true;
-                            $message = '更新成功';
+                            $message = 'Update successful';
                         } elseif (!isset($apiResult['code'])) {
-                            // 有些成功响应可能没有code字段
+                            // Some successful responses may not have code field
                             $isSuccess = true;
-                            $message = '更新成功';
+                            $message = 'Update successful';
                         } else {
-                            $message = $apiResult['message'] ?? '更新失败：未知错误';
+                            $message = $apiResult['message'] ?? 'Update failed: unknown error';
                         }
                     } else {
-                        $message = '更新失败：API返回空响应';
+                        $message = 'Update failed: API returned empty response';
                     }
 
                     if ($isSuccess) {
-                        // 更新成功，同时更新本地数据库
+                        // Update successful, also update local database
                         $this->updateLocalProduct($product['sku'], $product['title']);
                         
                         $results[] = [
@@ -194,7 +194,7 @@ class BulkUpdateService
                         ];
                         $successCount++;
 
-                        Log::info('产品更新成功', [
+                        Log::info('Product update successful', [
                             'task_id' => $taskId,
                             'sku' => $product['sku'],
                             'response' => $apiResult
@@ -209,7 +209,7 @@ class BulkUpdateService
                         ];
                         $failCount++;
 
-                        Log::warning('产品更新失败', [
+                        Log::warning('Product update failed', [
                             'task_id' => $taskId,
                             'sku' => $product['sku'],
                             'message' => $message,
@@ -218,7 +218,7 @@ class BulkUpdateService
                     }
 
                 } catch (\Exception $e) {
-                    Log::error('更新产品时发生异常', [
+                    Log::error('Exception occurred while updating product', [
                         'task_id' => $taskId,
                         'sku' => $product['sku'],
                         'error' => $e->getMessage(),
@@ -229,12 +229,12 @@ class BulkUpdateService
                         'sku' => $product['sku'],
                         'title' => $product['title'],
                         'status' => 'failed',
-                        'message' => '系统错误：' . $e->getMessage()
+                        'message' => 'System error: ' . $e->getMessage()
                     ];
                     $failCount++;
                 }
 
-                // 更新任务进度
+                // Update task progress
                 $processedItems = $index + 1;
                 $progressPercentage = round(($processedItems / count($products)) * 100);
                 
@@ -246,7 +246,7 @@ class BulkUpdateService
                     'progress_percentage' => $progressPercentage
                 ]);
 
-                Log::debug('任务进度更新', [
+                Log::debug('Task progress updated', [
                     'task_id' => $taskId,
                     'processed' => $processedItems,
                     'total' => count($products),
@@ -256,7 +256,7 @@ class BulkUpdateService
                 ]);
             }
 
-            // 完成任务
+            // Complete task
             $finalStatus = $failCount === 0 ? 'completed' : 'completed';
             $task->update([
                 'status' => $finalStatus,
@@ -264,7 +264,7 @@ class BulkUpdateService
                 'progress_percentage' => 100
             ]);
 
-            Log::info('批量更新任务完成', [
+            Log::info('Bulk update task completed', [
                 'task_id' => $taskId,
                 'total' => count($products),
                 'success' => $successCount,
@@ -281,14 +281,14 @@ class BulkUpdateService
             ];
 
         } catch (\Exception $e) {
-            // 任务执行失败
+            // Task execution failed
             $task->update([
                 'status' => 'failed',
                 'completed_at' => now(),
                 'errors' => array_merge($task->errors ?? [], [$e->getMessage()])
             ]);
 
-            Log::error('批量更新任务执行失败', [
+            Log::error('Bulk update task execution failed', [
                 'task_id' => $taskId,
                 'error' => $e->getMessage(),
                 'trace' => $e->getTraceAsString()
@@ -296,7 +296,7 @@ class BulkUpdateService
 
             return [
                 'success' => false,
-                'message' => '任务执行失败：' . $e->getMessage()
+                'message' => 'Task execution failed: ' . $e->getMessage()
             ];
         }
     }
@@ -307,26 +307,26 @@ class BulkUpdateService
     $errors = [];
 
     foreach ($products as $product) {
-        // 基本验证，不检查本地数据库
+        // Basic validation, do not check local database
         if (empty($product['sku'])) {
-            $errors[] = "SKU不能为空";
+            $errors[] = "SKU cannot be empty";
             continue;
         }
         
         if (empty($product['title'])) {
-            $errors[] = "产品标题不能为空";
+            $errors[] = "Product title cannot be empty";
             continue;
         }
 
-        // 验证SKU格式 (通常是数字)
+        // Validate SKU format (usually numeric)
         if (!preg_match('/^[0-9]+$/', $product['sku'])) {
-            $errors[] = "SKU {$product['sku']} 格式不正确，应为纯数字";
+            $errors[] = "SKU {$product['sku']} format is incorrect, should be pure numeric";
             continue;
         }
 
-        // 验证标题长度
+        // Validate title length
         if (strlen($product['title']) > 255) {
-            $errors[] = "SKU {$product['sku']} 的产品标题过长（超过255字符）";
+            $errors[] = "SKU {$product['sku']} product title is too long (over 255 characters)";
             continue;
         }
 
@@ -340,10 +340,10 @@ class BulkUpdateService
 }
 
     /**
-     * 更新本地产品信息
+     * Update local product information
      * 
-     * @param string $sku 产品SKU
-     * @param string $newTitle 新标题
+     * @param string $sku Product SKU
+     * @param string $newTitle New title
      */
     private function updateLocalProduct($sku, $newTitle)
     {
@@ -353,7 +353,7 @@ class BulkUpdateService
                 'synced_at' => now()
             ]);
         } catch (\Exception $e) {
-            Log::warning('更新本地产品信息失败', [
+            Log::warning('Failed to update local product information', [
                 'sku' => $sku,
                 'error' => $e->getMessage()
             ]);
@@ -361,10 +361,10 @@ class BulkUpdateService
     }
 
     /**
-     * 获取任务状态
+     * Get task status
      * 
-     * @param int $taskId 任务ID
-     * @return array 任务状态
+     * @param int $taskId Task ID
+     * @return array Task status
      */
     public function getTaskStatus($taskId)
     {
@@ -372,7 +372,7 @@ class BulkUpdateService
         if (!$task) {
             return [
                 'success' => false,
-                'message' => '任务不存在'
+                'message' => 'Task does not exist'
             ];
         }
 

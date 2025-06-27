@@ -33,7 +33,7 @@ class BulkUpdateTask extends Model
     ];
 
     /**
-     * 获取进度百分比
+     * Get progress percentage
      */
     public function getProgressPercentage()
     {
@@ -45,7 +45,7 @@ class BulkUpdateTask extends Model
     }
 
     /**
-     * 检查任务是否完成
+     * Check if task is completed
      */
     public function isCompleted()
     {
@@ -53,7 +53,7 @@ class BulkUpdateTask extends Model
     }
 
     /**
-     * 检查任务是否正在处理
+     * Check if task is in processing
      */
     public function isProcessing()
     {
@@ -61,7 +61,7 @@ class BulkUpdateTask extends Model
     }
 
     /**
-     * 获取成功率
+     * Get success rate
      */
     public function getSuccessRate()
     {

@@ -47,10 +47,15 @@ class User extends Authenticatable
         ];
     }
 
+    // COMMENTED OUT - Method has spelling error and is not referenced anywhere in the codebase
+    // The correct method name should be 'stockAdjustments' (not 'stoackAdjustments')
+    // This method is unused and can be safely removed or corrected when needed
+    /*
     public function stoackAdjustments()
     {
         return $this->hasMany(StockAdjustment::class, 'adjusted_by_user_id');
     }
+    */
 
     public function isAdmin()
     {

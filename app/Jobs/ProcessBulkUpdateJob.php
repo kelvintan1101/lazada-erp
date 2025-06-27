@@ -17,14 +17,14 @@ class ProcessBulkUpdateJob implements ShouldQueue
     protected $taskId;
 
     /**
-     * 任务最大尝试次数
+     * Maximum task retry attempts
      */
     public $tries = 3;
 
     /**
-     * 任务超时时间（秒）
+     * Task timeout (seconds)
      */
-    public $timeout = 3600; // 1小时
+    public $timeout = 3600; // 1 hour
 
     /**
      * Create a new job instance.
@@ -39,32 +39,32 @@ class ProcessBulkUpdateJob implements ShouldQueue
      */
     public function handle(BulkUpdateService $bulkUpdateService): void
     {
-        Log::info('开始处理批量更新任务', ['task_id' => $this->taskId]);
+        Log::info('Starting bulk update task processing', ['task_id' => $this->taskId]);
 
         try {
             $result = $bulkUpdateService->executeBulkUpdateTask($this->taskId);
             
             if ($result['success']) {
-                Log::info('批量更新任务处理完成', [
+                Log::info('Bulk update task processing completed', [
                     'task_id' => $this->taskId,
                     'total' => $result['total'],
                     'successful' => $result['successful'],
                     'failed' => $result['failed']
                 ]);
             } else {
-                Log::error('批量更新任务处理失败', [
+                Log::error('Bulk update task processing failed', [
                     'task_id' => $this->taskId,
                     'message' => $result['message']
                 ]);
             }
         } catch (\Exception $e) {
-            Log::error('批量更新任务执行异常', [
+            Log::error('Bulk update task execution exception', [
                 'task_id' => $this->taskId,
                 'error' => $e->getMessage(),
                 'trace' => $e->getTraceAsString()
             ]);
             
-            throw $e; // 重新抛出异常以触发重试机制
+            throw $e; // Re-throw exception to trigger retry mechanism
         }
     }
 
@@ -73,13 +73,13 @@ class ProcessBulkUpdateJob implements ShouldQueue
      */
     public function failed(\Throwable $exception): void
     {
-        Log::error('批量更新任务最终失败', [
+        Log::error('Bulk update task finally failed', [
             'task_id' => $this->taskId,
             'error' => $exception->getMessage(),
             'trace' => $exception->getTraceAsString()
         ]);
 
-        // 更新任务状态为失败
+        // Update task status to failed
         try {
             $task = \App\Models\BulkUpdateTask::find($this->taskId);
             if ($task) {
@@ -87,12 +87,12 @@ class ProcessBulkUpdateJob implements ShouldQueue
                     'status' => 'failed',
                     'completed_at' => now(),
                     'errors' => array_merge($task->errors ?? [], [
-                        '任务执行失败: ' . $exception->getMessage()
+                        'Task execution failed: ' . $exception->getMessage()
                     ])
                 ]);
             }
         } catch (\Exception $e) {
-            Log::error('更新任务失败状态时出错', [
+            Log::error('Error updating task failure status', [
                 'task_id' => $this->taskId,
                 'error' => $e->getMessage()
             ]);

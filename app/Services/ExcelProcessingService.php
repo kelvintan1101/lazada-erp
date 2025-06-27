@@ -12,15 +12,15 @@ class ExcelProcessingService
     public function parseProductUpdateFile($filePath)
     {
         try {
-            \Log::info('开始解析文件', ['file_path' => $filePath]);
+            \Log::info('Starting to parse file', ['file_path' => $filePath]);
 
-            // 检查文件是否存在
+            // Check if file exists
             if (!Storage::exists($filePath)) {
-                throw new \Exception('文件不存在: ' . $filePath);
+                throw new \Exception('File does not exist: ' . $filePath);
             }
 
             $fullPath = Storage::path($filePath);
-            \Log::info('文件完整路径', [
+            \Log::info('File complete path', [
                 'full_path' => $fullPath,
                 'file_exists' => file_exists($fullPath),
                 'is_readable' => is_readable($fullPath),
@@ -28,16 +28,16 @@ class ExcelProcessingService
             ]);
 
             if (!file_exists($fullPath)) {
-                throw new \Exception('文件物理路径不存在: ' . $fullPath);
+                throw new \Exception('File physical path does not exist: ' . $fullPath);
             }
 
             if (!is_readable($fullPath)) {
-                throw new \Exception('文件不可读: ' . $fullPath);
+                throw new \Exception('File is not readable: ' . $fullPath);
             }
 
-            // 检测文件类型
+            // Detect file type
             $extension = strtolower(pathinfo($fullPath, PATHINFO_EXTENSION));
-            \Log::info('文件扩展名检测', ['extension' => $extension]);
+            \Log::info('File extension detection', ['extension' => $extension]);
 
             if ($extension === 'csv') {
                 return $this->parseCsvFile($fullPath);
@@ -46,7 +46,7 @@ class ExcelProcessingService
             }
 
         } catch (ReaderException $e) {
-            Log::error('Excel文件读取失败', [
+            Log::error('Excel file reading failed', [
                 'file_path' => $filePath,
                 'error' => $e->getMessage(),
                 'line' => $e->getLine()
@@ -54,13 +54,13 @@ class ExcelProcessingService
 
             return [
                 'success' => false,
-                'message' => '无法读取Excel文件：' . $e->getMessage(),
+                'message' => 'Unable to read Excel file: ' . $e->getMessage(),
                 'products' => [],
                 'errors' => []
             ];
 
         } catch (\Exception $e) {
-            Log::error('Excel文件处理失败', [
+            Log::error('Excel file processing failed', [
                 'file_path' => $filePath,
                 'error' => $e->getMessage(),
                 'line' => $e->getLine(),
@@ -78,7 +78,7 @@ class ExcelProcessingService
 
     private function parseCsvFile($fullPath)
     {
-        \Log::info('开始解析CSV文件', ['path' => $fullPath]);
+        \Log::info('Starting to parse CSV file', ['path' => $fullPath]);
         
         $products = [];
         $errors = [];
@@ -90,284 +90,23 @@ class ExcelProcessingService
                 $rowNumber++;
                 
                 if ($rowNumber === 1) {
-                    // 处理表头
+                    // Process header
                     $headers = array_map('trim', $data);
-                    \Log::info('CSV表头', ['headers' => $headers]);
+                    \Log::info('CSV headers', ['headers' => $headers]);
                     
-                    // 验证必需的列是否存在
+                    // Validate if required columns exist
                     $skuIndex = -1;
                     $titleIndex = -1;
                     
                     foreach ($headers as $index => $header) {
                         $header = strtolower(trim($header));
-                        if (in_array($header, ['sku', 'skuid', 'sku id', 'seller sku', 'sellersku', '卖家sku', '商品sku'])) {
+                        if (in_array($header, ['sku', 'skuid', 'sku id', 'seller sku', 'sellersku', 'seller_sku', 'product_sku'])) {
                             $skuIndex = $index;
                         }
-                        if (in_array($header, ['title', 'product title', 'name', 'product name', '产品标题', '商品标题', '产品名称', '商品名称'])) {
+                        if (in_array($header, ['title', 'product title', 'name', 'product name', 'product_title', 'product_name'])) {
                             $titleIndex = $index;
                         }
                     }
                     
                     if ($skuIndex === -1 || $titleIndex === -1) {
-                        throw new \Exception('CSV文件必须包含SKU和产品标题列。当前列：' . implode(', ', $headers) . '。找到SKU列：' . ($skuIndex >= 0 ? '是' : '否') . '，找到标题列：' . ($titleIndex >= 0 ? '是' : '否'));
-                    }
-                    continue;
-                }
-                
-                // 处理数据行
-                if (count($data) < count($headers)) {
-                    $errors[] = "第{$rowNumber}行：数据列数不匹配";
-                    continue;
-                }
-                
-                // 直接使用索引获取SKU和标题
-                $sku = isset($data[$skuIndex]) ? trim($data[$skuIndex]) : '';
-                $title = isset($data[$titleIndex]) ? trim($data[$titleIndex]) : '';
-                
-                if (empty($sku)) {
-                    $errors[] = "第{$rowNumber}行：SKU不能为空";
-                    continue;
-                }
-                
-                if (empty($title)) {
-                    $errors[] = "第{$rowNumber}行：产品标题不能为空";
-                    continue;
-                }
-                
-                $products[] = [
-                    'sku' => $sku,
-                    'title' => $title,
-                    'row' => $rowNumber
-                ];
-            }
-            fclose($handle);
-        } else {
-            throw new \Exception('无法打开CSV文件');
-        }
-        
-        \Log::info('CSV解析完成', [
-            'total_products' => count($products),
-            'total_errors' => count($errors)
-        ]);
-        
-        return [
-            'success' => true,
-            'products' => $products,
-            'errors' => $errors,
-            'total_rows' => $rowNumber - 1,
-            'valid_products' => count($products)
-        ];
-    }
-
-    private function parseExcelFile($fullPath)
-    {
-        \Log::info('开始解析Excel文件', ['path' => $fullPath]);
-        
-        // 加载Excel文件
-        $spreadsheet = IOFactory::load($fullPath);
-        $worksheet = $spreadsheet->getActiveSheet();
-        
-        // 获取最高行数
-        $highestRow = $worksheet->getHighestRow();
-        $highestColumn = $worksheet->getHighestColumn();
-        
-        Log::info('Excel文件解析开始', [
-            'highest_row' => $highestRow,
-            'highest_column' => $highestColumn
-        ]);
-
-        // 读取表头（第一行）
-        $headers = [];
-        for ($col = 'A'; $col <= $highestColumn; $col++) {
-            $headers[$col] = $worksheet->getCell($col . '1')->getValue();
-        }
-
-        // 验证必需的列是否存在
-        $requiredColumns = $this->findRequiredColumns($headers);
-        if (!$requiredColumns['sku'] || !$requiredColumns['title']) {
-            throw new \Exception('Excel文件必须包含SKU和产品标题列。请确保文件包含"SKU"和"产品标题"或"Product Title"列。');
-        }
-
-        // 解析数据行
-        $products = [];
-        $errors = [];
-        
-        for ($row = 2; $row <= $highestRow; $row++) {
-            try {
-                $sku = trim($worksheet->getCell($requiredColumns['sku'] . $row)->getValue());
-                $title = trim($worksheet->getCell($requiredColumns['title'] . $row)->getValue());
-
-                // 验证数据
-                if (empty($sku)) {
-                    $errors[] = "第{$row}行：SKU不能为空";
-                    continue;
-                }
-
-                if (empty($title)) {
-                    $errors[] = "第{$row}行：产品标题不能为空";
-                    continue;
-                }
-
-                // 验证标题长度（Lazada通常限制标题长度）
-                if (strlen($title) > 255) {
-                    $errors[] = "第{$row}行：产品标题过长（超过255字符）";
-                    continue;
-                }
-
-                $products[] = [
-                    'sku' => $sku,
-                    'title' => $title,
-                    'row' => $row
-                ];
-
-            } catch (\Exception $e) {
-                $errors[] = "第{$row}行：数据解析错误 - " . $e->getMessage();
-            }
-        }
-
-        Log::info('Excel文件解析完成', [
-            'total_products' => count($products),
-            'total_errors' => count($errors)
-        ]);
-
-        return [
-            'success' => true,
-            'products' => $products,
-            'errors' => $errors,
-            'total_rows' => $highestRow - 1, // 减去表头行
-            'valid_products' => count($products)
-        ];
-    }
-
-    private function findRequiredColumns($headers)
-{
-    $columns = [
-        'sku' => null,
-        'title' => null
-    ];
-
-    foreach ($headers as $col => $header) {
-        $header = strtolower(trim($header));
-        
-        // 查找SKU列 - 支持更多格式
-        if (in_array($header, [
-            'sku', 'skuid', 'sku id', 'seller sku', 'sellersku',
-            '卖家sku', '商品sku', 'sku编号', 'sku号'
-        ])) {
-            $columns['sku'] = $col;
-        }
-        
-        // 查找标题列 - 支持更多格式  
-        if (in_array($header, [
-            'title', 'product title', 'name', 'product name', 'productname',
-            '产品标题', '商品标题', '产品名称', '商品名称', 'product_name', 'product_title'
-        ])) {
-            $columns['title'] = $col;
-        }
-    }
-
-    return $columns;
-}
-
-    /**
-     * 验证Excel文件格式
-     * 
-     * @param string $filePath 文件路径
-     * @return array 验证结果
-     */
-    public function validateExcelFile($filePath)
-    {
-        try {
-            if (!Storage::exists($filePath)) {
-                return [
-                    'valid' => false,
-                    'message' => '文件不存在'
-                ];
-            }
-
-            $fullPath = Storage::path($filePath);
-            $fileExtension = strtolower(pathinfo($fullPath, PATHINFO_EXTENSION));
-            
-            if (!in_array($fileExtension, ['xlsx', 'xls', 'csv'])) {
-                return [
-                    'valid' => false,
-                    'message' => '不支持的文件格式。请上传Excel文件（.xlsx, .xls）或CSV文件。'
-                ];
-            }
-
-            // 对于CSV文件，使用简单的验证
-            if ($fileExtension === 'csv') {
-                return $this->validateCsvFile($fullPath);
-            }
-
-            // 对于Excel文件，尝试使用PhpSpreadsheet
-            try {
-                $spreadsheet = IOFactory::load($fullPath);
-                $worksheet = $spreadsheet->getActiveSheet();
-                
-                // 检查是否有数据
-                if ($worksheet->getHighestRow() < 2) {
-                    return [
-                        'valid' => false,
-                        'message' => '文件中没有数据行'
-                    ];
-                }
-
-                return [
-                    'valid' => true,
-                    'message' => '文件格式正确'
-                ];
-            } catch (\Exception $e) {
-                return [
-                    'valid' => false,
-                    'message' => 'Excel文件验证失败：' . $e->getMessage() . '。请确保PhpSpreadsheet包已正确安装。'
-                ];
-            }
-
-        } catch (\Exception $e) {
-            return [
-                'valid' => false,
-                'message' => '文件验证失败：' . $e->getMessage()
-            ];
-        }
-    }
-
-    private function validateCsvFile($fullPath)
-    {
-        try {
-            if (!is_readable($fullPath)) {
-                return [
-                    'valid' => false,
-                    'message' => 'CSV文件不可读'
-                ];
-            }
-
-            $rowCount = 0;
-            if (($handle = fopen($fullPath, 'r')) !== FALSE) {
-                while (($data = fgetcsv($handle, 1000, ',')) !== FALSE) {
-                    $rowCount++;
-                    if ($rowCount >= 2) break; // 只需要检查是否有表头和至少一行数据
-                }
-                fclose($handle);
-            }
-
-            if ($rowCount < 2) {
-                return [
-                    'valid' => false,
-                    'message' => 'CSV文件中没有数据行'
-                ];
-            }
-
-            return [
-                'valid' => true,
-                'message' => 'CSV文件格式正确'
-            ];
-
-        } catch (\Exception $e) {
-            return [
-                'valid' => false,
-                'message' => 'CSV文件验证失败：' . $e->getMessage()
-            ];
-        }
-    }
-}
+                        throw new \Exception('CSV file must contain SKU and product title columns. Current columns: ' . implode(', ', $headers) . '. Found SKU column: ' . ($skuIndex >= 0 ? 'Yes' : 'No') . ', Found title column: ' . ($titleIndex >= 0 ? 'Yes' : 'No')
