@@ -180,21 +180,7 @@
             </div>
         </div>
 
-        <!-- Debug panel -->
-        <div id="debug-panel" class="mt-6 bg-gray-100 border border-gray-300 rounded-lg p-4 text-sm">
-            <h3 class="font-bold text-gray-700 mb-2">🔧 Debug Information</h3>
-            <div class="space-y-1 text-gray-600">
-                <div>Button Status: <span id="debug-btn-status" class="font-mono">Checking...</span></div>
-                <div>Button Visibility: <span id="debug-btn-visibility" class="font-mono">Checking...</span></div>
-                <div>File Selection Status: <span id="debug-file-status" class="font-mono">Not selected</span></div>
-                <div class="mt-2">
-                    <button onclick="window.testSimpleNotification()" class="bg-red-500 text-white px-3 py-1 rounded text-xs mr-2">Simple Test</button>
-                    <button onclick="window.testNotification()" class="bg-blue-500 text-white px-3 py-1 rounded text-xs mr-2">Test Notification</button>
-                    <button onclick="window.testSuccessNotification()" class="bg-green-500 text-white px-3 py-1 rounded text-xs mr-2">Test Success Notification</button>
-                    <button onclick="window.debugButtonStatus()" class="bg-yellow-500 text-white px-3 py-1 rounded text-xs">Refresh Status</button>
-                </div>
-            </div>
-        </div>
+
     </div>
 </div>
 
@@ -416,11 +402,9 @@ document.addEventListener('DOMContentLoaded', function() {
 
             // Enable upload button
             enableUploadButton();
-            updateDebugPanel();
             console.log('File validation passed, button enabled');
         } else {
             resetFileSelection();
-            updateDebugPanel();
         }
     });
 
@@ -451,7 +435,6 @@ document.addEventListener('DOMContentLoaded', function() {
         fileInput.value = '';
         fileInfo.classList.add('hidden');
         disableUploadButton();
-        updateDebugPanel();
     }
 
     // Drag and drop upload
@@ -953,170 +936,15 @@ document.addEventListener('DOMContentLoaded', function() {
         resetFileSelection();
     }
 
-    // Debug functions
-    function updateDebugPanel() {
-        const debugBtnStatus = document.getElementById('debug-btn-status');
-        const debugBtnVisibility = document.getElementById('debug-btn-visibility');
-        const debugFileStatus = document.getElementById('debug-file-status');
 
-        if (debugBtnStatus) {
-            debugBtnStatus.textContent = uploadBtn.disabled ? 'Disabled' : 'Enabled';
-        }
 
-        if (debugBtnVisibility) {
-            const style = window.getComputedStyle(uploadBtn);
-            debugBtnVisibility.textContent = `display: ${style.display}, opacity: ${style.opacity}, visibility: ${style.visibility}`;
-        }
 
-        if (debugFileStatus) {
-            debugFileStatus.textContent = fileInput.files.length > 0 ? `Selected: ${fileInput.files[0].name}` : 'Not selected';
-        }
-    }
-
-    function debugButtonStatus() {
-        console.log('=== Button Debug Information ===');
-        console.log('Button element:', uploadBtn);
-        console.log('Button disabled state:', uploadBtn.disabled);
-        console.log('Button class name:', uploadBtn.className);
-        console.log('Button styles:', window.getComputedStyle(uploadBtn));
-        console.log('Button text:', uploadBtnText.textContent);
-        updateDebugPanel();
-    }
-
-    // Test functions
-    function testNotification() {
-        console.log('Test notification display');
-        const container = document.getElementById('notification-container');
-        console.log('Notification container:', container);
-        console.log('Container styles:', window.getComputedStyle(container));
-        showNotification('success', 'Test Notification', 'This is a test notification to verify if the notification system is working properly');
-    }
-
-    function testSuccessNotification() {
-        console.log('Test success notification');
-        const mockTask = {
-            successful_items: 5,
-            failed_items: 1
-        };
-        showSuccessNotification(mockTask);
-    }
-
-    function testSimpleNotification() {
-        console.log('🧪 Test simple notification');
-        const container = document.getElementById('notification-container');
-        if (!container) {
-            console.error('❌ Notification container does not exist!');
-            alert('Notification container does not exist!');
-            return;
-        }
-
-        console.log('📦 Container info:', {
-            element: container,
-            style: window.getComputedStyle(container),
-            position: container.getBoundingClientRect()
-        });
-
-        // Create a very obvious test notification
-        const testNotification = document.createElement('div');
-        testNotification.style.cssText = `
-            position: fixed !important;
-            top: 50% !important;
-            left: 50% !important;
-            transform: translate(-50%, -50%) !important;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%) !important;
-            color: white !important;
-            padding: 30px !important;
-            border-radius: 15px !important;
-            box-shadow: 0 25px 50px rgba(0, 0, 0, 0.3) !important;
-            z-index: 9999999 !important;
-            font-size: 18px !important;
-            font-weight: bold !important;
-            text-align: center !important;
-            min-width: 300px !important;
-            animation: pulse 2s infinite !important;
-        `;
-        testNotification.innerHTML = `
-            <div>🔔 Test notification display successful!</div>
-            <div style="font-size: 14px; margin-top: 10px; opacity: 0.9;">
-                If you can see this notification, the notification system is working properly
-            </div>
-            <button onclick="this.parentElement.remove()" style="
-                background: rgba(255,255,255,0.2);
-                border: 1px solid rgba(255,255,255,0.3);
-                color: white;
-                padding: 8px 16px;
-                border-radius: 8px;
-                margin-top: 15px;
-                cursor: pointer;
-                font-size: 14px;
-            ">Close</button>
-        `;
-
-        document.body.appendChild(testNotification);
-
-        // Auto remove after 3 seconds
-        setTimeout(() => {
-            if (testNotification.parentElement) {
-                testNotification.remove();
-            }
-        }, 5000);
-
-        const testDiv = document.createElement('div');
-        testDiv.innerHTML = `
-            <div style="display: flex; align-items: center; justify-content: space-between;">
-                <span>🔴 Simple test notification - ${new Date().toLocaleTimeString()}</span>
-                <button onclick="this.parentElement.parentElement.remove()" style="background: none; border: none; color: white; font-size: 18px; cursor: pointer;">×</button>
-            </div>
-        `;
-        testDiv.style.cssText = `
-            background: linear-gradient(135deg, #ff6b6b, #ee5a24) !important;
-            color: white !important;
-            padding: 16px !important;
-            border-radius: 12px !important;
-            margin-bottom: 12px !important;
-            position: relative !important;
-            z-index: 100000 !important;
-            pointer-events: auto !important;
-            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.15) !important;
-            transform: translateX(0) !important;
-            opacity: 1 !important;
-            width: 100% !important;
-            max-width: 380px !important;
-        `;
-
-        container.appendChild(testDiv);
-        console.log('✅ Simple test notification added');
-
-        setTimeout(() => {
-            if (testDiv.parentNode) {
-                testDiv.parentNode.removeChild(testDiv);
-                console.log('🗑️ Simple test notification removed');
-            }
-        }, 5000);
-    }
 
     // Expose functions to global scope
     window.downloadReport = downloadReport;
     window.startNewTask = startNewTask;
     window.showNotification = showNotification;
     window.hideNotification = hideNotification;
-    window.testNotification = testNotification;
-    window.testSuccessNotification = testSuccessNotification;
-    window.testSimpleNotification = testSimpleNotification;
-    window.debugButtonStatus = debugButtonStatus;
-    window.updateDebugPanel = updateDebugPanel;
-
-    // Initialize debug panel
-    setTimeout(() => {
-        updateDebugPanel();
-        debugButtonStatus();
-    }, 500);
-
-    // Show welcome notification
-    setTimeout(() => {
-        console.log('Show welcome notification');
-        showNotification('info', 'Page Load Complete', 'Bulk update functionality is ready! Button should be visible above.');
-    }, 1000);
 
     console.log('Bulk update functionality initialization complete');
 });
