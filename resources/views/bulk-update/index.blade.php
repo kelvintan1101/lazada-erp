@@ -318,7 +318,7 @@
 @push('scripts')
 <script>
 document.addEventListener('DOMContentLoaded', function() {
-    console.log('Page loaded, initializing bulk update functionality...');
+
 
     // Get DOM elements
     const fileInput = document.getElementById('excel-file');
@@ -339,12 +339,7 @@ document.addEventListener('DOMContentLoaded', function() {
         return;
     }
 
-    console.log('All DOM elements found:', {
-        uploadBtn: uploadBtn,
-        uploadBtnText: uploadBtnText,
-        uploadBtnVisible: window.getComputedStyle(uploadBtn).display,
-        uploadBtnOpacity: window.getComputedStyle(uploadBtn).opacity
-    });
+
 
     let currentTaskId = null;
     let progressInterval = null;
@@ -359,23 +354,14 @@ document.addEventListener('DOMContentLoaded', function() {
 
     // Initialize button state
     disableUploadButton('Please select a file first');
-    console.log('Button initialization complete, current state:', {
-        disabled: uploadBtn.disabled,
-        className: uploadBtn.className,
-        text: uploadBtnText.textContent
-    });
-
-    console.log('Initialization complete, setting up event listeners...');
 
     // File selection handling
     fileDropZone.addEventListener('click', function() {
-        console.log('Click file selection area');
         fileInput.click();
     });
 
     fileInput.addEventListener('change', function(e) {
         const file = e.target.files[0];
-        console.log('File selection changed:', file ? file.name : 'No file');
 
         if (file) {
             // Validate file type
@@ -402,7 +388,6 @@ document.addEventListener('DOMContentLoaded', function() {
 
             // Enable upload button
             enableUploadButton();
-            console.log('File validation passed, button enabled');
         } else {
             resetFileSelection();
         }
@@ -410,7 +395,6 @@ document.addEventListener('DOMContentLoaded', function() {
 
     // Helper functions
     function enableUploadButton() {
-        console.log('Enable upload button');
         uploadBtn.disabled = false;
         uploadBtn.className = 'w-full max-w-md px-6 py-3 font-semibold rounded-lg shadow-lg border-2 transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-offset-2';
         uploadBtnText.textContent = 'Start Upload and Update';
@@ -421,7 +405,6 @@ document.addEventListener('DOMContentLoaded', function() {
     }
 
     function disableUploadButton(text = 'Please select a file first') {
-        console.log('Disable upload button:', text);
         uploadBtn.disabled = true;
         uploadBtn.className = 'w-full max-w-md px-6 py-3 font-semibold rounded-lg shadow-lg border-2 transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-offset-2';
         uploadBtnText.textContent = text;
@@ -462,8 +445,6 @@ document.addEventListener('DOMContentLoaded', function() {
 
     // File upload handling
     uploadBtn.addEventListener('click', function() {
-        console.log('Click upload button');
-
         if (!fileInput.files[0]) {
             showNotification('error', 'Please Select File', 'Please select an Excel or CSV file first');
             return;
@@ -474,7 +455,6 @@ document.addEventListener('DOMContentLoaded', function() {
 
         // Update button state
         disableUploadButton('Uploading...');
-        console.log('Starting file upload...');
 
         fetch('/bulk-update/upload', {
             method: 'POST',
@@ -498,7 +478,6 @@ document.addEventListener('DOMContentLoaded', function() {
             return response.json();
         })
         .then(data => {
-            console.log('Upload response:', data);
             if (data.success) {
                 currentTaskId = data.task_id;
 
@@ -546,7 +525,6 @@ document.addEventListener('DOMContentLoaded', function() {
 
     // Completely rewritten notification system
     function showNotification(type, title, message, actions = []) {
-        console.log('🔔 Show notification:', type, title, message);
 
         const container = document.getElementById('notification-container');
         if (!container) {
@@ -619,9 +597,6 @@ document.addEventListener('DOMContentLoaded', function() {
 
         // Add to container
         container.appendChild(notification);
-        console.log('✅ Notification added to container:', notification);
-        console.log('📍 Container position:', container.getBoundingClientRect());
-        console.log('📍 Notification position:', notification.getBoundingClientRect());
 
         // Notification will automatically start fading out after 6 seconds
         setTimeout(() => {
@@ -635,7 +610,6 @@ document.addEventListener('DOMContentLoaded', function() {
         actionButtons.forEach(btn => {
             btn.addEventListener('click', (e) => {
                 const action = btn.getAttribute('data-action');
-                console.log('🔵 Action button clicked:', action);
                 if (action === 'download') {
                     downloadReport(currentTaskId);
                 } else if (action === 'new-task') {
@@ -646,15 +620,11 @@ document.addEventListener('DOMContentLoaded', function() {
         });
 
         // Force show animation - execute immediately
-        console.log('🎬 Starting show animation');
         setTimeout(() => {
             notification.style.transform = 'translateX(0) !important';
             notification.style.opacity = '1 !important';
             notification.style.animation = 'slideInRight 0.4s ease-out forwards !important';
             notification.classList.add('show');
-
-
-            console.log('✨ Animation triggered');
         }, 50);
 
         // Auto disappear (unless there are action buttons)
@@ -668,17 +638,14 @@ document.addEventListener('DOMContentLoaded', function() {
     }
 
     function hideNotification(notificationId) {
-        console.log('🌅 Starting elegant fade out notification:', notificationId);
         const notification = document.getElementById(notificationId);
         if (notification) {
             // Add fade-out CSS class to trigger animation
             notification.classList.add('hide');
 
-            console.log('🎭 Fade out animation started, elegant removal in 2 seconds');
             setTimeout(() => {
                 if (notification.parentNode) {
                     notification.parentNode.removeChild(notification);
-                    console.log('✨ Notification elegantly removed:', notificationId);
                 }
             }, 2000); // 2 seconds fade out time, synchronized with CSS animation
         }
@@ -742,7 +709,6 @@ document.addEventListener('DOMContentLoaded', function() {
 
     // Show success notification
     function showSuccessNotification(task) {
-        console.log('Show success notification:', task);
 
         const message = `🎉 Successfully processed ${task.successful_items} products${task.failed_items > 0 ? `, failed ${task.failed_items} items` : ''}`;
 
@@ -765,7 +731,6 @@ document.addEventListener('DOMContentLoaded', function() {
 
     // Large success notification
     function showLargeSuccessNotification(title, message, actions = []) {
-        console.log('Show large success notification');
 
         const container = document.getElementById('notification-container');
         if (!container) {
@@ -812,7 +777,6 @@ document.addEventListener('DOMContentLoaded', function() {
 
         // Add to container
         container.appendChild(notification);
-        console.log('Large success notification added to container:', notification);
 
         // Large notification will start fading out after 8 seconds
         setTimeout(() => {
@@ -835,11 +799,9 @@ document.addEventListener('DOMContentLoaded', function() {
 
         // Force show animation
         setTimeout(() => {
-            console.log('Starting large success notification animation');
             notification.style.transform = 'translateX(0)';
             notification.style.opacity = '1';
             notification.classList.add('show');
-
         }, 50);
 
         // Auto disappear after 10 seconds
@@ -925,12 +887,10 @@ document.addEventListener('DOMContentLoaded', function() {
 
     // Global functions for notification use
     function downloadReport(taskId) {
-        console.log('Download report:', taskId);
         window.location.href = `/bulk-update/download-report?task_id=${taskId}`;
     }
 
     function startNewTask() {
-        console.log('Start new task');
         document.getElementById('progress-section').classList.add('hidden');
         document.getElementById('upload-section').classList.remove('hidden');
         resetFileSelection();
@@ -945,8 +905,6 @@ document.addEventListener('DOMContentLoaded', function() {
     window.startNewTask = startNewTask;
     window.showNotification = showNotification;
     window.hideNotification = hideNotification;
-
-    console.log('Bulk update functionality initialization complete');
 });
 </script>
 @endpush
