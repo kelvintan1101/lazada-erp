@@ -87,13 +87,24 @@
             },
 
             show() {
+                console.log('LoadingManager.show() called');
                 if (!this.overlay) this.init();
-                this.overlay.classList.remove('hidden');
+                console.log('Overlay element:', this.overlay);
+                if (this.overlay) {
+                    this.overlay.classList.remove('hidden');
+                    console.log('Loading overlay should now be visible');
+                } else {
+                    console.log('ERROR: Overlay element not found!');
+                }
             },
 
             hide() {
+                console.log('LoadingManager.hide() called');
                 if (!this.overlay) this.init();
-                this.overlay.classList.add('hidden');
+                if (this.overlay) {
+                    this.overlay.classList.add('hidden');
+                    console.log('Loading overlay hidden');
+                }
             },
 
             // Smooth page transition

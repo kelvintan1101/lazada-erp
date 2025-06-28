@@ -84,8 +84,18 @@ document.addEventListener('DOMContentLoaded', function() {
     form.addEventListener('submit', function(e) {
         e.preventDefault();
 
+        // Debug: Check if global loading element exists
+        const globalLoading = document.getElementById('global-loading');
+        console.log('Global loading element:', globalLoading);
+        console.log('LoadingManager:', window.LoadingManager);
+
         // Show global loading animation
-        window.LoadingManager.show();
+        if (window.LoadingManager) {
+            console.log('Calling LoadingManager.show()');
+            window.LoadingManager.show();
+        } else {
+            console.log('LoadingManager not found!');
+        }
 
         // Prepare form data
         const formData = new FormData(form);
