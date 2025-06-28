@@ -71,29 +71,23 @@
 
     <!-- Global Loading Indicator -->
     <div id="global-loading" class="fixed top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 z-50 hidden">
-        <div class="bg-white rounded-lg shadow-xl p-6 text-center border">
-            <div class="animate-spin rounded-full h-12 w-12 border-4 border-gray-300 border-t-blue-600 mx-auto"></div>
-            <p class="mt-3 text-gray-700 text-sm font-medium">Processing...</p>
+        <div class="bg-white rounded-full shadow-xl p-4 border">
+            <div class="animate-spin rounded-full h-8 w-8 border-4 border-gray-300 border-t-blue-600"></div>
         </div>
     </div>
 
     <!-- Global Loading Script -->
     <script>
-        // Enhanced loading manager
+        // Simple loading manager
         window.LoadingManager = {
             overlay: null,
-            messageElement: null,
 
             init() {
                 this.overlay = document.getElementById('global-loading');
-                this.messageElement = this.overlay?.querySelector('p');
             },
 
-            show(message = 'Processing...') {
+            show() {
                 if (!this.overlay) this.init();
-                if (this.messageElement) {
-                    this.messageElement.textContent = message;
-                }
                 this.overlay.classList.remove('hidden');
             },
 
@@ -103,8 +97,8 @@
             },
 
             // Smooth page transition
-            navigateTo(url, message = 'Loading...') {
-                this.show(message);
+            navigateTo(url) {
+                this.show();
                 setTimeout(() => {
                     window.location.href = url;
                 }, 200); // Quick transition
