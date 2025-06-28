@@ -1,14 +1,21 @@
 @extends('layouts.app')
 
 @section('content')
-    <!-- Enhanced Global Loading Indicator -->
-    <div id="global-loading" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 hidden">
-        <div class="bg-white rounded-lg shadow-2xl p-8 text-center max-w-sm mx-4">
-            <div class="animate-spin rounded-full h-16 w-16 border-4 border-gray-200 border-t-blue-600 mx-auto"></div>
-            <p class="mt-4 text-gray-700 font-medium">Updating stock...</p>
-            <p class="mt-2 text-sm text-gray-500">Please wait</p>
+    <!-- Enhanced Global Loading Indicator with Inline Styles -->
+    <div id="global-loading" style="position: fixed; top: 0; left: 0; right: 0; bottom: 0; background-color: rgba(0, 0, 0, 0.7); display: none; align-items: center; justify-content: center; z-index: 9999;">
+        <div style="background-color: white; border-radius: 12px; box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25); padding: 2rem; text-align: center; max-width: 320px; margin: 1rem;">
+            <div id="loading-spinner" style="width: 64px; height: 64px; border: 4px solid #e5e7eb; border-top: 4px solid #2563eb; border-radius: 50%; animation: spin 1s linear infinite; margin: 0 auto;"></div>
+            <p id="loading-main-text" style="margin-top: 1rem; color: #374151; font-weight: 500; font-size: 16px;">Updating stock...</p>
+            <p id="loading-sub-text" style="margin-top: 0.5rem; color: #6b7280; font-size: 14px;">Please wait</p>
         </div>
     </div>
+
+    <style>
+        @keyframes spin {
+            from { transform: rotate(0deg); }
+            to { transform: rotate(360deg); }
+        }
+    </style>
     <div class="mb-6">
         <h2 class="text-2xl font-bold text-gray-800">Update Stock Quantity</h2>
         <p class="text-gray-500">Adjust the available stock for this product</p>
@@ -89,24 +96,25 @@
 document.addEventListener('DOMContentLoaded', function() {
     const form = document.getElementById('stock-form');
 
-    // Custom loading function for enhanced design
+    // Custom loading function with inline styles for guaranteed visibility
     function showCustomLoading(mainText, subText) {
         const loadingElement = document.getElementById('global-loading');
-        if (loadingElement) {
-            const mainTextElement = loadingElement.querySelector('p:first-of-type');
-            const subTextElement = loadingElement.querySelector('p:last-of-type');
+        const mainTextElement = document.getElementById('loading-main-text');
+        const subTextElement = document.getElementById('loading-sub-text');
 
+        if (loadingElement) {
             if (mainTextElement) mainTextElement.textContent = mainText;
             if (subTextElement) subTextElement.textContent = subText;
 
-            loadingElement.classList.remove('hidden');
+            // Force display with inline styles
+            loadingElement.style.display = 'flex';
         }
     }
 
     function hideCustomLoading() {
         const loadingElement = document.getElementById('global-loading');
         if (loadingElement) {
-            loadingElement.classList.add('hidden');
+            loadingElement.style.display = 'none';
         }
     }
 
