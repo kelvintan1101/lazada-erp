@@ -154,12 +154,16 @@ window.GlobalNotification = {
 
     // Create notification container
     createContainer() {
-        if (this.container) return;
+        // Use existing container from app.blade.php if available
+        this.container = document.getElementById('global-notification-container');
 
-        this.container = document.createElement('div');
-        this.container.id = 'notification-container';
-        this.container.className = 'fixed bottom-4 right-4 z-50 space-y-2';
-        document.body.appendChild(this.container);
+        if (!this.container) {
+            // Fallback: create new container if not found
+            this.container = document.createElement('div');
+            this.container.id = 'global-notification-container';
+            this.container.className = 'fixed bottom-4 right-4 z-50 space-y-2';
+            document.body.appendChild(this.container);
+        }
     },
 
     // Show notification
