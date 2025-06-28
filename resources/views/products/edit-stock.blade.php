@@ -2,67 +2,63 @@
 
 @section('content')
     <div class="mb-6">
-        <h2 class="text-2xl font-bold text-gray-800">Update Stock</h2>
-        <p class="text-gray-500">Update stock quantity for {{ $product->name }}</p>
+        <h2 class="text-2xl font-bold text-gray-800">Update Stock Quantity</h2>
+        <p class="text-gray-500">Adjust the available stock for this product</p>
     </div>
 
     <div class="card">
-        <div class="card-header">
-            <h3 class="text-lg font-semibold text-gray-700">Current Stock: {{ $product->stock_quantity }}</h3>
-        </div>
         <div class="card-body">
             <form id="stock-form" action="{{ route('products.update-stock', $product) }}" method="POST">
                 @csrf
                 @method('PUT')
                 
                 <div class="space-y-6">
-                    <!-- Product Information -->
-                    <div class="bg-gray-50 p-4 rounded-lg">
-                        <h3 class="text-lg font-medium text-gray-900 mb-3">Product Information</h3>
-                        <div class="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm">
-                            <div>
-                                <span class="font-medium text-gray-700">Product Name:</span>
-                                <span class="text-gray-900">{{ $product->name }}</span>
+                    <!-- Product Summary -->
+                    <div class="bg-blue-50 border border-blue-200 p-4 rounded-lg">
+                        <div class="flex items-center">
+                            <div class="flex-shrink-0">
+                                <svg class="w-8 h-8 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4"></path>
+                                </svg>
                             </div>
-                            <div>
-                                <span class="font-medium text-gray-700">SKU:</span>
-                                <span class="text-gray-900">{{ $product->sku }}</span>
-                            </div>
-                            <div>
-                                <span class="font-medium text-gray-700">Lazada Product ID:</span>
-                                <span class="text-gray-900">{{ $product->lazada_product_id }}</span>
-                            </div>
-                            <div>
-                                <span class="font-medium text-gray-700">Current Stock:</span>
-                                <span class="text-gray-900 font-semibold current-stock-value">{{ $product->stock_quantity }}</span>
+                            <div class="ml-4 flex-1">
+                                <h3 class="text-lg font-medium text-blue-900">{{ $product->name }}</h3>
+                                <div class="mt-1 flex items-center space-x-4 text-sm text-blue-700">
+                                    <span>SKU: <strong>{{ $product->sku }}</strong></span>
+                                    <span>Current Stock: <strong class="current-stock-value">{{ $product->stock_quantity }}</strong></span>
+                                </div>
                             </div>
                         </div>
                     </div>
 
-                    <!-- Stock Adjustment -->
+                    <!-- Stock Input -->
                     <div>
-                        <label for="stock_quantity" class="form-label required">New Sellable Quantity</label>
-                        <input type="number" name="stock_quantity" id="stock_quantity" class="form-input" value="{{ old('stock_quantity', $product->stock_quantity) }}" min="0" required>
-                        <p class="mt-1 text-sm text-gray-500">
-                            <strong>Note:</strong> This will adjust the sellable stock quantity on Lazada using the
-                            <code>/product/stock/sellable/adjust</code> API endpoint and update the local database.
-                        </p>
-                        <p class="mt-1 text-sm text-blue-600">
-                            <svg class="inline w-4 h-4 mr-1" fill="currentColor" viewBox="0 0 20 20">
-                                <path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z" clip-rule="evenodd"></path>
-                            </svg>
-                            This uses the same API as the bulk update feature but for individual stock management.
+                        <label for="stock_quantity" class="form-label required">New Stock Quantity</label>
+                        <div class="mt-1 relative">
+                            <input type="number" name="stock_quantity" id="stock_quantity" class="form-input pr-12" value="{{ old('stock_quantity', $product->stock_quantity) }}" min="0" required>
+                            <div class="absolute inset-y-0 right-0 flex items-center pr-3">
+                                <span class="text-gray-500 text-sm">units</span>
+                            </div>
+                        </div>
+                        <p class="mt-2 text-sm text-gray-600">
+                            This will update the available stock quantity on Lazada marketplace.
                         </p>
                     </div>
 
-                    <div class="flex items-center space-x-4">
+                    <!-- Action Buttons -->
+                    <div class="flex items-center justify-between pt-4 border-t border-gray-200">
+                        <a href="{{ route('products.show', $product) }}" class="btn btn-secondary">
+                            <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18"></path>
+                            </svg>
+                            Back to Product
+                        </a>
                         <button id="submit-btn" type="submit" class="btn btn-primary">
                             <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 7v10c0 2.21 1.79 4 4 4h8c0 2.21 1.79 4 4 4h8c0-2.21-1.79-4-4-4V7c0-2.21-1.79-4-4-4H8c-2.21 0-4 1.79-4 4z"></path>
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"></path>
                             </svg>
-                            Adjust Stock on Lazada
+                            Update Stock
                         </button>
-                        <a href="{{ route('products.show', $product) }}" class="btn btn-secondary">Cancel</a>
                     </div>
                 </div>
             </form>
@@ -118,7 +114,7 @@ document.addEventListener('DOMContentLoaded', function() {
         // Show loading state
         submitBtn.disabled = true;
         submitBtn.classList.add('btn-loading');
-        submitBtn.innerHTML = 'Adjusting Stock...';
+        submitBtn.innerHTML = 'Updating Stock...';
 
         // Prepare form data
         const formData = new FormData(form);
@@ -166,7 +162,7 @@ document.addEventListener('DOMContentLoaded', function() {
             submitBtn.classList.remove('btn-loading');
             submitBtn.innerHTML = originalBtnText;
 
-            showNotification('An error occurred while adjusting stock. Please try again.', 'error');
+            showNotification('An error occurred while updating stock. Please try again.', 'error');
         });
     });
 
