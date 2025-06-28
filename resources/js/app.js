@@ -315,15 +315,71 @@ window.GlobalLoading = {
 
         this.overlay = document.createElement('div');
         this.overlay.id = 'global-loading-overlay';
-        this.overlay.className = 'fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 hidden';
+        this.overlay.style.cssText = `
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background-color: rgba(0, 0, 0, 0.7);
+            display: none;
+            align-items: center;
+            justify-content: center;
+            z-index: 9999;
+            backdrop-filter: blur(2px);
+            opacity: 0;
+            transition: opacity 0.3s ease-in-out;
+        `;
+
         this.overlay.innerHTML = `
-            <div class="bg-white rounded-lg p-6 flex items-center space-x-4 shadow-xl">
-                <div class="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
-                <div>
-                    <div class="text-gray-700 font-medium" id="loading-text">Loading...</div>
-                    <div class="text-gray-500 text-sm mt-1" id="loading-subtext">Please wait</div>
-                </div>
+            <div style="
+                background-color: white;
+                border-radius: 16px;
+                box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.4);
+                padding: 2.5rem;
+                text-align: center;
+                max-width: 400px;
+                margin: 1rem;
+                animation: fadeInScale 0.3s ease-out;
+            ">
+                <div style="
+                    width: 64px;
+                    height: 64px;
+                    border: 4px solid #e5e7eb;
+                    border-top: 4px solid #2563eb;
+                    border-radius: 50%;
+                    animation: spin 1s linear infinite;
+                    margin: 0 auto 1.5rem auto;
+                "></div>
+                <div style="
+                    font-size: 18px;
+                    font-weight: 600;
+                    color: #1f2937;
+                    margin-bottom: 0.5rem;
+                " id="loading-text">Loading...</div>
+                <div style="
+                    font-size: 14px;
+                    color: #6b7280;
+                    line-height: 1.4;
+                " id="loading-subtext">Please wait</div>
             </div>
+
+            <style>
+                @keyframes spin {
+                    from { transform: rotate(0deg); }
+                    to { transform: rotate(360deg); }
+                }
+                @keyframes fadeInScale {
+                    from {
+                        opacity: 0;
+                        transform: scale(0.9) translateY(10px);
+                    }
+                    to {
+                        opacity: 1;
+                        transform: scale(1) translateY(0);
+                    }
+                }
+            </style>
         `;
         document.body.appendChild(this.overlay);
     },
@@ -353,14 +409,22 @@ window.GlobalLoading = {
         if (textElement) textElement.textContent = mainText;
         if (subTextElement) subTextElement.textContent = subTextFinal;
 
-        this.overlay.classList.remove('hidden');
+        // Show with fade-in effect
+        this.overlay.style.display = 'flex';
+        setTimeout(() => {
+            this.overlay.style.opacity = '1';
+        }, 10);
     },
 
     // Hide loading
     hide() {
         if (this.overlay) {
-            this.overlay.classList.add('hidden');
-            this.currentType = null;
+            // Fade out effect
+            this.overlay.style.opacity = '0';
+            setTimeout(() => {
+                this.overlay.style.display = 'none';
+                this.currentType = null;
+            }, 300);
         }
     },
 
