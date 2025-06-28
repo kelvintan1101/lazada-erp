@@ -1,10 +1,10 @@
 @extends('layouts.app')
 
 @section('content')
-    <!-- Enhanced Global Loading Indicator with Inline Styles -->
+    <!-- Global Loading Indicator -->
     <div id="global-loading" style="position: fixed; top: 0; left: 0; right: 0; bottom: 0; background-color: rgba(0, 0, 0, 0.7); display: none; align-items: center; justify-content: center; z-index: 9999;">
         <div style="background-color: white; border-radius: 12px; box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25); padding: 2rem; text-align: center; max-width: 320px; margin: 1rem;">
-            <div id="loading-spinner" style="width: 64px; height: 64px; border: 4px solid #e5e7eb; border-top: 4px solid #2563eb; border-radius: 50%; animation: spin 1s linear infinite; margin: 0 auto;"></div>
+            <div style="width: 64px; height: 64px; border: 4px solid #e5e7eb; border-top: 4px solid #2563eb; border-radius: 50%; animation: spin 1s linear infinite; margin: 0 auto;"></div>
             <p id="loading-main-text" style="margin-top: 1rem; color: #374151; font-weight: 500; font-size: 16px;">Updating stock...</p>
             <p id="loading-sub-text" style="margin-top: 0.5rem; color: #6b7280; font-size: 14px;">Please wait</p>
         </div>
@@ -96,8 +96,8 @@
 document.addEventListener('DOMContentLoaded', function() {
     const form = document.getElementById('stock-form');
 
-    // Custom loading function with inline styles for guaranteed visibility
-    function showCustomLoading(mainText, subText) {
+    // Loading functions
+    function showLoading(mainText, subText) {
         const loadingElement = document.getElementById('global-loading');
         const mainTextElement = document.getElementById('loading-main-text');
         const subTextElement = document.getElementById('loading-sub-text');
@@ -105,13 +105,11 @@ document.addEventListener('DOMContentLoaded', function() {
         if (loadingElement) {
             if (mainTextElement) mainTextElement.textContent = mainText;
             if (subTextElement) subTextElement.textContent = subText;
-
-            // Force display with inline styles
             loadingElement.style.display = 'flex';
         }
     }
 
-    function hideCustomLoading() {
+    function hideLoading() {
         const loadingElement = document.getElementById('global-loading');
         if (loadingElement) {
             loadingElement.style.display = 'none';
@@ -121,8 +119,8 @@ document.addEventListener('DOMContentLoaded', function() {
     form.addEventListener('submit', function(e) {
         e.preventDefault();
 
-        // Show enhanced loading animation
-        showCustomLoading('Updating stock...', 'Please wait');
+        // Show loading animation
+        showLoading('Updating stock...', 'Please wait');
 
         // Prepare form data
         const formData = new FormData(form);
@@ -154,7 +152,7 @@ document.addEventListener('DOMContentLoaded', function() {
                 }
 
                 // Update loading message to show success
-                showCustomLoading('Stock updated successfully!', 'Redirecting...');
+                showLoading('Stock updated successfully!', 'Redirecting...');
 
                 // Show success notification briefly
                 showNotification(data.message, 'success');
@@ -165,13 +163,13 @@ document.addEventListener('DOMContentLoaded', function() {
                 }, 1500);
             } else {
                 // Hide loading and show error
-                hideCustomLoading();
+                hideLoading();
                 showNotification(data.message, 'error');
             }
         })
         .catch(error => {
             // Hide loading and show error
-            hideCustomLoading();
+            hideLoading();
             showNotification('An error occurred while updating stock. Please try again.', 'error');
         });
     });
