@@ -19,7 +19,7 @@ class BulkUpdateService
         $this->excelService = $excelService;
     }
 
-    public function createBulkUpdateTask($filePath)
+    public function createBulkUpdateTask($filePath): array
     {
         try {
             \Log::info('Starting to create bulk update task', [
@@ -107,7 +107,7 @@ class BulkUpdateService
         }
     }
 
-    public function executeBulkUpdateTask($taskId)
+    public function executeBulkUpdateTask($taskId): array
     {
         $task = BulkUpdateTask::find($taskId);
         if (!$task) {
@@ -366,7 +366,7 @@ class BulkUpdateService
      * @param int $taskId Task ID
      * @return array Task status
      */
-    public function getTaskStatus($taskId)
+    public function getTaskStatus($taskId): array
     {
         $task = BulkUpdateTask::find($taskId);
         if (!$task) {

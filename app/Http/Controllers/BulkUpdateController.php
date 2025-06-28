@@ -88,159 +88,215 @@ class BulkUpdateController extends Controller
     public function upload(Request $request)
     {
         try {
-            // Basic debug information
-            \Log::info('=== Starting file upload request processing ===');
-            \Log::info('Request basic information', [
-                'method' => $request->method(),
-                'has_file' => $request->hasFile('excel_file'),
-                'files_count' => count($request->allFiles())
-            ]);
-            
-            // Custom file validation, support more CSV MIME types
-            $file = $request->file('excel_file');
-            
-            if (!$file) {
-                \Log::warning('File upload failed: no file');
-                return response()->json([
-                    'success' => false,
-                    'message' => 'Please select a file to upload'
-                ], 422);
+            $this->logUploadStart($request);
+
+            $file = $this->validateUploadedFile($request);
+            if ($file instanceof \Illuminate\Http\JsonResponse) {
+                return $file; // Return validation error response
             }
 
-            \Log::info('File basic information', [
-                'original_name' => $file->getClientOriginalName(),
-                'size' => $file->getSize(),
-                'mime_type' => $file->getMimeType(),
-                'extension' => $file->getClientOriginalExtension()
-            ]);
-
-            // Check file size (10MB)
-            if ($file->getSize() > 10 * 1024 * 1024) {
-                \Log::warning('File size exceeded', ['size' => $file->getSize()]);
-                return response()->json([
-                    'success' => false,
-                    'message' => 'File size cannot exceed 10MB'
-                ], 422);
+            $filePath = $this->saveUploadedFile($file);
+            if ($filePath instanceof \Illuminate\Http\JsonResponse) {
+                return $filePath; // Return file save error response
             }
 
-            // Check file extension
-            $allowedExtensions = ['xlsx', 'xls', 'csv'];
-            $extension = strtolower($file->getClientOriginalExtension());
-            
-            if (!in_array($extension, $allowedExtensions)) {
-                \Log::warning('Unsupported file extension', ['extension' => $extension]);
-                return response()->json([
-                    'success' => false,
-                    'message' => 'Only Excel files (.xlsx, .xls) and CSV files are supported'
-                ], 422);
+            $result = $this->createBulkUpdateTask($filePath);
+            if ($result instanceof \Illuminate\Http\JsonResponse) {
+                return $result; // Return task creation error response
             }
 
-            \Log::info('File validation passed, starting to save file');
-
-            // Ensure bulk_updates directory exists
-            if (!Storage::exists('bulk_updates')) {
-                Storage::makeDirectory('bulk_updates');
-                \Log::info('Created bulk_updates directory');
-            }
-
-            // Save uploaded file
-            $fileName = time() . '_' . $file->getClientOriginalName();
-            $filePath = $file->storeAs('bulk_updates', $fileName, 'local');
-
-            \Log::info('File save result', [
-                'file_path' => $filePath,
-                'storage_exists' => Storage::exists($filePath)
-            ]);
-
-            // Verify if file was saved successfully
-            if (!Storage::exists($filePath)) {
-                \Log::error('File save failed', [
-                    'file_path' => $filePath,
-                    'storage_path' => Storage::path($filePath)
-                ]);
-                return response()->json([
-                    'success' => false,
-                    'message' => 'File save failed'
-                ], 500);
-            }
-
-            // Check if file is readable
-            $fullPath = Storage::path($filePath);
-            if (!is_readable($fullPath)) {
-                \Log::error('File is not readable', [
-                    'file_path' => $filePath,
-                    'full_path' => $fullPath
-                ]);
-                Storage::delete($filePath);
-                return response()->json([
-                    'success' => false,
-                    'message' => 'Unable to read file after saving'
-                ], 500);
-            }
-
-            \Log::info('File saved successfully, starting to create bulk update task');
-
-            // Check if service is properly injected
-            if (!$this->bulkUpdateService) {
-                \Log::error('BulkUpdateService not properly injected');
-                return response()->json([
-                    'success' => false,
-                    'message' => 'Service initialization failed'
-                ], 500);
-            }
-
-            // Create bulk update task
-            $result = $this->bulkUpdateService->createBulkUpdateTask($filePath);
-
-            if (!$result['success']) {
-                // Delete uploaded file
-                Storage::delete($filePath);
-                
-                \Log::warning('Task creation failed, deleting file', [
-                    'file_path' => $filePath,
-                    'error' => $result['message']
-                ]);
-                
-                return response()->json([
-                    'success' => false,
-                    'message' => $result['message']
-                ], 400);
-            }
-
-            // If there are errors but still valid products, show warning
-            $response = [
-                'success' => true,
-                'message' => 'File uploaded successfully, task created',
-                'task_id' => $result['task_id'],
-                'total_items' => $result['total_items'],
-                'valid_products' => $result['valid_products']
-            ];
-
-            if (!empty($result['errors'])) {
-                $response['warnings'] = $result['errors'];
-                $response['message'] .= ', but some products have issues';
-            }
-
-            \Log::info('=== Task created successfully ===', $response);
-
-            return response()->json($response);
+            return $this->buildSuccessResponse($result);
 
         } catch (\Exception $e) {
-            // Record detailed error information
-            \Log::error('=== Bulk update file upload failed ===', [
-                'error' => $e->getMessage(),
-                'trace' => $e->getTraceAsString(),
-                'file_name' => $request->hasFile('excel_file') ? $request->file('excel_file')->getClientOriginalName() : 'unknown',
-                'file_size' => $request->hasFile('excel_file') ? $request->file('excel_file')->getSize() : 0,
-                'line' => $e->getLine(),
-                'file_location' => $e->getFile()
+            return $this->handleUploadException($e, $request);
+        }
+    }
+
+    /**
+     * Log the start of upload process
+     */
+    private function logUploadStart(Request $request): void
+    {
+        \Log::info('=== Starting file upload request processing ===');
+        \Log::info('Request basic information', [
+            'method' => $request->method(),
+            'has_file' => $request->hasFile('excel_file'),
+            'files_count' => count($request->allFiles())
+        ]);
+    }
+
+    /**
+     * Validate the uploaded file
+     */
+    private function validateUploadedFile(Request $request)
+    {
+        $file = $request->file('excel_file');
+
+        if (!$file) {
+            \Log::warning('File upload failed: no file');
+            return response()->json([
+                'success' => false,
+                'message' => 'Please select a file to upload'
+            ], 422);
+        }
+
+        \Log::info('File basic information', [
+            'original_name' => $file->getClientOriginalName(),
+            'size' => $file->getSize(),
+            'mime_type' => $file->getMimeType(),
+            'extension' => $file->getClientOriginalExtension()
+        ]);
+
+        // Check file size (10MB)
+        if ($file->getSize() > 10 * 1024 * 1024) {
+            \Log::warning('File size exceeded', ['size' => $file->getSize()]);
+            return response()->json([
+                'success' => false,
+                'message' => 'File size cannot exceed 10MB'
+            ], 422);
+        }
+
+        // Check file extension
+        $allowedExtensions = ['xlsx', 'xls', 'csv'];
+        $extension = strtolower($file->getClientOriginalExtension());
+
+        if (!in_array($extension, $allowedExtensions)) {
+            \Log::warning('Unsupported file extension', ['extension' => $extension]);
+            return response()->json([
+                'success' => false,
+                'message' => 'Only Excel files (.xlsx, .xls) and CSV files are supported'
+            ], 422);
+        }
+
+        \Log::info('File validation passed, starting to save file');
+        return $file;
+    }
+
+    /**
+     * Save the uploaded file to storage
+     */
+    private function saveUploadedFile($file)
+    {
+        // Ensure bulk_updates directory exists
+        if (!Storage::exists('bulk_updates')) {
+            Storage::makeDirectory('bulk_updates');
+            \Log::info('Created bulk_updates directory');
+        }
+
+        // Save uploaded file
+        $fileName = time() . '_' . $file->getClientOriginalName();
+        $filePath = $file->storeAs('bulk_updates', $fileName, 'local');
+
+        \Log::info('File save result', [
+            'file_path' => $filePath,
+            'storage_exists' => Storage::exists($filePath)
+        ]);
+
+        // Verify if file was saved successfully
+        if (!Storage::exists($filePath)) {
+            \Log::error('File save failed', [
+                'file_path' => $filePath,
+                'storage_path' => Storage::path($filePath)
+            ]);
+            return response()->json([
+                'success' => false,
+                'message' => 'File save failed'
+            ], 500);
+        }
+
+        // Check if file is readable
+        $fullPath = Storage::path($filePath);
+        if (!is_readable($fullPath)) {
+            \Log::error('File is not readable', [
+                'file_path' => $filePath,
+                'full_path' => $fullPath
+            ]);
+            Storage::delete($filePath);
+            return response()->json([
+                'success' => false,
+                'message' => 'Unable to read file after saving'
+            ], 500);
+        }
+
+        \Log::info('File saved successfully, starting to create bulk update task');
+        return $filePath;
+    }
+
+    /**
+     * Create bulk update task
+     */
+    private function createBulkUpdateTask(string $filePath)
+    {
+        // Check if service is properly injected
+        if (!$this->bulkUpdateService) {
+            \Log::error('BulkUpdateService not properly injected');
+            return response()->json([
+                'success' => false,
+                'message' => 'Service initialization failed'
+            ], 500);
+        }
+
+        // Create bulk update task
+        $result = $this->bulkUpdateService->createBulkUpdateTask($filePath);
+
+        if (!$result['success']) {
+            // Delete uploaded file
+            Storage::delete($filePath);
+
+            \Log::warning('Task creation failed, deleting file', [
+                'file_path' => $filePath,
+                'error' => $result['message']
             ]);
 
             return response()->json([
                 'success' => false,
-                'message' => 'File processing failed: ' . $e->getMessage()
-            ], 500);
+                'message' => $result['message']
+            ], 400);
         }
+
+        return $result;
+    }
+
+    /**
+     * Build success response
+     */
+    private function buildSuccessResponse(array $result): \Illuminate\Http\JsonResponse
+    {
+        $response = [
+            'success' => true,
+            'message' => 'File uploaded successfully, task created',
+            'task_id' => $result['task_id'],
+            'total_items' => $result['total_items'],
+            'valid_products' => $result['valid_products']
+        ];
+
+        if (!empty($result['errors'])) {
+            $response['warnings'] = $result['errors'];
+            $response['message'] .= ', but some products have issues';
+        }
+
+        \Log::info('=== Task created successfully ===', $response);
+        return response()->json($response);
+    }
+
+    /**
+     * Handle upload exceptions
+     */
+    private function handleUploadException(\Exception $e, Request $request): \Illuminate\Http\JsonResponse
+    {
+        \Log::error('=== Bulk update file upload failed ===', [
+            'error' => $e->getMessage(),
+            'trace' => $e->getTraceAsString(),
+            'file_name' => $request->hasFile('excel_file') ? $request->file('excel_file')->getClientOriginalName() : 'unknown',
+            'file_size' => $request->hasFile('excel_file') ? $request->file('excel_file')->getSize() : 0,
+            'line' => $e->getLine(),
+            'file_location' => $e->getFile()
+        ]);
+
+        return response()->json([
+            'success' => false,
+            'message' => 'File processing failed: ' . $e->getMessage()
+        ], 500);
     }
 
     /**

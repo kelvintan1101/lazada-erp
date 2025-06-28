@@ -34,7 +34,7 @@ class LazadaApiService
      * @param string|null $state Optional state parameter for tracking
      * @return string The authorization URL
      */
-    public function getAuthorizationUrl($state = null)
+    public function getAuthorizationUrl($state = null): string
     {
         $params = [
             'response_type' => 'code',
@@ -56,7 +56,7 @@ class LazadaApiService
      * @return array The response data
      * @throws \Exception If the request fails
      */
-    public function getAccessToken($code)
+    public function getAccessToken($code): array
     {
         $params = [
             'app_key' => $this->appKey,
@@ -75,7 +75,7 @@ class LazadaApiService
      * @return array The response data
      * @throws \Exception If the request fails
      */
-    public function refreshToken($refreshToken)
+    public function refreshToken($refreshToken): array
     {
         $params = [
             'app_key' => $this->appKey,
@@ -96,7 +96,7 @@ class LazadaApiService
      * @return array The response data
      * @throws \Exception If the request fails
      */
-    public function makeRequest($apiPath, $params, $method = null)
+    public function makeRequest($apiPath, $params, $method = null): array
     {
         // Get the latest token from database for authenticated requests
         $token = null;
@@ -217,7 +217,7 @@ class LazadaApiService
      * @param array $params The request parameters
      * @return string The generated signature
      */
-    private function generateSignature($apiPath, $params)
+    private function generateSignature($apiPath, $params): string
     {
         // Sort parameters by key alphabetically
         ksort($params);
@@ -242,7 +242,7 @@ class LazadaApiService
      * @param array $tokenData The token data from Lazada
      * @return LazadaToken The saved token
      */
-    public function saveToken($tokenData)
+    public function saveToken($tokenData): \App\Models\LazadaToken
     {
         $expiresAt = now()->addSeconds($tokenData['expires_in']);
         
@@ -260,7 +260,7 @@ class LazadaApiService
     }
 
     // Specific API endpoints for Products
-    public function getProducts($offset = 0, $limit = 50)
+    public function getProducts($offset = 0, $limit = 50): array
     {
         return $this->makeRequest('/products/get', [
             'offset' => $offset,
@@ -268,7 +268,7 @@ class LazadaApiService
         ]);
     }
 
-    public function updateProductStock($lazadaProductId, $sellerSku, $quantity)
+    public function updateProductStock($lazadaProductId, $sellerSku, $quantity): array
     {
         return $this->makeRequest('/product/stock/update', [
             'product_id' => $lazadaProductId,
@@ -278,7 +278,7 @@ class LazadaApiService
     }
 
     // Specific API endpoints for Orders
-    public function getOrders($status = null, $startTime = null, $endTime = null, $offset = 0, $limit = 10)
+    public function getOrders($status = null, $startTime = null, $endTime = null, $offset = 0, $limit = 10): array
     {
         // Default to first day of current month if no start time provided
         if (!$startTime) {
@@ -308,14 +308,14 @@ class LazadaApiService
         return $this->makeRequest('/orders/get', $params);
     }
 
-    public function getOrderItems($orderId)
+    public function getOrderItems($orderId): array
     {
         return $this->makeRequest('/order/items/get', [
             'order_id' => $orderId,
         ]);
     }
 
-    public function updateOrderStatus($orderId, $status)
+    public function updateOrderStatus($orderId, $status): array
     {
         // This is a simplified example - different status updates might need different endpoints
         $endpoint = '/order/';
@@ -336,7 +336,7 @@ class LazadaApiService
         ], 'POST');
     }
 
-    public function updateProduct($sellerSku, $updateData)
+    public function updateProduct($sellerSku, $updateData): array
 {
     // Build correct XML payload format based on user-provided API example
     $xmlPayload = '<?xml version="1.0" encoding="UTF-8"?>
@@ -415,7 +415,7 @@ class LazadaApiService
     /**
      * Recursively remove null values from array
      */
-    private function removeNullValues($array)
+    private function removeNullValues($array): array
     {
         foreach ($array as $key => $value) {
             if (is_array($value)) {
@@ -437,7 +437,7 @@ class LazadaApiService
      * @param array $products Product array, each element contains sku and title
      * @return array Update results
      */
-    public function batchUpdateProductTitles($products)
+    public function batchUpdateProductTitles($products): array
     {
         $results = [];
         $successCount = 0;

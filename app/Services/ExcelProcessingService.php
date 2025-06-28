@@ -9,7 +9,7 @@ use Illuminate\Support\Facades\Storage;
 
 class ExcelProcessingService
 {
-    public function parseProductUpdateFile($filePath)
+    public function parseProductUpdateFile($filePath): array
     {
         try {
             \Log::info('Starting to parse file', ['file_path' => $filePath]);
@@ -76,7 +76,7 @@ class ExcelProcessingService
         }
     }
 
-    private function parseCsvFile($fullPath)
+    private function parseCsvFile($fullPath): array
     {
         \Log::info('Starting to parse CSV file', ['path' => $fullPath]);
 
@@ -159,7 +159,7 @@ class ExcelProcessingService
         ];
     }
 
-    private function parseExcelFile($fullPath)
+    private function parseExcelFile($fullPath): array
     {
         \Log::info('Starting to parse Excel file', ['path' => $fullPath]);
 
@@ -239,7 +239,7 @@ class ExcelProcessingService
         ];
     }
 
-    private function findRequiredColumns($headers)
+    private function findRequiredColumns($headers): array
 {
     $columns = [
         'sku' => null,
@@ -275,7 +275,7 @@ class ExcelProcessingService
      * @param string $filePath File path
      * @return array Validation result
      */
-    public function validateExcelFile($filePath)
+    public function validateExcelFile($filePath): array
     {
         try {
             if (!Storage::exists($filePath)) {
@@ -332,7 +332,7 @@ class ExcelProcessingService
         }
     }
 
-    private function validateCsvFile($fullPath)
+    private function validateCsvFile($fullPath): array
     {
         try {
             if (!is_readable($fullPath)) {

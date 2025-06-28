@@ -17,7 +17,7 @@ class OrderService
         $this->lazadaApiService = $lazadaApiService;
     }
 
-    public function syncOrders($status = null, $startTime = null, $endTime = null)
+    public function syncOrders($status = null, $startTime = null, $endTime = null): array
     {
         $offset = 0;
         $limit = 50;
@@ -90,7 +90,7 @@ class OrderService
         }
     }
 
-    private function saveOrder($orderData)
+    private function saveOrder($orderData): bool
     {
         try {
             if (!isset($orderData['order_id'])) {
@@ -173,7 +173,7 @@ class OrderService
         }
     }
 
-    public function updateOrderStatus($orderId, $newStatus)
+    public function updateOrderStatus($orderId, $newStatus): array
     {
         $order = Order::findOrFail($orderId);
         
@@ -208,12 +208,12 @@ class OrderService
         ];
     }
 
-    public function getRecentOrders($limit = 10)
+    public function getRecentOrders($limit = 10): \Illuminate\Database\Eloquent\Collection
     {
         return Order::with('orderItems')->recentOrders($limit)->get();
     }
 
-    public function getOrdersByStatus($status)
+    public function getOrdersByStatus($status): \Illuminate\Database\Eloquent\Collection
     {
         return Order::with('orderItems')->byStatus($status)->get();
     }

@@ -14,7 +14,7 @@ class ProductService
         $this->lazadaApiService = $lazadaApiService;
     }
 
-    public function syncProducts()
+    public function syncProducts(): array
     {
         $offset = 0;
         $limit = 50;
@@ -76,7 +76,7 @@ class ProductService
         }
     }
 
-    private function saveProduct($productData)
+    private function saveProduct($productData): bool
     {
         try {
             if (!isset($productData['item_id'])) {
@@ -119,7 +119,7 @@ class ProductService
         }
     }
 
-    public function updateStock($productId, $newQuantity)
+    public function updateStock($productId, $newQuantity): array
     {
         $product = Product::findOrFail($productId);
         
@@ -155,7 +155,7 @@ class ProductService
         ];
     }
 
-    public function getProductsWithLowStock($limit = 10)
+    public function getProductsWithLowStock($limit = 10): \Illuminate\Database\Eloquent\Collection
     {
         $threshold = \App\Models\Setting::getSetting('low_stock_threshold', 10);
         
