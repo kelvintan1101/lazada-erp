@@ -587,7 +587,6 @@ document.addEventListener('DOMContentLoaded', function() {
     // Expose functions to global scope
     window.downloadReport = downloadReport;
     window.startNewTask = startNewTask;
-    window.showNotification = showNotification;
 });
 </script>
 @endpush
