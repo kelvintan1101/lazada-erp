@@ -103,10 +103,7 @@ document.addEventListener('DOMContentLoaded', function() {
         stockInput.disabled = true;
         loadingState.classList.remove('hidden');
 
-        // Debug: Log what we're sending
-        console.log('Form action:', form.action);
-        console.log('Stock quantity:', formData.get('stock_quantity'));
-        console.log('CSRF token:', formData.get('_token'));
+
 
         // Make AJAX request
         fetch(form.action, {
@@ -119,15 +116,8 @@ document.addEventListener('DOMContentLoaded', function() {
             }
         })
         .then(response => {
-            console.log('Response status:', response.status);
-            console.log('Response headers:', response.headers);
-
             if (!response.ok) {
-                // Try to get the error response body
-                return response.text().then(text => {
-                    console.log('Error response body:', text);
-                    throw new Error(`HTTP error! status: ${response.status}, body: ${text}`);
-                });
+                throw new Error(`HTTP error! status: ${response.status}`);
             }
             return response.json();
         })
@@ -161,8 +151,6 @@ document.addEventListener('DOMContentLoaded', function() {
             }
         })
         .catch(error => {
-            console.error('Error:', error);
-
             // Hide loading and restore form
             loadingState.classList.add('hidden');
             actionButtons.classList.remove('hidden');
