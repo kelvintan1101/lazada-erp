@@ -516,13 +516,27 @@ document.addEventListener('DOMContentLoaded', function() {
 
     // Auto execute task function
     async function executeTaskAutomatically() {
-        const result = await GlobalAPI.post('/bulk-update/execute', { task_id: currentTaskId });
+        try {
+            // Check CSRF token before making request
+            const csrfToken = document.querySelector('meta[name="csrf-token"]');
+            if (!csrfToken) {
+                GlobalNotification.error('Page Error', 'Please refresh the page and try again');
+                return;
+            }
 
-        if (result.success && result.data.success) {
-            startProgressMonitoring();
-        } else {
-            const errorMessage = result.data?.message || result.error || 'Task startup failed, please retry';
-            GlobalNotification.error('Startup Failed', errorMessage);
+            const result = await GlobalAPI.post('/bulk-update/execute', { task_id: currentTaskId });
+
+            if (result.success && result.data.success) {
+                startProgressMonitoring();
+            } else {
+                const errorMessage = result.data?.message || result.error || 'Task startup failed, please retry';
+                GlobalNotification.error('Startup Failed', errorMessage);
+                document.getElementById('progress-section').classList.add('hidden');
+                document.getElementById('upload-section').classList.remove('hidden');
+            }
+        } catch (error) {
+            console.error('Execute task error:', error);
+            GlobalNotification.error('Execution Error', 'Failed to start task. Please refresh the page and try again.');
             document.getElementById('progress-section').classList.add('hidden');
             document.getElementById('upload-section').classList.remove('hidden');
         }

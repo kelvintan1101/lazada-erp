@@ -70,6 +70,10 @@ window.GlobalAPI = {
             clearTimeout(timeoutId);
 
             if (!response.ok) {
+                // Handle specific HTTP errors
+                if (response.status === 419) {
+                    throw new Error('Session expired. Please refresh the page and try again.');
+                }
                 throw new Error(`HTTP error! status: ${response.status}`);
             }
 
