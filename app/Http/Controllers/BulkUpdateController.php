@@ -311,7 +311,7 @@ class BulkUpdateController extends Controller
         ]);
 
         $validator = Validator::make($request->all(), [
-            'task_id' => 'required|integer|exists:bulk_update_tasks,id'
+            'task_id' => 'required|integer'
         ]);
 
         if ($validator->fails()) {
