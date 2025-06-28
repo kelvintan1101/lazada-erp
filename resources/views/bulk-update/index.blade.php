@@ -394,24 +394,21 @@ document.addEventListener('DOMContentLoaded', function() {
     });
 
     // File upload handling
-    uploadBtn.addEventListener('click', function() {
+    uploadBtn.addEventListener('click', async function() {
         if (!fileInput.files[0]) {
             GlobalNotification.error('Please Select File', 'Please select an Excel or CSV file first');
             return;
         }
 
-        const formData = new FormData();
-        formData.append('excel_file', fileInput.files[0]);
-
         // Update button state
         disableUploadButton('Uploading...');
 
         // Show loading
-        GlobalLoading.showUpload('Uploading...', 'Processing Excel file');
+        GlobalLoading.show('upload');
 
         // Prepare form data
         const formData = new FormData();
-        formData.append('file', fileInput.files[0]);
+        formData.append('excel_file', fileInput.files[0]);
 
         // Make API call
         const result = await GlobalAPI.post('/bulk-update/upload', formData);
