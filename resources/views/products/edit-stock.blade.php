@@ -1,6 +1,12 @@
 @extends('layouts.app')
 
 @section('content')
+    <!-- Temporary Global Loading Indicator -->
+    <div id="global-loading" class="fixed top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 z-50 hidden">
+        <div class="bg-white rounded-full shadow-xl p-4 border">
+            <div class="animate-spin rounded-full h-8 w-8 border-4 border-gray-300 border-t-blue-600"></div>
+        </div>
+    </div>
     <div class="mb-6">
         <h2 class="text-2xl font-bold text-gray-800">Update Stock Quantity</h2>
         <p class="text-gray-500">Adjust the available stock for this product</p>
