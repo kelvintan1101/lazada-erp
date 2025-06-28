@@ -362,26 +362,28 @@ window.GlobalLoading = {
                 background-color: white;
                 border-radius: 16px;
                 box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.4);
-                padding: 2.5rem;
+                padding: 24px;
                 text-align: center;
-                max-width: 400px;
+                max-width: 320px;
+                min-width: 280px;
                 margin: 1rem;
                 animation: fadeInScale 0.3s ease-out;
             ">
                 <div style="
-                    width: 64px;
-                    height: 64px;
-                    border: 4px solid #e5e7eb;
-                    border-top: 4px solid #2563eb;
+                    width: 48px;
+                    height: 48px;
+                    border: 3px solid #e5e7eb;
+                    border-top: 3px solid #2563eb;
                     border-radius: 50%;
                     animation: spin 1s linear infinite;
-                    margin: 0 auto 1.5rem auto;
+                    margin: 0 auto 16px auto;
                 "></div>
                 <div style="
-                    font-size: 18px;
+                    font-size: 16px;
                     font-weight: 600;
                     color: #1f2937;
-                    margin-bottom: 0.5rem;
+                    margin-bottom: 4px;
+                    line-height: 1.4;
                 " id="loading-text">Loading...</div>
                 <div style="
                     font-size: 14px;
