@@ -443,10 +443,8 @@ document.addEventListener('DOMContentLoaded', function() {
                 failed_items: 0
             });
 
-            // Auto execute task with a small delay to ensure database transaction is complete
-            setTimeout(() => {
-                executeTaskAutomatically();
-            }, 1000); // 1 second delay
+            // Show manual execute button for testing
+            showManualExecuteButton();
         } else {
             const errorMessage = result.data?.message || result.error || 'Upload failed';
             GlobalNotification.error('Upload Failed', errorMessage);
@@ -615,6 +613,38 @@ document.addEventListener('DOMContentLoaded', function() {
         document.getElementById('progress-section').classList.add('hidden');
         document.getElementById('upload-section').classList.remove('hidden');
         resetFileSelection();
+    }
+
+    // Show manual execute button for testing
+    function showManualExecuteButton() {
+        const progressSection = document.getElementById('progress-section');
+
+        // Add a manual execute button
+        const executeButton = document.createElement('button');
+        executeButton.textContent = 'Manual Execute (Test)';
+        executeButton.className = 'bg-blue-500 text-white px-4 py-2 rounded mt-4';
+        executeButton.onclick = async function() {
+            console.log('Manual execute clicked, task ID:', currentTaskId);
+
+            // First test: Check if task exists
+            try {
+                const statusResult = await GlobalAPI.get(`/bulk-update/status?task_id=${currentTaskId}`);
+                console.log('Status check result:', statusResult);
+
+                if (statusResult.success) {
+                    console.log('Task exists, trying execute...');
+                    await executeTaskAutomatically();
+                } else {
+                    console.error('Task does not exist:', statusResult);
+                    GlobalNotification.error('Task Error', 'Task not found in database');
+                }
+            } catch (error) {
+                console.error('Status check failed:', error);
+                GlobalNotification.error('Status Check Failed', error.message);
+            }
+        };
+
+        progressSection.appendChild(executeButton);
     }
 
 
