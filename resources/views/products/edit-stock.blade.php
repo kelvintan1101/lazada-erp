@@ -73,31 +73,7 @@
         color: rgb(239 68 68);
     }
 
-    .btn-loading {
-        position: relative;
-        color: transparent;
-    }
 
-    .btn-loading::after {
-        content: "";
-        position: absolute;
-        width: 16px;
-        height: 16px;
-        top: 50%;
-        left: 50%;
-        margin-left: -8px;
-        margin-top: -8px;
-        border: 2px solid #ffffff;
-        border-radius: 50%;
-        border-top-color: transparent;
-        animation: spin 1s linear infinite;
-    }
-
-    @keyframes spin {
-        to {
-            transform: rotate(360deg);
-        }
-    }
 </style>
 @endpush
 
