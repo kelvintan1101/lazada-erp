@@ -70,33 +70,22 @@
     </div>
 
     <!-- Global Loading Overlay -->
-    <div id="global-loading" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 hidden">
-        <div class="bg-white rounded-lg p-6 shadow-xl">
-            <div class="flex items-center space-x-4">
-                <div class="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
-                <div>
-                    <p class="text-lg font-medium text-gray-900" id="loading-message">Processing...</p>
-                    <p class="text-sm text-gray-500">Please wait a moment</p>
-                </div>
-            </div>
-        </div>
+    <div id="global-loading" class="fixed inset-0 bg-white bg-opacity-80 flex items-center justify-center z-50 hidden">
+        <div class="animate-spin rounded-full h-12 w-12 border-4 border-gray-200 border-t-blue-600"></div>
     </div>
 
     <!-- Global Loading Script -->
     <script>
-        // Global loading manager
+        // Minimalist loading manager
         window.LoadingManager = {
             overlay: null,
-            messageElement: null,
 
             init() {
                 this.overlay = document.getElementById('global-loading');
-                this.messageElement = document.getElementById('loading-message');
             },
 
-            show(message = 'Processing...') {
+            show() {
                 if (!this.overlay) this.init();
-                this.messageElement.textContent = message;
                 this.overlay.classList.remove('hidden');
                 document.body.style.overflow = 'hidden';
             },
@@ -108,11 +97,11 @@
             },
 
             // Smooth page transition
-            navigateTo(url, message = 'Loading...') {
-                this.show(message);
+            navigateTo(url) {
+                this.show();
                 setTimeout(() => {
                     window.location.href = url;
-                }, 300); // Small delay for smooth transition
+                }, 200); // Quick transition
             }
         };
 
@@ -140,7 +129,7 @@
                 if (link.href.includes('#') || link.onclick) return;
 
                 e.preventDefault();
-                window.LoadingManager.navigateTo(link.href, 'Loading...');
+                window.LoadingManager.navigateTo(link.href);
             }
         });
     </script>
