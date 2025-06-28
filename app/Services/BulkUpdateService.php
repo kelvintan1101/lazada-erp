@@ -348,7 +348,8 @@ class BulkUpdateService
     private function updateLocalProduct($sku, $newTitle)
     {
         try {
-            Product::where('sku', $sku)->update([
+            // Only update active products (soft delete implementation)
+            Product::active()->where('sku', $sku)->update([
                 'name' => $newTitle,
                 'synced_at' => now()
             ]);

@@ -19,9 +19,16 @@ class ProductService
         $offset = 0;
         $limit = 50;
         $totalSynced = 0;
+        $totalMarkedInactive = 0;
         $hasMore = true;
 
         try {
+            // Phase 1: Mark all existing products as inactive before sync starts
+            Log::info("Starting product sync - marking all products as inactive");
+            $markedInactiveCount = Product::where('is_active', true)->update(['is_active' => false]);
+            Log::info("Marked $markedInactiveCount products as inactive for verification");
+
+            // Phase 2: Fetch products from Lazada and mark them as active
             while ($hasMore) {
                 Log::info("Fetching products from Lazada", ['offset' => $offset, 'limit' => $limit]);
                 
@@ -57,10 +64,24 @@ class ProductService
                 $hasMore = $offset < $totalProducts && count($products) > 0;
             }
 
+            // Phase 3: Count products that remain inactive (deleted from Lazada)
+            $totalMarkedInactive = Product::where('is_active', false)->count();
+
+            Log::info("Product sync completed", [
+                'total_synced' => $totalSynced,
+                'total_marked_inactive' => $totalMarkedInactive
+            ]);
+
+            $message = "Successfully synced $totalSynced products";
+            if ($totalMarkedInactive > 0) {
+                $message .= " and marked $totalMarkedInactive products as inactive (deleted from Lazada)";
+            }
+
             return [
                 'success' => true,
-                'message' => "Successfully synced $totalSynced products",
+                'message' => $message,
                 'total_synced' => $totalSynced,
+                'total_marked_inactive' => $totalMarkedInactive,
             ];
         } catch (\Exception $e) {
             Log::error('Exception syncing products', [
@@ -106,6 +127,7 @@ class ProductService
                     'images' => $productData['images'] ?? null,
                     'raw_data_from_lazada' => $productData,
                     'synced_at' => now(),
+                    'is_active' => true, // Mark as active since it exists in Lazada
                 ]
             );
             
@@ -158,10 +180,56 @@ class ProductService
     public function getProductsWithLowStock($limit = 10): \Illuminate\Database\Eloquent\Collection
     {
         $threshold = \App\Models\Setting::getSetting('low_stock_threshold', 10);
-        
-        return Product::where('stock_quantity', '<=', $threshold)
+
+        return Product::active() // Only include active products
+            ->where('stock_quantity', '<=', $threshold)
             ->orderBy('stock_quantity')
             ->limit($limit)
             ->get();
+    }
+
+    /**
+     * Get inactive products (deleted from Lazada)
+     * Useful for admin review and potential restoration
+     */
+    public function getInactiveProducts($limit = 50): \Illuminate\Database\Eloquent\Collection
+    {
+        return Product::inactive()
+            ->orderBy('synced_at', 'desc')
+            ->limit($limit)
+            ->get();
+    }
+
+    /**
+     * Restore an inactive product (mark as active)
+     */
+    public function restoreProduct($productId): array
+    {
+        try {
+            $product = Product::findOrFail($productId);
+            $product->markAsActive();
+
+            Log::info('Product restored', [
+                'product_id' => $productId,
+                'sku' => $product->sku,
+                'name' => $product->name
+            ]);
+
+            return [
+                'success' => true,
+                'message' => 'Product restored successfully',
+                'product' => $product
+            ];
+        } catch (\Exception $e) {
+            Log::error('Failed to restore product', [
+                'product_id' => $productId,
+                'error' => $e->getMessage()
+            ]);
+
+            return [
+                'success' => false,
+                'message' => 'Failed to restore product: ' . $e->getMessage()
+            ];
+        }
     }
 }

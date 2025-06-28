@@ -17,7 +17,8 @@ class ProductController extends Controller
 
     public function index(Request $request)
     {
-        $query = Product::query();
+        // Start with active products only (soft delete implementation)
+        $query = Product::active();
 
         // Handle search
         if ($request->has('search')) {
