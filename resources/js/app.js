@@ -10,6 +10,7 @@ Alpine.start();
 document.addEventListener('DOMContentLoaded', function() {
     window.GlobalNotification.init();
     window.GlobalLoading.init();
+    window.PageNavigationLoader.init();
 });
 
 // Backward compatibility aliases
@@ -605,6 +606,105 @@ window.syncManager = {
                 ${text}
             `;
         }
+    }
+};
+
+// Page Navigation Loader - Shows loading during page transitions
+window.PageNavigationLoader = {
+    // Configuration
+    enabled: true,
+    excludePatterns: [
+        /\/api\//,           // API calls
+        /\.(css|js|png|jpg|jpeg|gif|svg|ico)$/,  // Static assets
+        /#/,                 // Hash links
+        /javascript:/,       // JavaScript links
+        /mailto:/,           // Email links
+        /tel:/              // Phone links
+    ],
+
+    // Initialize navigation loader
+    init() {
+        if (!this.enabled) return;
+
+        this.interceptClicks();
+        this.interceptFormSubmissions();
+        this.handleBrowserNavigation();
+    },
+
+    // Check if URL should show loading
+    shouldShowLoading(url) {
+        if (!url) return false;
+
+        // Don't show loading for same page
+        if (url === window.location.href) return false;
+
+        // Check exclude patterns
+        return !this.excludePatterns.some(pattern => pattern.test(url));
+    },
+
+    // Intercept link clicks
+    interceptClicks() {
+        document.addEventListener('click', (e) => {
+            const link = e.target.closest('a');
+            if (!link) return;
+
+            const href = link.getAttribute('href');
+            if (!href || href.startsWith('#') || link.target === '_blank') return;
+
+            // Check if it's an external link
+            if (href.startsWith('http') && !href.startsWith(window.location.origin)) return;
+
+            if (this.shouldShowLoading(href)) {
+                GlobalLoading.show('redirect');
+            }
+        });
+    },
+
+    // Intercept form submissions that navigate
+    interceptFormSubmissions() {
+        document.addEventListener('submit', (e) => {
+            const form = e.target;
+            if (!form || form.method.toLowerCase() === 'post') return;
+
+            const action = form.action;
+            if (this.shouldShowLoading(action)) {
+                GlobalLoading.show('redirect');
+            }
+        });
+    },
+
+    // Handle browser navigation (back/forward)
+    handleBrowserNavigation() {
+        // Show loading on page unload (when navigating away)
+        window.addEventListener('beforeunload', () => {
+            if (this.enabled) {
+                GlobalLoading.show('redirect');
+            }
+        });
+
+        // Hide loading when page loads
+        window.addEventListener('load', () => {
+            GlobalLoading.hide();
+        });
+
+        // Also hide loading when DOM is ready (faster)
+        if (document.readyState === 'loading') {
+            document.addEventListener('DOMContentLoaded', () => {
+                GlobalLoading.hide();
+            });
+        } else {
+            // Document already loaded
+            GlobalLoading.hide();
+        }
+    },
+
+    // Enable/disable navigation loading
+    enable() {
+        this.enabled = true;
+    },
+
+    disable() {
+        this.enabled = false;
     }
 };
 
