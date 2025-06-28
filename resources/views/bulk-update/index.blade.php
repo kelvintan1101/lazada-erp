@@ -539,7 +539,14 @@ document.addEventListener('DOMContentLoaded', function() {
             const statusCheck = await GlobalAPI.get(`/bulk-update/status?task_id=${currentTaskId}`);
             console.log('Status check result:', statusCheck);
 
-            const result = await GlobalAPI.post('/bulk-update/execute', { task_id: currentTaskId });
+            // Try with explicit JSON content type
+            const result = await GlobalAPI.request('/bulk-update/execute', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({ task_id: parseInt(currentTaskId) })
+            });
 
             if (result.success && result.data.success) {
                 startProgressMonitoring();
