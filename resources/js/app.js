@@ -29,7 +29,8 @@ window.syncManager = {
 
         const notification = document.createElement('div');
         notification.id = notificationId;
-        notification.className = `fixed top-4 right-4 max-w-sm w-full ${typeClasses[type]} border rounded-lg shadow-lg p-4 transform translate-x-full opacity-0 transition-all duration-300 ease-in-out z-50`;
+        notification.className = `max-w-sm w-full ${typeClasses[type]} border rounded-lg shadow-lg p-4 transform translate-x-full opacity-0 transition-all duration-300 ease-in-out mb-4`;
+        notification.style.cssText = 'position: relative !important; z-index: 999999 !important; pointer-events: auto !important;';
         notification.innerHTML = `
             <div class="flex items-start">
                 <div class="flex-shrink-0">
@@ -74,7 +75,17 @@ window.syncManager = {
     createNotificationContainer() {
         const container = document.createElement('div');
         container.id = 'notification-container';
-        container.className = 'fixed top-0 right-0 z-50 p-4 space-y-4';
+        container.style.cssText = `
+            position: fixed !important;
+            bottom: 20px !important;
+            right: 20px !important;
+            z-index: 999999 !important;
+            max-width: 420px !important;
+            pointer-events: none !important;
+            display: flex !important;
+            flex-direction: column-reverse !important;
+            gap: 16px !important;
+        `;
         document.body.appendChild(container);
         return container;
     },
