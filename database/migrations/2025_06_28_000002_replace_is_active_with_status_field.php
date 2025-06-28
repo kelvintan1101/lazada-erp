@@ -24,7 +24,7 @@ return new class extends Migration
         });
 
         // Migrate existing data: convert is_active boolean to status enum
-        DB::statement("UPDATE products SET status = CASE WHEN is_active = 1 THEN 'active' ELSE 'inactive' END");
+        DB::statement("UPDATE products SET status = CASE WHEN is_active = 1 THEN 'active' ELSE 'deleted_from_lazada' END");
 
         Schema::table('products', function (Blueprint $table) {
             // Remove the old boolean field and its index
