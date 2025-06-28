@@ -4,41 +4,7 @@
 
 @section('content')
 <style>
-/* Ensure notification close button is always visible */
-.close-btn {
-    opacity: 1 !important;
-    visibility: visible !important;
-    display: flex !important;
-    z-index: 9999 !important;
-}
-
-/* Notification style optimization */
-.notification-item {
-    transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1) !important;
-}
-
-/* Fade out animation */
-@keyframes fadeOut {
-    0% {
-        opacity: 1;
-        transform: translateX(0) scale(1);
-        filter: blur(0px);
-    }
-    50% {
-        opacity: 0.5;
-        transform: translateX(25px) scale(0.98);
-        filter: blur(0.5px);
-    }
-    100% {
-        opacity: 0;
-        transform: translateX(50px) scale(0.95);
-        filter: blur(1px);
-    }
-}
-
-.notification-item.hide {
-    animation: fadeOut 2s cubic-bezier(0.4, 0, 0.2, 1) forwards;
-}
+/* Custom styles for bulk update page */
 </style>
 <div class="min-h-screen bg-gray-50 py-8">
     <div class="max-w-2xl mx-auto px-4">
@@ -184,10 +150,7 @@
     </div>
 </div>
 
-<!-- Notification system -->
-<div id="notification-container" style="position: fixed; bottom: 20px; right: 20px; z-index: 999999; max-width: 420px; pointer-events: none;">
-    <!-- Notifications will be dynamically created here -->
-</div>
+<!-- Notification system will be handled by app.js -->
 @endsection
 
 @push('styles')
@@ -221,18 +184,7 @@
         opacity: 0;
     }
 }
-/* Notification container style - complete rewrite */
-#notification-container {
-    position: fixed !important;
-    bottom: 20px !important;
-    right: 20px !important;
-    z-index: 999999 !important;
-    max-width: 420px !important;
-    pointer-events: none !important;
-    display: flex !important;
-    flex-direction: column-reverse !important;
-    gap: 16px !important;
-}
+/* Remove custom notification container styles - will use app.js unified system */
 
 /* Notification item style - complete rewrite */
 .notification-item {
@@ -523,133 +475,19 @@ document.addEventListener('DOMContentLoaded', function() {
 
 
 
-    // Completely rewritten notification system
+    // Use unified notification system from app.js
     function showNotification(type, title, message, actions = []) {
-
-        const container = document.getElementById('notification-container');
-        if (!container) {
-            console.error('❌ Notification container not found');
-            alert(`Notification: ${title} - ${message}`); // Fallback solution
-            return;
+        // Check if the unified notification system is available
+        if (typeof window.NotificationSystem !== 'undefined' && window.NotificationSystem.show) {
+            return window.NotificationSystem.show(type, title, message);
         }
 
-        const notificationId = 'notification-' + Date.now() + '-' + Math.random().toString(36).substr(2, 9);
-        const notification = document.createElement('div');
-        notification.id = notificationId;
-        notification.className = 'notification-item';
-
-        // Force set styles
-        notification.style.cssText = `
-            pointer-events: auto !important;
-            background: white !important;
-            border: 2px solid #d1d5db !important;
-            border-radius: 12px !important;
-            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.25) !important;
-            padding: 20px !important;
-            width: 100% !important;
-            max-width: 400px !important;
-            position: relative !important;
-            z-index: 999999 !important;
-            transform: translateX(100%) !important;
-            opacity: 0 !important;
-            transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1) !important;
-            margin-bottom: 16px !important;
-            backdrop-filter: blur(10px) !important;
-            color: #1f2937 !important;
-        `;
-
-        const iconColors = {
-            success: 'text-green-700 bg-green-200',
-            error: 'text-red-700 bg-red-200',
-            info: 'text-blue-700 bg-blue-200'
-        };
-
-        const icons = {
-            success: '<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/>',
-            error: '<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>',
-            info: '<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>'
-        };
-
-        let actionsHtml = '';
-        if (actions.length > 0) {
-            actionsHtml = '<div class="mt-3 flex space-x-2">';
-            actions.forEach((action, index) => {
-                actionsHtml += `<button data-action="${action.action}" class="${action.className}">${action.text}</button>`;
-            });
-            actionsHtml += '</div>';
-        }
-
-        notification.innerHTML = `
-            <div class="notification-content flex items-start" style="color: #1f2937 !important; position: relative;">
-                <div class="w-8 h-8 rounded-full flex items-center justify-center ${iconColors[type]} mr-3 flex-shrink-0" style="margin-top: 2px;">
-                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" style="stroke-width: 2.5;">
-                        ${icons[type]}
-                    </svg>
-                </div>
-                <div class="flex-1 min-w-0">
-                    <h4 style="color: #111827 !important; font-size: 16px !important; font-weight: bold !important; margin-bottom: 4px !important;">${title}</h4>
-                    <p style="color: #374151 !important; font-size: 14px !important; line-height: 1.5 !important;">${message}</p>
-                    ${actionsHtml}
-                </div>
-
-            </div>
-        `;
-
-        // Add to container
-        container.appendChild(notification);
-
-        // Notification will automatically start fading out after 6 seconds
-        setTimeout(() => {
-            hideNotification(notificationId);
-        }, 6000);
-
-
-
-        // Add action button events
-        const actionButtons = notification.querySelectorAll('[data-action]');
-        actionButtons.forEach(btn => {
-            btn.addEventListener('click', (e) => {
-                const action = btn.getAttribute('data-action');
-                if (action === 'download') {
-                    downloadReport(currentTaskId);
-                } else if (action === 'new-task') {
-                    startNewTask();
-                }
-                hideNotification(notificationId);
-            });
-        });
-
-        // Force show animation - execute immediately
-        setTimeout(() => {
-            notification.style.transform = 'translateX(0) !important';
-            notification.style.opacity = '1 !important';
-            notification.style.animation = 'slideInRight 0.4s ease-out forwards !important';
-            notification.classList.add('show');
-        }, 50);
-
-        // Auto disappear (unless there are action buttons)
-        if (actions.length === 0) {
-            setTimeout(() => {
-                hideNotification(notificationId);
-            }, 5000);
-        }
-
-        return notificationId;
+        // Fallback to alert if unified system not available
+        console.warn('Unified notification system not available, using fallback');
+        alert(`${title}: ${message}`);
     }
 
-    function hideNotification(notificationId) {
-        const notification = document.getElementById(notificationId);
-        if (notification) {
-            // Add fade-out CSS class to trigger animation
-            notification.classList.add('hide');
-
-            setTimeout(() => {
-                if (notification.parentNode) {
-                    notification.parentNode.removeChild(notification);
-                }
-            }, 2000); // 2 seconds fade out time, synchronized with CSS animation
-        }
-    }
+    // hideNotification function removed - handled by unified system
 
     // Update circular progress bar
     function updateCircularProgress(percentage) {
@@ -729,87 +567,15 @@ document.addEventListener('DOMContentLoaded', function() {
         showLargeSuccessNotification('✅ Bulk update completed!', message, actions);
     }
 
-    // Large success notification
+    // Use unified notification system for success notifications
     function showLargeSuccessNotification(title, message, actions = []) {
-
-        const container = document.getElementById('notification-container');
-        if (!container) {
-            console.error('Notification container not found');
-            return;
+        // Use the unified notification system for consistency
+        if (typeof window.NotificationSystem !== 'undefined' && window.NotificationSystem.show) {
+            return window.NotificationSystem.show('success', title, message);
         }
 
-        const notificationId = 'large-success-' + Date.now();
-        const notification = document.createElement('div');
-        notification.id = notificationId;
-        notification.className = 'notification-item bg-gradient-to-r from-green-500 to-blue-600 border-0 rounded-xl shadow-2xl p-6 w-96 mb-4 text-white';
-
-        // Ensure initial state
-        notification.style.transform = 'translateX(100%)';
-        notification.style.opacity = '0';
-        notification.style.position = 'relative';
-        notification.style.zIndex = '10001';
-        notification.style.pointerEvents = 'auto';
-
-        let actionsHtml = '';
-        if (actions.length > 0) {
-            actionsHtml = '<div class="mt-4 flex space-x-3 justify-center">';
-            actions.forEach((action) => {
-                actionsHtml += `<button data-action="${action.action}" class="${action.className}">${action.text}</button>`;
-            });
-            actionsHtml += '</div>';
-        }
-
-        notification.innerHTML = `
-            <div class="text-center" style="position: relative;">
-                <div class="w-12 h-12 bg-white bg-opacity-20 rounded-full flex items-center justify-center mx-auto mb-4">
-                    <svg class="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24" style="stroke-width: 3;">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M5 13l4 4L19 7"/>
-                    </svg>
-                </div>
-                <h3 class="text-xl font-bold mb-2">${title}</h3>
-                <p class="text-white text-opacity-90 mb-2">${message}</p>
-                ${actionsHtml}
-
-            </div>
-        `;
-
-        notification.style.position = 'relative';
-
-        // Add to container
-        container.appendChild(notification);
-
-        // Large notification will start fading out after 8 seconds
-        setTimeout(() => {
-            hideNotification(notificationId);
-        }, 8000);
-
-        // Add action button events
-        const actionButtons = notification.querySelectorAll('[data-action]');
-        actionButtons.forEach(btn => {
-            btn.addEventListener('click', (e) => {
-                const action = btn.getAttribute('data-action');
-                if (action === 'download') {
-                    downloadReport(currentTaskId);
-                } else if (action === 'new-task') {
-                    startNewTask();
-                }
-                hideNotification(notificationId);
-            });
-        });
-
-        // Force show animation
-        setTimeout(() => {
-            notification.style.transform = 'translateX(0)';
-            notification.style.opacity = '1';
-            notification.classList.add('show');
-        }, 50);
-
-        // Auto disappear after 10 seconds
-        setTimeout(() => {
-            hideNotification(notificationId);
-        }, 10000);
-
-        return notificationId;
+        // Fallback to regular notification
+        return showNotification('success', title, message, actions);
     }
 
     // Auto execute task function
