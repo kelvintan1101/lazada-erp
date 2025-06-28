@@ -42,23 +42,17 @@ GlobalLoading.hide();
 ### Type-based Loading
 
 ```javascript
-// Form submission
-GlobalLoading.showForm();
-GlobalLoading.showForm('Submitting form...', 'Processing your data');
+// Using predefined types (recommended)
+GlobalLoading.show('form');        // Shows "Submitting..." with "Processing your request"
+GlobalLoading.show('save');        // Shows "Saving..." with "Please wait"
+GlobalLoading.show('sync');        // Shows "Syncing..." with "Updating data"
+GlobalLoading.show('upload');      // Shows "Uploading..." with "Please wait"
+GlobalLoading.show('delete');      // Shows "Deleting..." with "Please wait"
 
-// Data synchronization
-GlobalLoading.showSync();
-GlobalLoading.showSync('Syncing products...', 'Updating from Lazada API');
-
-// File upload
-GlobalLoading.showUpload();
-GlobalLoading.showUpload('Uploading file...', 'Processing Excel data');
-
-// Save operations
-GlobalLoading.showSave();
-
-// Delete operations
-GlobalLoading.showDelete();
+// Custom text with type context
+GlobalLoading.show('Submitting form...', 'Processing your data', 'form');
+GlobalLoading.show('Syncing products...', 'Updating from Lazada API', 'sync');
+GlobalLoading.show('Uploading file...', 'Processing Excel data', 'upload');
 ```
 
 ## Advanced Usage
@@ -148,17 +142,18 @@ GlobalLoading.setConfig({
 ```javascript
 document.getElementById('myForm').addEventListener('submit', async function(e) {
     e.preventDefault();
-    
+
     try {
-        GlobalLoading.showForm('Submitting form...', 'Processing your data');
-        
+        // Use predefined form type
+        GlobalLoading.show('form');
+
         const response = await fetch('/submit', {
             method: 'POST',
             body: new FormData(this)
         });
-        
+
         const result = await response.json();
-        
+
         if (result.success) {
             GlobalLoading.updateText('Success!', 'Redirecting...');
             setTimeout(() => {
@@ -202,30 +197,31 @@ async function syncProducts() {
 
 ```javascript
 async function uploadFile(file) {
-    GlobalLoading.showUpload('Uploading file...', 'Preparing upload');
-    
+    // Use predefined upload type
+    GlobalLoading.show('upload');
+
     try {
         const formData = new FormData();
         formData.append('file', file);
-        
+
         GlobalLoading.updateText('Uploading...', 'Transferring file');
-        
+
         const response = await fetch('/upload', {
             method: 'POST',
             body: formData
         });
-        
+
         GlobalLoading.updateText('Processing...', 'Analyzing file content');
-        
+
         const result = await response.json();
-        
+
         GlobalLoading.updateText('Complete!', 'File processed successfully');
-        
+
         setTimeout(() => {
             GlobalLoading.hide();
             // Handle success
         }, 1000);
-        
+
     } catch (error) {
         GlobalLoading.hide();
         // Handle error

@@ -291,6 +291,18 @@ window.GlobalNotification = {
 window.GlobalLoading = {
     // Elements
     overlay: null,
+    currentType: null,
+
+    // Default messages for different operation types
+    defaultMessages: {
+        default: { main: 'Loading...', sub: 'Please wait' },
+        save: { main: 'Saving...', sub: 'Please wait' },
+        form: { main: 'Submitting...', sub: 'Processing your request' },
+        sync: { main: 'Syncing...', sub: 'Updating data' },
+        upload: { main: 'Uploading...', sub: 'Please wait' },
+        delete: { main: 'Deleting...', sub: 'Please wait' },
+        redirect: { main: 'Loading page...', sub: 'Please wait' }
+    },
 
     // Initialize loading system
     init() {
@@ -307,19 +319,40 @@ window.GlobalLoading = {
         this.overlay.innerHTML = `
             <div class="bg-white rounded-lg p-6 flex items-center space-x-4 shadow-xl">
                 <div class="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
-                <span class="text-gray-700 font-medium" id="loading-text">Loading...</span>
+                <div>
+                    <div class="text-gray-700 font-medium" id="loading-text">Loading...</div>
+                    <div class="text-gray-500 text-sm mt-1" id="loading-subtext">Please wait</div>
+                </div>
             </div>
         `;
         document.body.appendChild(this.overlay);
     },
 
-    // Show loading
-    show(text = 'Loading...') {
+    // Generic show method with type support
+    show(textOrType = 'default', subText = null, type = null) {
         this.createOverlay();
-        const textElement = this.overlay.querySelector('#loading-text');
-        if (textElement) {
-            textElement.textContent = text;
+
+        let mainText, subTextFinal;
+
+        // If first parameter is a known type, use default messages
+        if (typeof textOrType === 'string' && this.defaultMessages[textOrType] && !subText && !type) {
+            const messages = this.defaultMessages[textOrType];
+            mainText = messages.main;
+            subTextFinal = messages.sub;
+            this.currentType = textOrType;
+        } else {
+            // Custom text provided
+            mainText = textOrType;
+            subTextFinal = subText || 'Please wait';
+            this.currentType = type || 'custom';
         }
+
+        const textElement = this.overlay.querySelector('#loading-text');
+        const subTextElement = this.overlay.querySelector('#loading-subtext');
+
+        if (textElement) textElement.textContent = mainText;
+        if (subTextElement) subTextElement.textContent = subTextFinal;
+
         this.overlay.classList.remove('hidden');
     },
 
@@ -327,12 +360,36 @@ window.GlobalLoading = {
     hide() {
         if (this.overlay) {
             this.overlay.classList.add('hidden');
+            this.currentType = null;
         }
     },
 
     // Check if loading is visible
     isVisible() {
         return this.overlay && !this.overlay.classList.contains('hidden');
+    },
+
+    // Update loading text
+    updateText(text, subText = null) {
+        const textElement = this.overlay?.querySelector('#loading-text');
+        const subTextElement = this.overlay?.querySelector('#loading-subtext');
+
+        if (textElement) textElement.textContent = text;
+        if (subText && subTextElement) subTextElement.textContent = subText;
+    },
+
+    // Navigate to URL with loading
+    navigateTo(url, text = null, subText = null) {
+        const messages = text ? { main: text, sub: subText || 'Please wait' } : this.defaultMessages.redirect;
+        this.show(messages.main, messages.sub, 'redirect');
+        setTimeout(() => {
+            window.location.href = url;
+        }, 100);
+    },
+
+    // Get current loading type
+    getCurrentType() {
+        return this.currentType;
     }
 };
 

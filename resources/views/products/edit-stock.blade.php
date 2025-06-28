@@ -86,8 +86,8 @@ document.addEventListener('DOMContentLoaded', function() {
     form.addEventListener('submit', async function(e) {
         e.preventDefault();
 
-        // Show loading
-        GlobalLoading.showSave('Updating stock...', 'Please wait');
+        // Show loading with save type
+        GlobalLoading.show('save');
 
         // Prepare form data
         const formData = new FormData(form);
