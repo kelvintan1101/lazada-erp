@@ -102,9 +102,28 @@ class ProductController extends Controller
             'stock_quantity' => 'required|integer|min:0',
         ]);
 
+        $oldQuantity = $product->stock_quantity;
+        $newQuantity = $request->stock_quantity;
+
+        // Handle AJAX requests for better UX
+        if ($request->ajax()) {
+            $result = $this->productService->updateStock(
+                $product->id,
+                $newQuantity
+            );
+
+            return response()->json([
+                'success' => $result['success'],
+                'message' => $result['message'],
+                'old_quantity' => $oldQuantity,
+                'new_quantity' => $newQuantity,
+                'product' => $result['product'] ?? null
+            ]);
+        }
+
         $result = $this->productService->updateStock(
             $product->id,
-            $request->stock_quantity
+            $newQuantity
         );
 
         if ($result['success']) {

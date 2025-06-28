@@ -146,23 +146,26 @@ class ProductService
     public function updateStock($productId, $newQuantity): array
     {
         $product = Product::findOrFail($productId);
-        
-        $response = $this->lazadaApiService->updateProductStock(
+
+        // Use the new sellable stock adjustment API
+        $response = $this->lazadaApiService->adjustSellableStock(
             $product->lazada_product_id,
             $product->sku,
             $newQuantity
         );
 
         if (!$response || isset($response['code']) && $response['code'] !== '0') {
-            Log::error('Failed to update stock on Lazada', [
+            Log::error('Failed to adjust sellable stock on Lazada', [
                 'product_id' => $productId,
+                'lazada_product_id' => $product->lazada_product_id,
+                'seller_sku' => $product->sku,
                 'new_quantity' => $newQuantity,
                 'response' => $response
             ]);
-            
+
             return [
                 'success' => false,
-                'message' => 'Failed to update stock on Lazada: ' . ($response['message'] ?? 'Unknown error'),
+                'message' => 'Failed to adjust stock on Lazada: ' . ($response['message'] ?? 'Unknown error'),
             ];
         }
 
@@ -172,9 +175,17 @@ class ProductService
             'synced_at' => now(),
         ]);
 
+        Log::info('Stock adjusted successfully', [
+            'product_id' => $productId,
+            'lazada_product_id' => $product->lazada_product_id,
+            'seller_sku' => $product->sku,
+            'old_quantity' => $product->stock_quantity,
+            'new_quantity' => $newQuantity
+        ]);
+
         return [
             'success' => true,
-            'message' => 'Stock updated successfully',
+            'message' => 'Stock adjusted successfully on Lazada and updated locally',
             'product' => $product,
         ];
     }

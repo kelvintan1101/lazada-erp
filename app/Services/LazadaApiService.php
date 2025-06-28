@@ -277,6 +277,84 @@ class LazadaApiService
         ], 'POST');
     }
 
+    /**
+     * Adjust sellable stock quantity using Lazada API
+     * Uses the /product/stock/sellable/adjust endpoint
+     */
+    public function adjustSellableStock($lazadaProductId, $sellerSku, $sellableQuantity): array
+    {
+        // Build XML payload similar to bulk update format
+        $xmlPayload = '<?xml version="1.0" encoding="UTF-8"?>
+<Request>
+    <Product>
+        <Skus>
+            <Sku>
+                <ItemId>' . htmlspecialchars($lazadaProductId, ENT_XML1, 'UTF-8') . '</ItemId>
+                <SellerSku>' . htmlspecialchars($sellerSku, ENT_XML1, 'UTF-8') . '</SellerSku>
+                <SellableQuantity>' . htmlspecialchars($sellableQuantity, ENT_XML1, 'UTF-8') . '</SellableQuantity>
+            </Sku>
+        </Skus>
+    </Product>
+</Request>';
+
+        // Get parameters from settings
+        $appKey = env('LAZADA_APP_KEY', Setting::getSetting('lazada_app_key', ''));
+        $token = LazadaToken::latest()->first();
+
+        if (!$token) {
+            throw new \Exception('No Lazada token available. Please authorize with Lazada first.');
+        }
+
+        $timestamp = round(microtime(true) * 1000);
+
+        $params = [
+            'app_key' => $appKey,
+            'access_token' => $token->access_token,
+            'sign_method' => 'sha256',
+            'timestamp' => $timestamp,
+            'payload' => $xmlPayload
+        ];
+
+        try {
+            // Use Malaysia domain
+            $apiDomain = 'https://api.lazada.com.my/rest';
+            $apiPath = '/product/stock/sellable/adjust';
+
+            // Generate signature
+            $sign = $this->generateSignature($apiPath, $params);
+            $params['sign'] = $sign;
+
+            $response = $this->client->request('POST', $apiDomain . $apiPath, [
+                'form_params' => $params,
+                'headers' => [
+                    'Content-Type' => 'application/x-www-form-urlencoded'
+                ]
+            ]);
+
+            $responseBody = $response->getBody()->getContents();
+            $data = json_decode($responseBody, true);
+
+            Log::info('Adjust sellable stock - Lazada API response', [
+                'lazada_product_id' => $lazadaProductId,
+                'seller_sku' => $sellerSku,
+                'sellable_quantity' => $sellableQuantity,
+                'status_code' => $response->getStatusCode(),
+                'response' => $data
+            ]);
+
+            return $data ?? [];
+        } catch (\Exception $e) {
+            Log::error('Adjust sellable stock - API call failed', [
+                'lazada_product_id' => $lazadaProductId,
+                'seller_sku' => $sellerSku,
+                'sellable_quantity' => $sellableQuantity,
+                'error' => $e->getMessage()
+            ]);
+
+            throw $e;
+        }
+    }
+
     // Specific API endpoints for Orders
     public function getOrders($status = null, $startTime = null, $endTime = null, $offset = 0, $limit = 10): array
     {
