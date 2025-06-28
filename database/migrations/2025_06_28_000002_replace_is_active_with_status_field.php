@@ -12,25 +12,31 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::table('products', function (Blueprint $table) {
-            // Add the new status field (simplified to 2 statuses)
-            $table->enum('status', [
-                'active',             // Product exists on Lazada (returned by API)
-                'deleted_from_lazada' // Product removed from Lazada (not returned by API)
-            ])->default('active')->after('is_active');
-            
-            // Add index for performance
-            $table->index('status');
-        });
+        // Check if status column already exists
+        if (!Schema::hasColumn('products', 'status')) {
+            Schema::table('products', function (Blueprint $table) {
+                // Add the new status field (simplified to 2 statuses)
+                $table->enum('status', [
+                    'active',             // Product exists on Lazada (returned by API)
+                    'deleted_from_lazada' // Product removed from Lazada (not returned by API)
+                ])->default('active')->after('is_active');
+
+                // Add index for performance
+                $table->index('status');
+            });
+        }
 
         // Migrate existing data: convert is_active boolean to status enum
         DB::statement("UPDATE products SET status = CASE WHEN is_active = 1 THEN 'active' ELSE 'deleted_from_lazada' END");
 
-        Schema::table('products', function (Blueprint $table) {
-            // Remove the old boolean field and its index
-            $table->dropIndex(['is_active']);
-            $table->dropColumn('is_active');
-        });
+        // Check if is_active column still exists before dropping
+        if (Schema::hasColumn('products', 'is_active')) {
+            Schema::table('products', function (Blueprint $table) {
+                // Remove the old boolean field and its index
+                $table->dropIndex(['is_active']);
+                $table->dropColumn('is_active');
+            });
+        }
     }
 
     /**
