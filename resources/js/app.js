@@ -221,6 +221,6 @@ window.syncManager = {
 // Expose notification system globally for use in other pages
 window.NotificationSystem = {
     show: function(type, title, message) {
-        return LazadaERP.showNotification(type, title, message);
+        return window.syncManager.showNotification(type, title, message);
     }
 };

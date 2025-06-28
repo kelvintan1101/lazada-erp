@@ -475,19 +475,17 @@ document.addEventListener('DOMContentLoaded', function() {
 
 
 
-    // Use unified notification system from app.js
-    function showNotification(type, title, message, actions = []) {
-        // Check if the unified notification system is available
-        if (typeof window.NotificationSystem !== 'undefined' && window.NotificationSystem.show) {
-            return window.NotificationSystem.show(type, title, message);
+    // Use syncManager notification system directly (same as products/orders pages)
+    function showNotification(type, title, message) {
+        // Use syncManager directly like products and orders pages do
+        if (window.syncManager && window.syncManager.showNotification) {
+            return window.syncManager.showNotification(type, title, message);
         }
 
-        // Fallback to alert if unified system not available
-        console.warn('Unified notification system not available, using fallback');
+        // Fallback if syncManager not available
+        console.warn('syncManager not available, using alert fallback');
         alert(`${title}: ${message}`);
     }
-
-    // hideNotification function removed - handled by unified system
 
     // Update circular progress bar
     function updateCircularProgress(percentage) {
@@ -540,42 +538,16 @@ document.addEventListener('DOMContentLoaded', function() {
         statusDetail.textContent = detail;
     }
 
-    // Compatible with old function names
-    function createNotification(type, title, message, actions = []) {
-        return showNotification(type, title, message, actions);
-    }
-
-    // Show success notification
+    // Show success notification (simplified like products/orders pages)
     function showSuccessNotification(task) {
+        const message = `Successfully processed ${task.successful_items} products${task.failed_items > 0 ? `, failed ${task.failed_items} items` : ''}`;
 
-        const message = `🎉 Successfully processed ${task.successful_items} products${task.failed_items > 0 ? `, failed ${task.failed_items} items` : ''}`;
-
-        const actions = [
-            {
-                text: '📥 Download Report',
-                className: 'bg-blue-600 hover:bg-blue-700 text-white text-sm py-2 px-4 rounded-lg font-medium transition-colors shadow-md',
-                action: 'download'
-            },
-            {
-                text: '🔄 New Task',
-                className: 'bg-green-600 hover:bg-green-700 text-white text-sm py-2 px-4 rounded-lg font-medium transition-colors shadow-md',
-                action: 'new-task'
-            }
-        ];
-
-        // Show large success notification
-        showLargeSuccessNotification('✅ Bulk update completed!', message, actions);
-    }
-
-    // Use unified notification system for success notifications
-    function showLargeSuccessNotification(title, message, actions = []) {
-        // Use the unified notification system for consistency
-        if (typeof window.NotificationSystem !== 'undefined' && window.NotificationSystem.show) {
-            return window.NotificationSystem.show('success', title, message);
+        // Use syncManager directly like products and orders pages
+        if (window.syncManager && window.syncManager.showNotification) {
+            window.syncManager.showNotification('success', 'Bulk Update Completed', message);
+        } else {
+            showNotification('success', 'Bulk Update Completed', message);
         }
-
-        // Fallback to regular notification
-        return showNotification('success', title, message, actions);
     }
 
     // Auto execute task function
@@ -670,7 +642,6 @@ document.addEventListener('DOMContentLoaded', function() {
     window.downloadReport = downloadReport;
     window.startNewTask = startNewTask;
     window.showNotification = showNotification;
-    window.hideNotification = hideNotification;
 });
 </script>
 @endpush
