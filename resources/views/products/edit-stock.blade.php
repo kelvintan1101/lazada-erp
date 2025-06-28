@@ -10,7 +10,6 @@
         <div class="card-body">
             <form id="stock-form" action="{{ route('products.update-stock', $product) }}" method="POST">
                 @csrf
-                @method('PUT')
                 
                 <div class="space-y-6">
                     <!-- Product Summary -->
@@ -104,8 +103,10 @@ document.addEventListener('DOMContentLoaded', function() {
         // Prepare form data
         const formData = new FormData(form);
 
-        // Add the _method field for Laravel's method spoofing
-        formData.append('_method', 'PUT');
+        // Debug: Log what we're sending
+        console.log('Form action:', form.action);
+        console.log('Stock quantity:', formData.get('stock_quantity'));
+        console.log('CSRF token:', formData.get('_token'));
 
         // Make AJAX request
         fetch(form.action, {
@@ -118,8 +119,15 @@ document.addEventListener('DOMContentLoaded', function() {
             }
         })
         .then(response => {
+            console.log('Response status:', response.status);
+            console.log('Response headers:', response.headers);
+
             if (!response.ok) {
-                throw new Error(`HTTP error! status: ${response.status}`);
+                // Try to get the error response body
+                return response.text().then(text => {
+                    console.log('Error response body:', text);
+                    throw new Error(`HTTP error! status: ${response.status}, body: ${text}`);
+                });
             }
             return response.json();
         })

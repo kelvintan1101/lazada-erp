@@ -40,7 +40,7 @@ Route::middleware(['auth'])->group(function () {
     Route::middleware(['lazada.token'])->group(function () {
         Route::get('/products/sync', [ProductController::class, 'sync'])->name('products.sync');
         Route::get('/products/{product}/edit-stock', [ProductController::class, 'editStock'])->name('products.edit-stock');
-        Route::put('/products/{product}/update-stock', [ProductController::class, 'updateStock'])->name('products.update-stock');
+        Route::post('/products/{product}/update-stock', [ProductController::class, 'updateStock'])->name('products.update-stock');
         
         // Stock Adjustments
         Route::get('/products/{product}/adjustments', [StockAdjustmentController::class, 'index'])->name('stock-adjustments.index');
