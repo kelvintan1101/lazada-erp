@@ -2,7 +2,7 @@
 
 @section('content')
     <!-- Temporary Global Loading Indicator -->
-    <div id="global-loading" class="fixed top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 z-50 hidden">
+    <div id="global-loading" class="fixed inset-0 flex items-center justify-center z-50 hidden">
         <div class="bg-white rounded-full shadow-xl p-4 border">
             <div class="animate-spin rounded-full h-8 w-8 border-4 border-gray-300 border-t-blue-600"></div>
         </div>
