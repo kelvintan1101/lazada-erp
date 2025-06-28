@@ -68,7 +68,65 @@
             </div>
         </footer>
     </div>
-    
+
+    <!-- Global Loading Overlay -->
+    <div id="global-loading" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 hidden">
+        <div class="bg-white rounded-lg p-6 shadow-xl">
+            <div class="flex items-center space-x-4">
+                <div class="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
+                <div>
+                    <p class="text-lg font-medium text-gray-900" id="loading-message">Processing...</p>
+                    <p class="text-sm text-gray-500">Please wait a moment</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Global Loading Script -->
+    <script>
+        // Global loading manager
+        window.LoadingManager = {
+            overlay: null,
+            messageElement: null,
+
+            init() {
+                this.overlay = document.getElementById('global-loading');
+                this.messageElement = document.getElementById('loading-message');
+            },
+
+            show(message = 'Processing...') {
+                if (!this.overlay) this.init();
+                this.messageElement.textContent = message;
+                this.overlay.classList.remove('hidden');
+                document.body.style.overflow = 'hidden';
+            },
+
+            hide() {
+                if (!this.overlay) this.init();
+                this.overlay.classList.add('hidden');
+                document.body.style.overflow = '';
+            },
+
+            // Smooth page transition
+            navigateTo(url, message = 'Loading...') {
+                this.show(message);
+                setTimeout(() => {
+                    window.location.href = url;
+                }, 300); // Small delay for smooth transition
+            }
+        };
+
+        // Initialize on page load
+        document.addEventListener('DOMContentLoaded', function() {
+            window.LoadingManager.init();
+        });
+
+        // Auto-hide loading on page load
+        window.addEventListener('load', function() {
+            window.LoadingManager.hide();
+        });
+    </script>
+
     <!-- Additional Scripts -->
     @stack('scripts')
 </body>

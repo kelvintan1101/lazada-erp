@@ -111,10 +111,8 @@ document.addEventListener('DOMContentLoaded', function() {
     form.addEventListener('submit', function(e) {
         e.preventDefault();
 
-        // Show loading state
-        submitBtn.disabled = true;
-        submitBtn.classList.add('btn-loading');
-        submitBtn.innerHTML = 'Updating Stock...';
+        // Show global loading
+        window.LoadingManager.show('Updating stock quantity...');
 
         // Prepare form data
         const formData = new FormData(form);
@@ -130,14 +128,9 @@ document.addEventListener('DOMContentLoaded', function() {
         })
         .then(response => response.json())
         .then(data => {
-            // Reset button state
-            submitBtn.disabled = false;
-            submitBtn.classList.remove('btn-loading');
-            submitBtn.innerHTML = originalBtnText;
-
             if (data.success) {
-                // Show success notification
-                showNotification(data.message, 'success');
+                // Update loading message
+                window.LoadingManager.show('Stock updated successfully! Redirecting...');
 
                 // Update current stock display
                 const currentStockElement = document.querySelector('.current-stock-value');
@@ -145,23 +138,24 @@ document.addEventListener('DOMContentLoaded', function() {
                     currentStockElement.textContent = data.new_quantity;
                 }
 
-                // Redirect after short delay
+                // Show success notification briefly
+                showNotification(data.message, 'success');
+
+                // Smooth redirect with loading
                 setTimeout(() => {
-                    window.location.href = '{{ route("products.show", $product) }}';
-                }, 2000);
+                    window.LoadingManager.navigateTo('{{ route("products.show", $product) }}', 'Loading product details...');
+                }, 1500);
             } else {
-                // Show error notification
+                // Hide loading and show error
+                window.LoadingManager.hide();
                 showNotification(data.message, 'error');
             }
         })
         .catch(error => {
             console.error('Error:', error);
 
-            // Reset button state
-            submitBtn.disabled = false;
-            submitBtn.classList.remove('btn-loading');
-            submitBtn.innerHTML = originalBtnText;
-
+            // Hide loading and show error
+            window.LoadingManager.hide();
             showNotification('An error occurred while updating stock. Please try again.', 'error');
         });
     });
