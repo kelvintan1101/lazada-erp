@@ -443,8 +443,10 @@ document.addEventListener('DOMContentLoaded', function() {
                 failed_items: 0
             });
 
-            // Auto execute task
-            executeTaskAutomatically();
+            // Auto execute task with a small delay to ensure database transaction is complete
+            setTimeout(() => {
+                executeTaskAutomatically();
+            }, 1000); // 1 second delay
         } else {
             const errorMessage = result.data?.message || result.error || 'Upload failed';
             GlobalNotification.error('Upload Failed', errorMessage);
@@ -531,6 +533,11 @@ document.addEventListener('DOMContentLoaded', function() {
             // Debug: Log the task ID being sent
             console.log('Executing task with ID:', currentTaskId);
             console.log('Task ID type:', typeof currentTaskId);
+
+            // First, let's check if the task exists by checking its status
+            console.log('Checking task status first...');
+            const statusCheck = await GlobalAPI.get(`/bulk-update/status?task_id=${currentTaskId}`);
+            console.log('Status check result:', statusCheck);
 
             const result = await GlobalAPI.post('/bulk-update/execute', { task_id: currentTaskId });
 
