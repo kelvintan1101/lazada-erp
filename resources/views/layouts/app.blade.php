@@ -125,6 +125,24 @@
         window.addEventListener('load', function() {
             window.LoadingManager.hide();
         });
+
+        // Add smooth loading to all internal links (optional)
+        document.addEventListener('click', function(e) {
+            const link = e.target.closest('a');
+            if (link &&
+                link.href &&
+                link.href.startsWith(window.location.origin) &&
+                !link.hasAttribute('download') &&
+                !link.classList.contains('no-loading') &&
+                link.getAttribute('target') !== '_blank') {
+
+                // Skip if it's a hash link or has onclick handler
+                if (link.href.includes('#') || link.onclick) return;
+
+                e.preventDefault();
+                window.LoadingManager.navigateTo(link.href, 'Loading...');
+            }
+        });
     </script>
 
     <!-- Additional Scripts -->
