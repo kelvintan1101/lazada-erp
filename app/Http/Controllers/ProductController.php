@@ -53,12 +53,22 @@ class ProductController extends Controller
     public function sync()
     {
         $result = $this->productService->syncProducts();
-        
+
+        // Handle AJAX requests
+        if (request()->ajax()) {
+            return response()->json([
+                'success' => $result['success'],
+                'message' => $result['message'],
+                'total_synced' => $result['total_synced'] ?? 0
+            ]);
+        }
+
+        // Handle regular requests (fallback)
         if ($result['success']) {
             return redirect()->route('products.index')
                 ->with('success', $result['message']);
         }
-        
+
         return redirect()->route('products.index')
             ->with('error', $result['message']);
     }

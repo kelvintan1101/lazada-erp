@@ -64,14 +64,24 @@ class OrderController extends Controller
         $status = $request->status;
         $startTime = $request->has('start_date') ? \Carbon\Carbon::parse($request->start_date) : null;
         $endTime = $request->has('end_date') ? \Carbon\Carbon::parse($request->end_date) : null;
-        
+
         $result = $this->orderService->syncOrders($status, $startTime, $endTime);
-        
+
+        // Handle AJAX requests
+        if ($request->ajax()) {
+            return response()->json([
+                'success' => $result['success'],
+                'message' => $result['message'],
+                'total_synced' => $result['total_synced'] ?? 0
+            ]);
+        }
+
+        // Handle regular requests (fallback)
         if ($result['success']) {
             return redirect()->route('orders.index')
                 ->with('success', $result['message']);
         }
-        
+
         return redirect()->route('orders.index')
             ->with('error', $result['message']);
     }
