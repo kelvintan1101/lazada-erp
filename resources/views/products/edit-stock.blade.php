@@ -95,13 +95,13 @@ document.addEventListener('DOMContentLoaded', function() {
         const actionButtons = document.getElementById('action-buttons');
         const stockInput = document.getElementById('stock_quantity');
 
-        // Hide form elements and show loading
+        // Prepare form data BEFORE disabling inputs
+        const formData = new FormData(form);
+
+        // Now hide form elements and show loading
         actionButtons.classList.add('hidden');
         stockInput.disabled = true;
         loadingState.classList.remove('hidden');
-
-        // Prepare form data
-        const formData = new FormData(form);
 
         // Debug: Log what we're sending
         console.log('Form action:', form.action);
