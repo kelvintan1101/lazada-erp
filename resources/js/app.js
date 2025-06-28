@@ -44,6 +44,35 @@ window.GlobalAPI = {
         return headers;
     },
 
+    // Refresh CSRF token
+    async refreshCSRFToken() {
+        try {
+            const response = await fetch('/csrf-token', {
+                method: 'GET',
+                headers: {
+                    'X-Requested-With': 'XMLHttpRequest',
+                    'Accept': 'application/json'
+                }
+            });
+
+            if (response.ok) {
+                const data = await response.json();
+                if (data.csrf_token) {
+                    // Update the meta tag
+                    const metaTag = document.querySelector('meta[name="csrf-token"]');
+                    if (metaTag) {
+                        metaTag.setAttribute('content', data.csrf_token);
+                        console.log('CSRF token refreshed successfully');
+                        return true;
+                    }
+                }
+            }
+        } catch (error) {
+            console.error('Failed to refresh CSRF token:', error);
+        }
+        return false;
+    },
+
     // Make API request with standardized error handling
     async request(url, options = {}) {
         const defaultOptions = {
@@ -72,6 +101,15 @@ window.GlobalAPI = {
             if (!response.ok) {
                 // Handle specific HTTP errors
                 if (response.status === 419) {
+                    // Try to refresh CSRF token and retry once
+                    if (!options._retryAttempted) {
+                        console.log('CSRF token expired, attempting to refresh...');
+                        const refreshed = await this.refreshCSRFToken();
+                        if (refreshed) {
+                            // Retry the request once with new token
+                            return this.request(url, { ...options, _retryAttempted: true });
+                        }
+                    }
                     throw new Error('Session expired. Please refresh the page and try again.');
                 }
                 throw new Error(`HTTP error! status: ${response.status}`);

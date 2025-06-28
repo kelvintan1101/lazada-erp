@@ -23,10 +23,15 @@ Route::middleware('guest')->group(function () {
 
 Route::middleware('auth')->group(function () {
     Route::post('logout', [AuthenticatedSessionController::class, 'destroy'])->name('logout');
-    
+
     // Password update
     Route::get('password', [PasswordController::class, 'edit'])->name('password.edit');
     Route::put('password', [PasswordController::class, 'update'])->name('password.update');
+
+    // CSRF token refresh
+    Route::get('csrf-token', function () {
+        return response()->json(['csrf_token' => csrf_token()]);
+    });
 });
 
 // Dashboard
