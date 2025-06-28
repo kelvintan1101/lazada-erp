@@ -8,19 +8,6 @@ Alpine.start();
 
 // Sync functionality with loading states
 window.syncManager = {
-    // Show notification function - will be replaced by GlobalNotification
-    showNotification(type, title, message, duration = 5000) {
-        // This will be overridden by GlobalNotification in app.blade.php
-        // Fallback for cases where GlobalNotification is not yet loaded
-        if (window.GlobalNotification) {
-            return window.GlobalNotification.show(type, title, message, duration);
-        }
-
-        // Simple fallback
-        console.warn('GlobalNotification not available, using console fallback');
-        console.log(`${type.toUpperCase()}: ${title} - ${message}`);
-        return null;
-    },
 
     // Sync products function
     syncProducts(button) {
@@ -30,7 +17,7 @@ window.syncManager = {
         this.setButtonLoading(button, 'Syncing Products...');
 
         // Show start notification
-        this.showNotification('info', 'Sync Started', 'Starting to sync products from Lazada...');
+        GlobalNotification.info('Sync Started', 'Starting to sync products from Lazada...');
 
         // Make AJAX request
         fetch('/products/sync', {
@@ -43,19 +30,19 @@ window.syncManager = {
         .then(response => response.json())
         .then(data => {
             if (data.success) {
-                this.showNotification('success', 'Sync Complete', data.message);
+                GlobalNotification.success('Sync Complete', data.message);
                 // Reload page to show updated products
                 setTimeout(() => {
                     window.location.reload();
                 }, 1500);
             } else {
-                this.showNotification('error', 'Sync Failed', data.message || 'Unknown error occurred');
+                GlobalNotification.error('Sync Failed', data.message || 'Unknown error occurred');
                 this.resetButton(button, 'Sync Products');
             }
         })
         .catch(error => {
             console.error('Sync error:', error);
-            this.showNotification('error', 'Sync Failed', 'Network error occurred. Please try again.');
+            GlobalNotification.error('Sync Failed', 'Network error occurred. Please try again.');
             this.resetButton(button, 'Sync Products');
         });
     },
@@ -68,7 +55,7 @@ window.syncManager = {
         this.setButtonLoading(button, 'Syncing Orders...');
 
         // Show start notification
-        this.showNotification('info', 'Sync Started', 'Starting to sync orders from Lazada...');
+        GlobalNotification.info('Sync Started', 'Starting to sync orders from Lazada...');
 
         // Make AJAX request
         fetch('/orders/sync', {
@@ -81,19 +68,19 @@ window.syncManager = {
         .then(response => response.json())
         .then(data => {
             if (data.success) {
-                this.showNotification('success', 'Sync Complete', data.message);
+                GlobalNotification.success('Sync Complete', data.message);
                 // Reload page to show updated orders
                 setTimeout(() => {
                     window.location.reload();
                 }, 1500);
             } else {
-                this.showNotification('error', 'Sync Failed', data.message || 'Unknown error occurred');
+                GlobalNotification.error('Sync Failed', data.message || 'Unknown error occurred');
                 this.resetButton(button, 'Sync Orders');
             }
         })
         .catch(error => {
             console.error('Sync error:', error);
-            this.showNotification('error', 'Sync Failed', 'Network error occurred. Please try again.');
+            GlobalNotification.error('Sync Failed', 'Network error occurred. Please try again.');
             this.resetButton(button, 'Sync Orders');
         });
     },

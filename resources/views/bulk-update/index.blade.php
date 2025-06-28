@@ -300,7 +300,7 @@ document.addEventListener('DOMContentLoaded', function() {
     const csrfToken = document.querySelector('meta[name="csrf-token"]');
     if (!csrfToken) {
         console.error('CSRF token not found');
-        showNotification('error', 'Page Error', 'Please refresh the page and try again');
+        GlobalNotification.error('Page Error', 'Please refresh the page and try again');
         return;
     }
 
@@ -320,14 +320,14 @@ document.addEventListener('DOMContentLoaded', function() {
             const allowedExtensions = ['.xlsx', '.xls', '.csv'];
 
             if (!allowedTypes.includes(file.type) && !allowedExtensions.some(ext => file.name.toLowerCase().endsWith(ext))) {
-                showNotification('error', 'File Format Error', 'Please select Excel files (.xlsx, .xls) or CSV files');
+                GlobalNotification.error('File Format Error', 'Please select Excel files (.xlsx, .xls) or CSV files');
                 resetFileSelection();
                 return;
             }
 
             // Validate file size (10MB)
             if (file.size > 10 * 1024 * 1024) {
-                showNotification('error', 'File Too Large', 'File size cannot exceed 10MB');
+                GlobalNotification.error('File Too Large', 'File size cannot exceed 10MB');
                 resetFileSelection();
                 return;
             }
@@ -396,7 +396,7 @@ document.addEventListener('DOMContentLoaded', function() {
     // File upload handling
     uploadBtn.addEventListener('click', function() {
         if (!fileInput.files[0]) {
-            showNotification('error', 'Please Select File', 'Please select an Excel or CSV file first');
+            GlobalNotification.error('Please Select File', 'Please select an Excel or CSV file first');
             return;
         }
 
@@ -432,7 +432,7 @@ document.addEventListener('DOMContentLoaded', function() {
                 currentTaskId = data.task_id;
 
                 // Show start processing notification
-                showNotification('info', 'Start Processing', `Uploaded ${data.total_items} products, starting update...`);
+                GlobalNotification.info('Start Processing', `Uploaded ${data.total_items} products, starting update...`);
 
                 // Hide upload area, show progress area
                 document.getElementById('upload-section').classList.add('hidden');
@@ -451,19 +451,19 @@ document.addEventListener('DOMContentLoaded', function() {
                 // Auto execute task
                 executeTaskAutomatically();
             } else {
-                showNotification('error', 'Upload Failed', data.message || 'Unknown error');
+                GlobalNotification.error('Upload Failed', data.message || 'Unknown error');
             }
         })
         .catch(error => {
             console.error('Upload error:', error);
             if (error.message.includes('403')) {
-                showNotification('error', 'Authorization Failed', 'No Lazada authorization. Please authorize Lazada in the settings page first.');
+                GlobalNotification.error('Authorization Failed', 'No Lazada authorization. Please authorize Lazada in the settings page first.');
             } else if (error.message.includes('422')) {
-                showNotification('error', 'File Error', 'File format or size does not meet requirements.');
+                GlobalNotification.error('File Error', 'File format or size does not meet requirements.');
             } else if (error.message.includes('500')) {
-                showNotification('error', 'Server Error', 'Server error, please try again later.');
+                GlobalNotification.error('Server Error', 'Server error, please try again later.');
             } else {
-                showNotification('error', 'Upload Failed', error.message);
+                GlobalNotification.error('Upload Failed', error.message);
             }
         })
         .finally(() => {
@@ -473,22 +473,8 @@ document.addEventListener('DOMContentLoaded', function() {
 
 
 
-    // Use GlobalNotification system directly
-    function showNotification(type, title, message) {
-        // Use GlobalNotification directly
-        if (window.GlobalNotification) {
-            return window.GlobalNotification.show(type, title, message);
-        }
-
-        // Fallback to syncManager if GlobalNotification not available
-        if (window.syncManager && window.syncManager.showNotification) {
-            return window.syncManager.showNotification(type, title, message);
-        }
-
-        // Final fallback
-        console.warn('GlobalNotification and syncManager not available, using alert fallback');
-        alert(`${title}: ${message}`);
-    }
+    // All notifications now use GlobalNotification directly
+    // No wrapper function needed
 
     // Update circular progress bar
     function updateCircularProgress(percentage) {
@@ -546,11 +532,7 @@ document.addEventListener('DOMContentLoaded', function() {
         const message = `Successfully processed ${task.successful_items} products${task.failed_items > 0 ? `, failed ${task.failed_items} items` : ''}`;
 
         // Use GlobalNotification directly
-        if (window.GlobalNotification) {
-            window.GlobalNotification.success('Bulk Update Completed', message);
-        } else {
-            showNotification('success', 'Bulk Update Completed', message);
-        }
+        GlobalNotification.success('Bulk Update Completed', message);
     }
 
     // Auto execute task function
@@ -569,14 +551,14 @@ document.addEventListener('DOMContentLoaded', function() {
             if (data.success) {
                 startProgressMonitoring();
             } else {
-                showNotification('error', 'Startup Failed', data.message);
+                GlobalNotification.error('Startup Failed', data.message);
                 document.getElementById('progress-section').classList.add('hidden');
                 document.getElementById('upload-section').classList.remove('hidden');
             }
         })
         .catch(error => {
             console.error('Startup error:', error);
-            showNotification('error', 'Startup Failed', 'Task startup failed, please retry');
+            GlobalNotification.error('Startup Failed', 'Task startup failed, please retry');
             document.getElementById('progress-section').classList.add('hidden');
             document.getElementById('upload-section').classList.remove('hidden');
         });
@@ -611,7 +593,7 @@ document.addEventListener('DOMContentLoaded', function() {
                     }, 3000);
                 } else if (task.status === 'failed') {
                     clearInterval(progressInterval);
-                    showNotification('error', 'Update Failed', task.error_message || 'Encountered errors during processing, please retry');
+                    GlobalNotification.error('Update Failed', task.error_message || 'Encountered errors during processing, please retry');
 
                     // Return to upload page
                     setTimeout(() => {

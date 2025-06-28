@@ -460,13 +460,6 @@
         window.LoadingManager = window.GlobalLoading;
         window.NotificationManager = window.GlobalNotification;
 
-        // Update syncManager to use GlobalNotification
-        if (window.syncManager) {
-            window.syncManager.showNotification = function(type, title, message, duration) {
-                return window.GlobalNotification.show(type, title, message, duration);
-            };
-        }
-
         // Add smooth loading to all internal links (optional)
         document.addEventListener('click', function(e) {
             const link = e.target.closest('a');

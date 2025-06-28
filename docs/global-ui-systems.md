@@ -479,18 +479,21 @@ GlobalNotification.error('Sync Failed', 'Network error occurred. Please try agai
 
 ## Integration with Existing Code
 
-### Backward Compatibility
+### Consistent Usage Across Application
 
-The system maintains backward compatibility with existing notification calls:
+All pages now use GlobalNotification directly for consistent behavior:
 
 ```javascript
-// Old syncManager calls still work
-window.syncManager.showNotification('success', 'Title', 'Message');
+// Products and Orders sync
+GlobalNotification.info('Sync Started', 'Starting to sync products from Lazada...');
+GlobalNotification.success('Sync Complete', 'Successfully synced 150 products');
 
-// New GlobalNotification calls
-GlobalNotification.success('Title', 'Message');
+// Stock updates
+GlobalNotification.success('Stock Updated', 'Product stock quantity updated successfully');
 
-// Both use the same underlying system
+// Bulk operations
+GlobalNotification.info('Processing Started', 'Bulk update is now processing...');
+GlobalNotification.success('Bulk Update Complete', 'Successfully processed 95 items, 5 failed');
 ```
 
 ### Migration from Custom Notifications
@@ -501,6 +504,12 @@ showNotification('Stock updated successfully', 'success');
 
 // New GlobalNotification
 GlobalNotification.success('Stock Updated', 'Stock updated successfully');
+
+// Old syncManager calls
+window.syncManager.showNotification('success', 'Title', 'Message');
+
+// New direct GlobalNotification calls
+GlobalNotification.success('Title', 'Message');
 ```
 
 ## Notification Types and Styling
