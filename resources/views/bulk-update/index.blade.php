@@ -419,6 +419,10 @@ document.addEventListener('DOMContentLoaded', function() {
         if (result.success && result.data.success) {
             currentTaskId = result.data.task_id;
 
+            // Debug: Log upload response
+            console.log('Upload response:', result.data);
+            console.log('Task ID assigned:', currentTaskId);
+
             // Show success notification
             GlobalNotification.success('Upload Complete', result.data.message);
 
@@ -524,6 +528,10 @@ document.addEventListener('DOMContentLoaded', function() {
                 return;
             }
 
+            // Debug: Log the task ID being sent
+            console.log('Executing task with ID:', currentTaskId);
+            console.log('Task ID type:', typeof currentTaskId);
+
             const result = await GlobalAPI.post('/bulk-update/execute', { task_id: currentTaskId });
 
             if (result.success && result.data.success) {
@@ -536,6 +544,7 @@ document.addEventListener('DOMContentLoaded', function() {
             }
         } catch (error) {
             console.error('Execute task error:', error);
+            console.error('Current task ID:', currentTaskId);
             GlobalNotification.error('Execution Error', 'Failed to start task. Please refresh the page and try again.');
             document.getElementById('progress-section').classList.add('hidden');
             document.getElementById('upload-section').classList.remove('hidden');
