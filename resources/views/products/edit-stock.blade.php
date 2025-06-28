@@ -47,7 +47,7 @@
 
                     <!-- Action Buttons -->
                     <div class="flex items-center justify-between pt-4 border-t border-gray-200">
-                        <a href="#" onclick="window.LoadingManager.navigateTo('{{ route('products.show', $product) }}'); return false;" class="btn btn-secondary">
+                        <a href="#" onclick="window.LoadingManager.navigateTo('{{ route('products.show', $product) }}', 'Loading product...'); return false;" class="btn btn-secondary">
                             <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18"></path>
                             </svg>
@@ -85,8 +85,8 @@ document.addEventListener('DOMContentLoaded', function() {
     form.addEventListener('submit', function(e) {
         e.preventDefault();
 
-        // Show minimalist loading
-        window.LoadingManager.show();
+        // Show loading with descriptive message
+        window.LoadingManager.show('Updating stock...');
 
         // Prepare form data
         const formData = new FormData(form);
@@ -112,9 +112,9 @@ document.addEventListener('DOMContentLoaded', function() {
                 // Show success notification briefly
                 showNotification(data.message, 'success');
 
-                // Quick redirect
+                // Quick redirect with message
                 setTimeout(() => {
-                    window.LoadingManager.navigateTo('{{ route("products.show", $product) }}');
+                    window.LoadingManager.navigateTo('{{ route("products.show", $product) }}', 'Redirecting...');
                 }, 1000);
             } else {
                 // Hide loading and show error

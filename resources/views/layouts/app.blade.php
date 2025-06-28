@@ -70,22 +70,30 @@
     </div>
 
     <!-- Global Loading Overlay -->
-    <div id="global-loading" class="fixed inset-0 bg-white bg-opacity-80 flex items-center justify-center z-50 hidden">
-        <div class="animate-spin rounded-full h-12 w-12 border-4 border-gray-200 border-t-blue-600"></div>
+    <div id="global-loading" class="fixed inset-0 bg-white bg-opacity-90 flex items-center justify-center z-50 hidden">
+        <div class="text-center">
+            <div class="animate-spin rounded-full h-16 w-16 border-4 border-gray-300 border-t-blue-600 mx-auto"></div>
+            <p class="mt-4 text-gray-600 text-sm font-medium">Processing...</p>
+        </div>
     </div>
 
     <!-- Global Loading Script -->
     <script>
-        // Minimalist loading manager
+        // Enhanced loading manager
         window.LoadingManager = {
             overlay: null,
+            messageElement: null,
 
             init() {
                 this.overlay = document.getElementById('global-loading');
+                this.messageElement = this.overlay?.querySelector('p');
             },
 
-            show() {
+            show(message = 'Processing...') {
                 if (!this.overlay) this.init();
+                if (this.messageElement) {
+                    this.messageElement.textContent = message;
+                }
                 this.overlay.classList.remove('hidden');
                 document.body.style.overflow = 'hidden';
             },
@@ -97,8 +105,8 @@
             },
 
             // Smooth page transition
-            navigateTo(url) {
-                this.show();
+            navigateTo(url, message = 'Loading...') {
+                this.show(message);
                 setTimeout(() => {
                     window.location.href = url;
                 }, 200); // Quick transition
