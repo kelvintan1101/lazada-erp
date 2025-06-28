@@ -10,79 +10,61 @@ Alpine.start();
 window.syncManager = {
 
     // Sync products function
-    syncProducts(button) {
+    async syncProducts(button) {
         if (button.disabled) return;
 
-        // Set loading state
-        this.setButtonLoading(button, 'Syncing Products...');
+        // Manage button state
+        const originalText = button.textContent;
+        button.disabled = true;
+        button.textContent = 'Syncing Products...';
 
-        // Show start notification
+        // Show notification
         GlobalNotification.info('Sync Started', 'Starting to sync products from Lazada...');
 
-        // Make AJAX request
-        fetch('/products/sync', {
-            method: 'GET',
-            headers: {
-                'X-Requested-With': 'XMLHttpRequest',
-                'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content')
-            }
-        })
-        .then(response => response.json())
-        .then(data => {
-            if (data.success) {
-                GlobalNotification.success('Sync Complete', data.message);
-                // Reload page to show updated products
-                setTimeout(() => {
-                    window.location.reload();
-                }, 1500);
-            } else {
-                GlobalNotification.error('Sync Failed', data.message || 'Unknown error occurred');
-                this.resetButton(button, 'Sync Products');
-            }
-        })
-        .catch(error => {
-            console.error('Sync error:', error);
-            GlobalNotification.error('Sync Failed', 'Network error occurred. Please try again.');
-            this.resetButton(button, 'Sync Products');
-        });
+        // Make API call
+        const result = await GlobalAPI.get('/products/sync');
+
+        // Restore button
+        button.disabled = false;
+        button.textContent = originalText;
+
+        // Handle result
+        if (result.success && result.data.success) {
+            GlobalNotification.success('Sync Complete', result.data.message);
+            setTimeout(() => window.location.reload(), 1500);
+        } else {
+            const errorMessage = result.data?.message || result.error || 'Unknown error occurred';
+            GlobalNotification.error('Sync Failed', errorMessage);
+        }
     },
 
     // Sync orders function
-    syncOrders(button) {
+    async syncOrders(button) {
         if (button.disabled) return;
 
-        // Set loading state
-        this.setButtonLoading(button, 'Syncing Orders...');
+        // Manage button state
+        const originalText = button.textContent;
+        button.disabled = true;
+        button.textContent = 'Syncing Orders...';
 
-        // Show start notification
+        // Show notification
         GlobalNotification.info('Sync Started', 'Starting to sync orders from Lazada...');
 
-        // Make AJAX request
-        fetch('/orders/sync', {
-            method: 'GET',
-            headers: {
-                'X-Requested-With': 'XMLHttpRequest',
-                'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content')
-            }
-        })
-        .then(response => response.json())
-        .then(data => {
-            if (data.success) {
-                GlobalNotification.success('Sync Complete', data.message);
-                // Reload page to show updated orders
-                setTimeout(() => {
-                    window.location.reload();
-                }, 1500);
-            } else {
-                GlobalNotification.error('Sync Failed', data.message || 'Unknown error occurred');
-                this.resetButton(button, 'Sync Orders');
-            }
-        })
-        .catch(error => {
-            console.error('Sync error:', error);
-            GlobalNotification.error('Sync Failed', 'Network error occurred. Please try again.');
-            this.resetButton(button, 'Sync Orders');
-        });
+        // Make API call
+        const result = await GlobalAPI.get('/orders/sync');
+
+        // Restore button
+        button.disabled = false;
+        button.textContent = originalText;
+
+        // Handle result
+        if (result.success && result.data.success) {
+            GlobalNotification.success('Sync Complete', result.data.message);
+            setTimeout(() => window.location.reload(), 1500);
+        } else {
+            const errorMessage = result.data?.message || result.error || 'Unknown error occurred';
+            GlobalNotification.error('Sync Failed', errorMessage);
+        }
     },
 
     // Set button to loading state

@@ -83,62 +83,43 @@ document.addEventListener('DOMContentLoaded', function() {
 
 
 
-    form.addEventListener('submit', function(e) {
+    form.addEventListener('submit', async function(e) {
         e.preventDefault();
 
-        // Show loading animation using GlobalLoading
+        // Show loading
         GlobalLoading.showSave('Updating stock...', 'Please wait');
 
         // Prepare form data
         const formData = new FormData(form);
 
+        // Make API call
+        const result = await GlobalAPI.post(form.action, formData);
 
-
-        // Make AJAX request
-        fetch(form.action, {
-            method: 'POST',
-            body: formData,
-            headers: {
-                'X-Requested-With': 'XMLHttpRequest',
-                'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content'),
-                'Accept': 'application/json'
-            }
-        })
-        .then(response => {
-            if (!response.ok) {
-                throw new Error(`HTTP error! status: ${response.status}`);
-            }
-            return response.json();
-        })
-        .then(data => {
-            if (data.success) {
-                // Update current stock display
+        if (result.success && result.data.success) {
+            // Update current stock display
+            if (result.data.new_quantity) {
                 const currentStockElement = document.querySelector('.current-stock-value');
                 if (currentStockElement) {
-                    currentStockElement.textContent = data.new_quantity;
+                    currentStockElement.textContent = result.data.new_quantity;
                 }
-
-                // Update loading message to show success
-                GlobalLoading.updateText('Stock updated successfully!', 'Redirecting...');
-
-                // Show success notification briefly
-                GlobalNotification.success('Stock Updated', data.message);
-
-                // Redirect after showing success
-                setTimeout(() => {
-                    GlobalLoading.navigateTo('{{ route("products.show", $product) }}');
-                }, 1500);
-            } else {
-                // Hide loading and show error
-                GlobalLoading.hide();
-                GlobalNotification.error('Update Failed', data.message);
             }
-        })
-        .catch(error => {
+
+            // Update loading message to show success
+            GlobalLoading.updateText('Stock updated successfully!', 'Redirecting...');
+
+            // Show success notification
+            GlobalNotification.success('Stock Updated', result.data.message);
+
+            // Redirect after showing success
+            setTimeout(() => {
+                GlobalLoading.navigateTo('{{ route("products.show", $product) }}');
+            }, 1500);
+        } else {
             // Hide loading and show error
             GlobalLoading.hide();
-            GlobalNotification.error('Update Failed', 'An error occurred while updating stock. Please try again.');
-        });
+            const errorMessage = result.data?.message || result.error || 'An error occurred while updating stock';
+            GlobalNotification.error('Update Failed', errorMessage);
+        }
     });
 
     // Notification system is now handled by GlobalNotification

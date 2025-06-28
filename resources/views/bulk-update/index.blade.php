@@ -406,69 +406,51 @@ document.addEventListener('DOMContentLoaded', function() {
         // Update button state
         disableUploadButton('Uploading...');
 
-        fetch('/bulk-update/upload', {
-            method: 'POST',
-            body: formData,
-            headers: {
-                'X-CSRF-TOKEN': csrfToken.getAttribute('content'),
-                'Accept': 'application/json'
-            }
-        })
-        .then(response => {
-            if (!response.ok) {
-                return response.text().then(text => {
-                    try {
-                        const errorData = JSON.parse(text);
-                        throw new Error(errorData.message || `HTTP error! Status: ${response.status}`);
-                    } catch (e) {
-                        throw new Error(`Server error (${response.status}): ${text.substring(0, 100)}...`);
-                    }
-                });
-            }
-            return response.json();
-        })
-        .then(data => {
-            if (data.success) {
-                currentTaskId = data.task_id;
+        // Show loading
+        GlobalLoading.showUpload('Uploading...', 'Processing Excel file');
 
-                // Show start processing notification
-                GlobalNotification.info('Start Processing', `Uploaded ${data.total_items} products, starting update...`);
+        // Prepare form data
+        const formData = new FormData();
+        formData.append('file', fileInput.files[0]);
 
-                // Hide upload area, show progress area
-                document.getElementById('upload-section').classList.add('hidden');
-                document.getElementById('progress-section').classList.remove('hidden');
+        // Make API call
+        const result = await GlobalAPI.post('/bulk-update/upload', formData);
 
-                // Initialize progress display
-                updateProgressDisplay({
-                    status: 'pending',
-                    progress_percentage: 0,
-                    total_items: data.total_items,
-                    processed_items: 0,
-                    successful_items: 0,
-                    failed_items: 0
-                });
+        // Hide loading
+        GlobalLoading.hide();
 
-                // Auto execute task
-                executeTaskAutomatically();
-            } else {
-                GlobalNotification.error('Upload Failed', data.message || 'Unknown error');
-            }
-        })
-        .catch(error => {
-            console.error('Upload error:', error);
-            if (error.message.includes('403')) {
-                GlobalNotification.error('Authorization Failed', 'No Lazada authorization. Please authorize Lazada in the settings page first.');
-            } else if (error.message.includes('422')) {
-                GlobalNotification.error('File Error', 'File format or size does not meet requirements.');
-            } else if (error.message.includes('500')) {
-                GlobalNotification.error('Server Error', 'Server error, please try again later.');
-            } else {
-                GlobalNotification.error('Upload Failed', error.message);
-            }
-        })
-        .finally(() => {
-            enableUploadButton();
-        });
+        if (result.success && result.data.success) {
+            currentTaskId = result.data.task_id;
+
+            // Show success notification
+            GlobalNotification.success('Upload Complete', result.data.message);
+
+            // Show start processing notification
+            GlobalNotification.info('Start Processing', `Uploaded ${result.data.total_items} products, starting update...`);
+
+            // Hide upload area, show progress area
+            document.getElementById('upload-section').classList.add('hidden');
+            document.getElementById('progress-section').classList.remove('hidden');
+
+            // Initialize progress display
+            updateProgressDisplay({
+                status: 'pending',
+                progress_percentage: 0,
+                total_items: result.data.total_items,
+                processed_items: 0,
+                successful_items: 0,
+                failed_items: 0
+            });
+
+            // Auto execute task
+            executeTaskAutomatically();
+        } else {
+            const errorMessage = result.data?.message || result.error || 'Upload failed';
+            GlobalNotification.error('Upload Failed', errorMessage);
+        }
+
+        // Restore button state
+        enableUploadButton();
     });
 
 
@@ -536,32 +518,17 @@ document.addEventListener('DOMContentLoaded', function() {
     }
 
     // Auto execute task function
-    function executeTaskAutomatically() {
-        fetch('/bulk-update/execute', {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-                'X-CSRF-TOKEN': csrfToken.getAttribute('content'),
-                'Accept': 'application/json'
-            },
-            body: JSON.stringify({ task_id: currentTaskId })
-        })
-        .then(response => response.json())
-        .then(data => {
-            if (data.success) {
-                startProgressMonitoring();
-            } else {
-                GlobalNotification.error('Startup Failed', data.message);
-                document.getElementById('progress-section').classList.add('hidden');
-                document.getElementById('upload-section').classList.remove('hidden');
-            }
-        })
-        .catch(error => {
-            console.error('Startup error:', error);
-            GlobalNotification.error('Startup Failed', 'Task startup failed, please retry');
+    async function executeTaskAutomatically() {
+        const result = await GlobalAPI.post('/bulk-update/execute', { task_id: currentTaskId });
+
+        if (result.success && result.data.success) {
+            startProgressMonitoring();
+        } else {
+            const errorMessage = result.data?.message || result.error || 'Task startup failed, please retry';
+            GlobalNotification.error('Startup Failed', errorMessage);
             document.getElementById('progress-section').classList.add('hidden');
             document.getElementById('upload-section').classList.remove('hidden');
-        });
+        }
     }
 
     // Monitor progress
@@ -570,42 +537,39 @@ document.addEventListener('DOMContentLoaded', function() {
         updateProgress(); // Update immediately once
     }
 
-    function updateProgress() {
-        fetch(`/bulk-update/status?task_id=${currentTaskId}`)
-        .then(response => response.json())
-        .then(data => {
-            if (data.success) {
-                const task = data.task;
-                updateProgressDisplay(task);
-                
-                if (task.status === 'completed') {
-                    clearInterval(progressInterval);
-                    showSuccessNotification(task);
-                    
-                    // Return to upload page after a few seconds
-                    setTimeout(() => {
-                        document.getElementById('progress-section').classList.add('hidden');
-                        document.getElementById('upload-section').classList.remove('hidden');
-                        // Reset file selection
-                        document.getElementById('excel-file').value = '';
-                        document.getElementById('file-info').classList.add('hidden');
-                        document.getElementById('upload-btn').disabled = true;
-                    }, 3000);
-                } else if (task.status === 'failed') {
-                    clearInterval(progressInterval);
-                    GlobalNotification.error('Update Failed', task.error_message || 'Encountered errors during processing, please retry');
+    async function updateProgress() {
+        const result = await GlobalAPI.get(`/bulk-update/status?task_id=${currentTaskId}`);
 
-                    // Return to upload page
-                    setTimeout(() => {
-                        document.getElementById('progress-section').classList.add('hidden');
-                        document.getElementById('upload-section').classList.remove('hidden');
-                    }, 2000);
-                }
+        if (result.success && result.data.success) {
+            const task = result.data.task;
+            updateProgressDisplay(task);
+
+            if (task.status === 'completed') {
+                clearInterval(progressInterval);
+                showSuccessNotification(task);
+
+                // Return to upload page after a few seconds
+                setTimeout(() => {
+                    document.getElementById('progress-section').classList.add('hidden');
+                    document.getElementById('upload-section').classList.remove('hidden');
+                    // Reset file selection
+                    document.getElementById('excel-file').value = '';
+                    document.getElementById('file-info').classList.add('hidden');
+                    document.getElementById('upload-btn').disabled = true;
+                }, 3000);
+            } else if (task.status === 'failed') {
+                clearInterval(progressInterval);
+                GlobalNotification.error('Update Failed', task.error_message || 'Encountered errors during processing, please retry');
+
+                // Return to upload page
+                setTimeout(() => {
+                    document.getElementById('progress-section').classList.add('hidden');
+                    document.getElementById('upload-section').classList.remove('hidden');
+                }, 2000);
             }
-        })
-        .catch(error => {
-            console.error('Error:', error);
-        });
+        } else {
+            console.error('Progress check error:', result.error);
+        }
     }
 
     // Global functions for notification use
