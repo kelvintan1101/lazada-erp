@@ -10,25 +10,68 @@
   .btn-primary {
     @apply bg-indigo-600 text-white hover:bg-indigo-700 focus:ring-indigo-500;
   }
-  
+
+  .btn-primary:disabled {
+    @apply bg-indigo-600 text-white cursor-not-allowed;
+    opacity: 0.75;
+  }
+
+  .btn-primary:disabled:hover {
+    @apply bg-indigo-600;
+  }
+
   .btn-secondary {
     @apply bg-gray-200 text-gray-800 hover:bg-gray-300 focus:ring-gray-500;
   }
-  
+
+  .btn-secondary:disabled {
+    @apply bg-gray-200 text-gray-800 cursor-not-allowed;
+    opacity: 0.75;
+  }
+
   .btn-danger {
     @apply bg-red-600 text-white hover:bg-red-700 focus:ring-red-500;
   }
-  
+
+  .btn-danger:disabled {
+    @apply bg-red-600 text-white cursor-not-allowed;
+    opacity: 0.75;
+  }
+
   .btn-success {
     @apply bg-green-600 text-white hover:bg-green-700 focus:ring-green-500;
   }
 
-  .btn:disabled {
-    @apply opacity-75 cursor-not-allowed;
+  .btn-success:disabled {
+    @apply bg-green-600 text-white cursor-not-allowed;
+    opacity: 0.75;
   }
 
-  .btn:disabled:hover {
-    @apply bg-current;
+  /* Loading button animation */
+  .btn-loading {
+    position: relative;
+    pointer-events: none;
+  }
+
+  .btn-loading::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(255, 255, 255, 0.1);
+    border-radius: inherit;
+    animation: pulse 2s infinite;
+  }
+
+  @keyframes pulse {
+    0%, 100% {
+      opacity: 0.1;
+    }
+    50% {
+      opacity: 0.3;
+    }
   }
   
   .form-input {
