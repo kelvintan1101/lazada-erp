@@ -43,6 +43,12 @@
                             </svg>
                             Settings
                         </a>
+                        <a href="{{ route('test-notifications') }}" class="inline-flex items-center px-1 pt-1 border-b-2 {{ request()->routeIs('test-notifications') ? 'border-indigo-500 text-gray-900' : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300' }}">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-1" viewBox="0 0 20 20" fill="currentColor">
+                                <path d="M10 2L3 7v11a1 1 0 001 1h3a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1h3a1 1 0 001-1V7l-7-5z"/>
+                            </svg>
+                            Test Notifications
+                        </a>
                     @endif
                 </div>
             </div>

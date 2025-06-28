@@ -473,15 +473,20 @@ document.addEventListener('DOMContentLoaded', function() {
 
 
 
-    // Use syncManager notification system directly (same as products/orders pages)
+    // Use GlobalNotification system directly
     function showNotification(type, title, message) {
-        // Use syncManager directly like products and orders pages do
+        // Use GlobalNotification directly
+        if (window.GlobalNotification) {
+            return window.GlobalNotification.show(type, title, message);
+        }
+
+        // Fallback to syncManager if GlobalNotification not available
         if (window.syncManager && window.syncManager.showNotification) {
             return window.syncManager.showNotification(type, title, message);
         }
 
-        // Fallback if syncManager not available
-        console.warn('syncManager not available, using alert fallback');
+        // Final fallback
+        console.warn('GlobalNotification and syncManager not available, using alert fallback');
         alert(`${title}: ${message}`);
     }
 
@@ -536,13 +541,13 @@ document.addEventListener('DOMContentLoaded', function() {
         statusDetail.textContent = detail;
     }
 
-    // Show success notification (simplified like products/orders pages)
+    // Show success notification using GlobalNotification
     function showSuccessNotification(task) {
         const message = `Successfully processed ${task.successful_items} products${task.failed_items > 0 ? `, failed ${task.failed_items} items` : ''}`;
 
-        // Use syncManager directly like products and orders pages
-        if (window.syncManager && window.syncManager.showNotification) {
-            window.syncManager.showNotification('success', 'Bulk Update Completed', message);
+        // Use GlobalNotification directly
+        if (window.GlobalNotification) {
+            window.GlobalNotification.success('Bulk Update Completed', message);
         } else {
             showNotification('success', 'Bulk Update Completed', message);
         }

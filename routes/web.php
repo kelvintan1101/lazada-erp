@@ -32,6 +32,11 @@ Route::middleware('auth')->group(function () {
 // Dashboard
 Route::get('/dashboard', [DashboardController::class, 'index'])->middleware(['auth'])->name('dashboard');
 
+// Test route for notifications (development only)
+Route::get('/test-notifications', function () {
+    return view('test-notifications');
+})->middleware(['auth'])->name('test-notifications');
+
 // Products routes
 Route::middleware(['auth'])->group(function () {
     Route::get('/products', [ProductController::class, 'index'])->name('products.index');

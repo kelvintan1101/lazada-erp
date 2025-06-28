@@ -1,21 +1,6 @@
 @extends('layouts.app')
 
 @section('content')
-    <!-- Global Loading Indicator -->
-    <div id="global-loading" style="position: fixed; top: 0; left: 0; right: 0; bottom: 0; background-color: rgba(0, 0, 0, 0.7); display: none; align-items: center; justify-content: center; z-index: 9999;">
-        <div style="background-color: white; border-radius: 12px; box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25); padding: 2rem; text-align: center; max-width: 320px; margin: 1rem;">
-            <div style="width: 64px; height: 64px; border: 4px solid #e5e7eb; border-top: 4px solid #2563eb; border-radius: 50%; animation: spin 1s linear infinite; margin: 0 auto;"></div>
-            <p id="loading-main-text" style="margin-top: 1rem; color: #374151; font-weight: 500; font-size: 16px;">Updating stock...</p>
-            <p id="loading-sub-text" style="margin-top: 0.5rem; color: #6b7280; font-size: 14px;">Please wait</p>
-        </div>
-    </div>
-
-    <style>
-        @keyframes spin {
-            from { transform: rotate(0deg); }
-            to { transform: rotate(360deg); }
-        }
-    </style>
     <div class="mb-6">
         <h2 class="text-2xl font-bold text-gray-800">Update Stock Quantity</h2>
         <p class="text-gray-500">Adjust the available stock for this product</p>
@@ -96,31 +81,13 @@
 document.addEventListener('DOMContentLoaded', function() {
     const form = document.getElementById('stock-form');
 
-    // Loading functions
-    function showLoading(mainText, subText) {
-        const loadingElement = document.getElementById('global-loading');
-        const mainTextElement = document.getElementById('loading-main-text');
-        const subTextElement = document.getElementById('loading-sub-text');
 
-        if (loadingElement) {
-            if (mainTextElement) mainTextElement.textContent = mainText;
-            if (subTextElement) subTextElement.textContent = subText;
-            loadingElement.style.display = 'flex';
-        }
-    }
-
-    function hideLoading() {
-        const loadingElement = document.getElementById('global-loading');
-        if (loadingElement) {
-            loadingElement.style.display = 'none';
-        }
-    }
 
     form.addEventListener('submit', function(e) {
         e.preventDefault();
 
-        // Show loading animation
-        showLoading('Updating stock...', 'Please wait');
+        // Show loading animation using GlobalLoading
+        GlobalLoading.showSave('Updating stock...', 'Please wait');
 
         // Prepare form data
         const formData = new FormData(form);
@@ -152,59 +119,30 @@ document.addEventListener('DOMContentLoaded', function() {
                 }
 
                 // Update loading message to show success
-                showLoading('Stock updated successfully!', 'Redirecting...');
+                GlobalLoading.updateText('Stock updated successfully!', 'Redirecting...');
 
                 // Show success notification briefly
-                showNotification(data.message, 'success');
+                GlobalNotification.success('Stock Updated', data.message);
 
                 // Redirect after showing success
                 setTimeout(() => {
-                    window.location.href = '{{ route("products.show", $product) }}';
+                    GlobalLoading.navigateTo('{{ route("products.show", $product) }}');
                 }, 1500);
             } else {
                 // Hide loading and show error
-                hideLoading();
-                showNotification(data.message, 'error');
+                GlobalLoading.hide();
+                GlobalNotification.error('Update Failed', data.message);
             }
         })
         .catch(error => {
             // Hide loading and show error
-            hideLoading();
-            showNotification('An error occurred while updating stock. Please try again.', 'error');
+            GlobalLoading.hide();
+            GlobalNotification.error('Update Failed', 'An error occurred while updating stock. Please try again.');
         });
     });
 
-    function showNotification(message, type) {
-        // Create notification element
-        const notification = document.createElement('div');
-        notification.className = `fixed bottom-4 right-4 p-4 rounded-lg shadow-lg z-50 ${
-            type === 'success' ? 'bg-green-500 text-white' : 'bg-red-500 text-white'
-        }`;
-        notification.innerHTML = `
-            <div class="flex items-center">
-                <svg class="w-5 h-5 mr-2" fill="currentColor" viewBox="0 0 20 20">
-                    ${type === 'success'
-                        ? '<path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"></path>'
-                        : '<path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clip-rule="evenodd"></path>'
-                    }
-                </svg>
-                <span>${message}</span>
-            </div>
-        `;
-
-        document.body.appendChild(notification);
-
-        // Auto remove after 5 seconds
-        setTimeout(() => {
-            notification.style.opacity = '0';
-            notification.style.transform = 'translateY(10px)';
-            setTimeout(() => {
-                if (notification.parentNode) {
-                    notification.parentNode.removeChild(notification);
-                }
-            }, 300);
-        }, 5000);
-    }
+    // Notification system is now handled by GlobalNotification
+    // No need for custom showNotification function
 });
 </script>
 @endpush
