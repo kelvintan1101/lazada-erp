@@ -645,6 +645,23 @@ document.addEventListener('DOMContentLoaded', function() {
         };
 
         progressSection.appendChild(executeButton);
+
+        // Add test button for simple endpoint
+        const testButton = document.createElement('button');
+        testButton.textContent = 'Test Simple Endpoint';
+        testButton.className = 'bg-green-500 text-white px-4 py-2 rounded mt-2 ml-2';
+        testButton.onclick = async function() {
+            console.log('Testing simple endpoint...');
+            try {
+                const result = await GlobalAPI.post('/bulk-update/test-execute', { task_id: currentTaskId });
+                console.log('Simple endpoint result:', result);
+                GlobalNotification.success('Test Success', 'Simple endpoint works!');
+            } catch (error) {
+                console.error('Simple endpoint failed:', error);
+                GlobalNotification.error('Test Failed', error.message);
+            }
+        };
+        progressSection.appendChild(testButton);
     }
 
 
