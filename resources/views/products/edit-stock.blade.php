@@ -1,10 +1,12 @@
 @extends('layouts.app')
 
 @section('content')
-    <!-- Temporary Global Loading Indicator -->
-    <div id="global-loading" class="fixed inset-0 flex items-center justify-center z-50 hidden">
-        <div class="bg-white rounded-full shadow-xl p-4 border">
-            <div class="animate-spin rounded-full h-8 w-8 border-4 border-gray-300 border-t-blue-600"></div>
+    <!-- Enhanced Global Loading Indicator -->
+    <div id="global-loading" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 hidden">
+        <div class="bg-white rounded-lg shadow-2xl p-8 text-center max-w-sm mx-4">
+            <div class="animate-spin rounded-full h-16 w-16 border-4 border-gray-200 border-t-blue-600 mx-auto"></div>
+            <p class="mt-4 text-gray-700 font-medium">Updating stock...</p>
+            <p class="mt-2 text-sm text-gray-500">Please wait</p>
         </div>
     </div>
     <div class="mb-6">
@@ -87,11 +89,32 @@
 document.addEventListener('DOMContentLoaded', function() {
     const form = document.getElementById('stock-form');
 
+    // Custom loading function for enhanced design
+    function showCustomLoading(mainText, subText) {
+        const loadingElement = document.getElementById('global-loading');
+        if (loadingElement) {
+            const mainTextElement = loadingElement.querySelector('p:first-of-type');
+            const subTextElement = loadingElement.querySelector('p:last-of-type');
+
+            if (mainTextElement) mainTextElement.textContent = mainText;
+            if (subTextElement) subTextElement.textContent = subText;
+
+            loadingElement.classList.remove('hidden');
+        }
+    }
+
+    function hideCustomLoading() {
+        const loadingElement = document.getElementById('global-loading');
+        if (loadingElement) {
+            loadingElement.classList.add('hidden');
+        }
+    }
+
     form.addEventListener('submit', function(e) {
         e.preventDefault();
 
-        // Show global loading animation
-        window.LoadingManager.show();
+        // Show enhanced loading animation
+        showCustomLoading('Updating stock...', 'Please wait');
 
         // Prepare form data
         const formData = new FormData(form);
@@ -122,22 +145,25 @@ document.addEventListener('DOMContentLoaded', function() {
                     currentStockElement.textContent = data.new_quantity;
                 }
 
+                // Update loading message to show success
+                showCustomLoading('Stock updated successfully!', 'Redirecting...');
+
                 // Show success notification briefly
                 showNotification(data.message, 'success');
 
                 // Redirect after showing success
                 setTimeout(() => {
-                    window.LoadingManager.navigateTo('{{ route("products.show", $product) }}');
-                }, 1000);
+                    window.location.href = '{{ route("products.show", $product) }}';
+                }, 1500);
             } else {
                 // Hide loading and show error
-                window.LoadingManager.hide();
+                hideCustomLoading();
                 showNotification(data.message, 'error');
             }
         })
         .catch(error => {
             // Hide loading and show error
-            window.LoadingManager.hide();
+            hideCustomLoading();
             showNotification('An error occurred while updating stock. Please try again.', 'error');
         });
     });
