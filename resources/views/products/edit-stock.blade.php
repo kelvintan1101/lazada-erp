@@ -45,9 +45,15 @@
                         </p>
                     </div>
 
+                    <!-- Loading State -->
+                    <div id="loading-state" class="text-center py-8 hidden">
+                        <div class="animate-spin rounded-full h-12 w-12 border-4 border-gray-300 border-t-blue-600 mx-auto"></div>
+                        <p class="mt-4 text-gray-600 font-medium">Updating stock...</p>
+                    </div>
+
                     <!-- Action Buttons -->
-                    <div class="flex items-center justify-between pt-4 border-t border-gray-200">
-                        <a href="#" onclick="window.LoadingManager.navigateTo('{{ route('products.show', $product) }}', 'Loading product...'); return false;" class="btn btn-secondary">
+                    <div id="action-buttons" class="flex items-center justify-between pt-4 border-t border-gray-200">
+                        <a href="{{ route('products.show', $product) }}" class="btn btn-secondary">
                             <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18"></path>
                             </svg>
@@ -85,8 +91,15 @@ document.addEventListener('DOMContentLoaded', function() {
     form.addEventListener('submit', function(e) {
         e.preventDefault();
 
-        // Show loading with descriptive message
-        window.LoadingManager.show('Updating stock...');
+        // Show inline loading state
+        const loadingState = document.getElementById('loading-state');
+        const actionButtons = document.getElementById('action-buttons');
+        const stockInput = document.getElementById('stock_quantity');
+
+        // Hide form elements and show loading
+        actionButtons.classList.add('hidden');
+        stockInput.disabled = true;
+        loadingState.classList.remove('hidden');
 
         // Prepare form data
         const formData = new FormData(form);
@@ -109,24 +122,34 @@ document.addEventListener('DOMContentLoaded', function() {
                     currentStockElement.textContent = data.new_quantity;
                 }
 
+                // Update loading message to show success
+                const loadingMessage = loadingState.querySelector('p');
+                if (loadingMessage) {
+                    loadingMessage.textContent = 'Stock updated successfully! Redirecting...';
+                }
+
                 // Show success notification briefly
                 showNotification(data.message, 'success');
 
-                // Quick redirect with message
+                // Redirect after showing success
                 setTimeout(() => {
-                    window.LoadingManager.navigateTo('{{ route("products.show", $product) }}', 'Redirecting...');
-                }, 1000);
+                    window.location.href = '{{ route("products.show", $product) }}';
+                }, 1500);
             } else {
                 // Hide loading and show error
-                window.LoadingManager.hide();
+                loadingState.classList.add('hidden');
+                actionButtons.classList.remove('hidden');
+                stockInput.disabled = false;
                 showNotification(data.message, 'error');
             }
         })
         .catch(error => {
             console.error('Error:', error);
 
-            // Hide loading and show error
-            window.LoadingManager.hide();
+            // Hide loading and restore form
+            loadingState.classList.add('hidden');
+            actionButtons.classList.remove('hidden');
+            stockInput.disabled = false;
             showNotification('An error occurred while updating stock. Please try again.', 'error');
         });
     });
