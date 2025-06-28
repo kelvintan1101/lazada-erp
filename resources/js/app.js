@@ -209,8 +209,23 @@ window.GlobalNotification = {
 
         const notification = document.createElement('div');
         notification.id = id;
-        notification.className = `notification-item max-w-sm w-full ${colors[type]} border rounded-lg shadow-lg p-4 transform transition-all duration-300 ease-in-out translate-x-full opacity-0`;
-        notification.style.cssText = 'pointer-events: auto; position: relative; z-index: 9999;';
+        notification.className = `notification-item`;
+        notification.style.cssText = `
+            pointer-events: auto;
+            position: relative;
+            z-index: 9999;
+            max-width: 400px;
+            width: 100%;
+            background: white;
+            border: 1px solid #e5e7eb;
+            border-radius: 8px;
+            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
+            padding: 16px;
+            margin-bottom: 8px;
+            transform: translateX(100%);
+            opacity: 0;
+            transition: all 0.3s ease-in-out;
+        `;
 
         notification.innerHTML = `
             <div class="flex items-start">
@@ -233,7 +248,8 @@ window.GlobalNotification = {
 
         // Trigger animation after a brief delay
         setTimeout(() => {
-            notification.classList.remove('translate-x-full', 'opacity-0');
+            notification.style.transform = 'translateX(0)';
+            notification.style.opacity = '1';
         }, 10);
 
         return notification;
@@ -243,7 +259,8 @@ window.GlobalNotification = {
     hide(id) {
         const notification = document.getElementById(id);
         if (notification) {
-            notification.classList.add('translate-x-full', 'opacity-0');
+            notification.style.transform = 'translateX(100%)';
+            notification.style.opacity = '0';
             setTimeout(() => {
                 if (notification.parentNode) {
                     notification.parentNode.removeChild(notification);
