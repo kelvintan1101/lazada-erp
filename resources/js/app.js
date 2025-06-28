@@ -210,6 +210,7 @@ window.GlobalNotification = {
         const notification = document.createElement('div');
         notification.id = id;
         notification.className = `notification-item max-w-sm w-full ${colors[type]} border rounded-lg shadow-lg p-4 transform transition-all duration-300 ease-in-out translate-x-full opacity-0`;
+        notification.style.cssText = 'pointer-events: auto; position: relative; z-index: 9999;';
 
         notification.innerHTML = `
             <div class="flex items-start">
@@ -219,6 +220,13 @@ window.GlobalNotification = {
                 <div class="ml-3 w-0 flex-1">
                     <p class="text-sm font-medium">${title}</p>
                     <p class="mt-1 text-sm">${message}</p>
+                </div>
+                <div class="ml-4 flex-shrink-0 flex">
+                    <button class="inline-flex text-gray-400 hover:text-gray-600 focus:outline-none focus:text-gray-600 transition ease-in-out duration-150" onclick="window.GlobalNotification.hide('${id}')">
+                        <svg class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
+                            <path fill-rule="evenodd" d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z" clip-rule="evenodd" />
+                        </svg>
+                    </button>
                 </div>
             </div>
         `;
