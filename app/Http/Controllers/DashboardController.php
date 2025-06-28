@@ -23,8 +23,15 @@ class DashboardController extends Controller
     {
         // Aggregated query optimization - merge multiple individual queries into 2 efficient queries
         
-        // 1. Product statistics - single query (only active products)
-        $productStats = Product::active()->selectRaw('COUNT(*) as total_products')->first();
+        // 1. Product statistics - simplified status breakdown
+        $productStats = Product::selectRaw('
+            COUNT(*) as total_products,
+            COUNT(CASE WHEN status = ? THEN 1 END) as active_products,
+            COUNT(CASE WHEN status = ? THEN 1 END) as deleted_from_lazada_products
+        ', [
+            Product::STATUS_ACTIVE,
+            Product::STATUS_DELETED_FROM_LAZADA
+        ])->first();
         
         // 2. Order statistics - aggregated query (reduced from 6 queries to 1)
         $orderStats = Order::selectRaw('

@@ -17,8 +17,15 @@ class ProductController extends Controller
 
     public function index(Request $request)
     {
-        // Start with active products only (soft delete implementation)
+        // Show only active products by default (products that exist on Lazada)
         $query = Product::active();
+
+        // Handle status filter (allow viewing deleted products if needed)
+        if ($request->has('status') && $request->status === 'deleted_from_lazada') {
+            $query = Product::deletedFromLazada();
+        } elseif ($request->has('status') && $request->status === 'all') {
+            $query = Product::withAllStatuses();
+        }
 
         // Handle search
         if ($request->has('search')) {
@@ -42,8 +49,15 @@ class ProductController extends Controller
         $query->orderBy($sortField, $sortDir);
 
         $products = $query->paginate(15);
-        
-        return view('products.index', compact('products'));
+
+        // Get status options for filter dropdown (simplified)
+        $statusOptions = [
+            'active' => 'Active Products',
+            'deleted_from_lazada' => 'Deleted from Lazada',
+            'all' => 'All Products',
+        ];
+
+        return view('products.index', compact('products', 'statusOptions'));
     }
 
     public function show(Product $product)
@@ -73,6 +87,9 @@ class ProductController extends Controller
         return redirect()->route('products.index')
             ->with('error', $result['message']);
     }
+
+    // Status changes are handled automatically by sync process
+    // Manual status changes not needed for simplified 2-status system
 
     public function editStock(Product $product)
     {

@@ -23,10 +23,15 @@ class ProductService
         $hasMore = true;
 
         try {
-            // Phase 1: Mark all existing products as inactive before sync starts
-            Log::info("Starting product sync - marking all products as inactive");
-            $markedInactiveCount = Product::where('is_active', true)->update(['is_active' => false]);
-            Log::info("Marked $markedInactiveCount products as inactive for verification");
+            // Phase 1: Mark active products for verification (ERP-centric approach)
+            Log::info("Starting product sync - marking active products for Lazada verification");
+            $activeProductsCount = Product::where('status', Product::STATUS_ACTIVE)->count();
+
+            // Mark active products as pending verification (we'll restore them if found in Lazada)
+            Product::where('status', Product::STATUS_ACTIVE)
+                ->update(['status' => Product::STATUS_DELETED_FROM_LAZADA]);
+
+            Log::info("Marked $activeProductsCount active products for Lazada verification");
 
             // Phase 2: Fetch products from Lazada and mark them as active
             while ($hasMore) {
@@ -64,24 +69,21 @@ class ProductService
                 $hasMore = $offset < $totalProducts && count($products) > 0;
             }
 
-            // Phase 3: Count products that remain inactive (deleted from Lazada)
-            $totalMarkedInactive = Product::where('is_active', false)->count();
+            // Phase 3: Count products that were deleted from Lazada
+            $totalDeletedFromLazada = Product::where('status', Product::STATUS_DELETED_FROM_LAZADA)->count();
 
             Log::info("Product sync completed", [
                 'total_synced' => $totalSynced,
-                'total_marked_inactive' => $totalMarkedInactive
+                'total_deleted_from_lazada' => $totalDeletedFromLazada
             ]);
 
             $message = "Successfully synced $totalSynced products";
-            if ($totalMarkedInactive > 0) {
-                $message .= " and marked $totalMarkedInactive products as inactive (deleted from Lazada)";
-            }
 
             return [
                 'success' => true,
                 'message' => $message,
                 'total_synced' => $totalSynced,
-                'total_marked_inactive' => $totalMarkedInactive,
+                'total_deleted_from_lazada' => $totalDeletedFromLazada,
             ];
         } catch (\Exception $e) {
             Log::error('Exception syncing products', [
@@ -127,7 +129,7 @@ class ProductService
                     'images' => $productData['images'] ?? null,
                     'raw_data_from_lazada' => $productData,
                     'synced_at' => now(),
-                    'is_active' => true, // Mark as active since it exists in Lazada
+                    'status' => Product::STATUS_ACTIVE, // Mark as active since it exists in Lazada
                 ]
             );
             
@@ -181,7 +183,7 @@ class ProductService
     {
         $threshold = \App\Models\Setting::getSetting('low_stock_threshold', 10);
 
-        return Product::active() // Only include active products
+        return Product::active() // Only active products (exist on Lazada)
             ->where('stock_quantity', '<=', $threshold)
             ->orderBy('stock_quantity')
             ->limit($limit)
@@ -189,47 +191,25 @@ class ProductService
     }
 
     /**
-     * Get inactive products (deleted from Lazada)
-     * Useful for admin review and potential restoration
+     * Get products deleted from Lazada (for admin review)
      */
-    public function getInactiveProducts($limit = 50): \Illuminate\Database\Eloquent\Collection
+    public function getProductsDeletedFromLazada($limit = 50): \Illuminate\Database\Eloquent\Collection
     {
-        return Product::inactive()
+        return Product::deletedFromLazada()
             ->orderBy('synced_at', 'desc')
             ->limit($limit)
             ->get();
     }
 
     /**
-     * Restore an inactive product (mark as active)
+     * Get simplified status statistics for dashboard
      */
-    public function restoreProduct($productId): array
+    public function getStatusStatistics(): array
     {
-        try {
-            $product = Product::findOrFail($productId);
-            $product->markAsActive();
-
-            Log::info('Product restored', [
-                'product_id' => $productId,
-                'sku' => $product->sku,
-                'name' => $product->name
-            ]);
-
-            return [
-                'success' => true,
-                'message' => 'Product restored successfully',
-                'product' => $product
-            ];
-        } catch (\Exception $e) {
-            Log::error('Failed to restore product', [
-                'product_id' => $productId,
-                'error' => $e->getMessage()
-            ]);
-
-            return [
-                'success' => false,
-                'message' => 'Failed to restore product: ' . $e->getMessage()
-            ];
-        }
+        return [
+            'active' => Product::active()->count(),
+            'deleted_from_lazada' => Product::deletedFromLazada()->count(),
+            'total' => Product::count()
+        ];
     }
 }

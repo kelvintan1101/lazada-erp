@@ -19,7 +19,7 @@ class Product extends Model
         'images',
         'raw_data_from_lazada',
         'synced_at',
-        'is_active',
+        'status',
     ];
 
     protected $casts = [
@@ -27,24 +27,26 @@ class Product extends Model
         'images' => 'array',
         'raw_data_from_lazada' => 'array',
         'synced_at' => 'datetime',
-        'is_active' => 'boolean',
     ];
 
-    // Scopes for soft delete functionality
+    // Product status constants (simplified)
+    const STATUS_ACTIVE = 'active';
+    const STATUS_DELETED_FROM_LAZADA = 'deleted_from_lazada';
+
+    // Scopes for simplified status management
     public function scopeActive($query)
     {
-        return $query->where('is_active', true);
+        return $query->where('status', self::STATUS_ACTIVE);
     }
 
-    public function scopeInactive($query)
+    public function scopeDeletedFromLazada($query)
     {
-        return $query->where('is_active', false);
+        return $query->where('status', self::STATUS_DELETED_FROM_LAZADA);
     }
 
-    public function scopeWithInactive($query)
+    public function scopeWithAllStatuses($query)
     {
-        // This scope explicitly includes both active and inactive products
-        // Use this when you want to be explicit about including all products
+        // Explicitly include all products regardless of status
         return $query;
     }
 
@@ -64,18 +66,45 @@ class Product extends Model
         return $this->stock_quantity <= (int)$threshold;
     }
 
+    // Status checking methods (simplified)
     public function isActive()
     {
-        return $this->is_active;
+        return $this->status === self::STATUS_ACTIVE;
     }
 
-    public function markAsInactive()
+    public function isDeletedFromLazada()
     {
-        $this->update(['is_active' => false]);
+        return $this->status === self::STATUS_DELETED_FROM_LAZADA;
     }
 
+    // Status changing methods (simplified)
     public function markAsActive()
     {
-        $this->update(['is_active' => true]);
+        $this->update(['status' => self::STATUS_ACTIVE]);
+    }
+
+    public function markAsDeletedFromLazada()
+    {
+        $this->update(['status' => self::STATUS_DELETED_FROM_LAZADA]);
+    }
+
+    // Helper method to get human-readable status
+    public function getStatusLabel()
+    {
+        return match($this->status) {
+            self::STATUS_ACTIVE => 'Active',
+            self::STATUS_DELETED_FROM_LAZADA => 'Deleted from Lazada',
+            default => 'Unknown'
+        };
+    }
+
+    // Get status color for UI
+    public function getStatusColor()
+    {
+        return match($this->status) {
+            self::STATUS_ACTIVE => 'green',
+            self::STATUS_DELETED_FROM_LAZADA => 'red',
+            default => 'gray'
+        };
     }
 }

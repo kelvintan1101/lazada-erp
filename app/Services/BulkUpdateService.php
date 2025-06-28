@@ -348,7 +348,7 @@ class BulkUpdateService
     private function updateLocalProduct($sku, $newTitle)
     {
         try {
-            // Only update active products (soft delete implementation)
+            // Only update active products (products that exist on Lazada)
             Product::active()->where('sku', $sku)->update([
                 'name' => $newTitle,
                 'synced_at' => now()
