@@ -35,8 +35,8 @@
 
             <!-- File selection area -->
             <div class="border-2 border-dashed border-gray-300 rounded-xl p-8 text-center hover:border-blue-400 hover:bg-blue-50 transition-all duration-200 mb-6">
-                <input type="file" id="excel-file" accept=".xlsx,.xls,.csv" class="hidden">
-                <div id="file-drop-zone" class="cursor-pointer">
+                <input type="file" id="excel-file" accept=".xlsx,.xls,.csv" style="position: absolute; opacity: 0; width: 100%; height: 100%; cursor: pointer; z-index: 10;">
+                <div id="file-drop-zone" class="cursor-pointer relative">
                     <svg class="mx-auto h-12 w-12 text-gray-400 mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12"/>
                     </svg>
@@ -307,10 +307,8 @@ document.addEventListener('DOMContentLoaded', function() {
     // Initialize button state
     disableUploadButton('Please select a file first');
 
-    // File selection handling
-    fileDropZone.addEventListener('click', function() {
-        fileInput.click();
-    });
+    // File selection handling - file input is now directly clickable
+    // No need for click handler since file input covers the drop zone
 
     fileInput.addEventListener('change', function(e) {
         const file = e.target.files[0];
