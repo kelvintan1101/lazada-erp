@@ -69,11 +69,11 @@
         </footer>
     </div>
 
-    <!-- Global Loading Overlay -->
-    <div id="global-loading" class="fixed inset-0 bg-white bg-opacity-90 flex items-center justify-center z-50 hidden">
-        <div class="text-center">
-            <div class="animate-spin rounded-full h-16 w-16 border-4 border-gray-300 border-t-blue-600 mx-auto"></div>
-            <p class="mt-4 text-gray-600 text-sm font-medium">Processing...</p>
+    <!-- Global Loading Indicator -->
+    <div id="global-loading" class="fixed top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 z-50 hidden">
+        <div class="bg-white rounded-lg shadow-xl p-6 text-center border">
+            <div class="animate-spin rounded-full h-12 w-12 border-4 border-gray-300 border-t-blue-600 mx-auto"></div>
+            <p class="mt-3 text-gray-700 text-sm font-medium">Processing...</p>
         </div>
     </div>
 
@@ -95,13 +95,11 @@
                     this.messageElement.textContent = message;
                 }
                 this.overlay.classList.remove('hidden');
-                document.body.style.overflow = 'hidden';
             },
 
             hide() {
                 if (!this.overlay) this.init();
                 this.overlay.classList.add('hidden');
-                document.body.style.overflow = '';
             },
 
             // Smooth page transition
