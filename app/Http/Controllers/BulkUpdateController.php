@@ -310,8 +310,11 @@ class BulkUpdateController extends Controller
             'task_id_type' => gettype($request->input('task_id'))
         ]);
 
-        $validator = Validator::make($request->all(), [
-            'task_id' => 'required|integer'
+        // Convert task_id to integer for FormData compatibility
+        $taskId = (int) $request->input('task_id');
+
+        $validator = Validator::make(['task_id' => $taskId], [
+            'task_id' => 'required|integer|min:1'
         ]);
 
         if ($validator->fails()) {
@@ -326,7 +329,8 @@ class BulkUpdateController extends Controller
         }
 
         try {
-            $taskId = $request->input('task_id');
+            // Use the validated and converted task_id
+            // $taskId already converted to integer above
 
             // Check task status
             $statusResult = $this->bulkUpdateService->getTaskStatus($taskId);
