@@ -32,6 +32,16 @@ Route::middleware('auth')->group(function () {
     Route::get('csrf-token', function () {
         return response()->json(['csrf_token' => csrf_token()]);
     });
+
+    // Test route outside bulk-update prefix
+    Route::post('test-json-post', function(Request $request) {
+        \Log::info('Test JSON POST route called', ['data' => $request->all()]);
+        return response()->json([
+            'success' => true,
+            'message' => 'JSON POST works outside bulk-update',
+            'received_data' => $request->all()
+        ]);
+    });
 });
 
 // Dashboard

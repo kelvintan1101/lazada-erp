@@ -656,6 +656,23 @@ document.addEventListener('DOMContentLoaded', function() {
             }
         };
         progressSection.appendChild(testButton);
+
+        // Add test button for route outside bulk-update prefix
+        const outsideTestButton = document.createElement('button');
+        outsideTestButton.textContent = 'Test Outside Prefix';
+        outsideTestButton.className = 'bg-purple-500 text-white px-4 py-2 rounded mt-2 ml-2';
+        outsideTestButton.onclick = async function() {
+            console.log('Testing route outside bulk-update prefix...');
+            try {
+                const result = await GlobalAPI.post('/test-json-post', { task_id: currentTaskId, test: 'outside prefix' });
+                console.log('Outside prefix result:', result);
+                GlobalNotification.success('Outside Test Success', 'Route outside bulk-update works!');
+            } catch (error) {
+                console.error('Outside prefix failed:', error);
+                GlobalNotification.error('Outside Test Failed', error.message);
+            }
+        };
+        progressSection.appendChild(outsideTestButton);
     }
 
 
