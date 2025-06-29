@@ -443,7 +443,12 @@ document.addEventListener('DOMContentLoaded', function() {
                 failed_items: 0
             });
 
-            // Show manual execute button for testing
+            // Auto execute task with a small delay to ensure database transaction is complete
+            setTimeout(() => {
+                executeTaskAutomatically();
+            }, 1000); // 1 second delay
+
+            // Also show manual execute button for testing (can be removed later)
             showManualExecuteButton();
         } else {
             const errorMessage = result.data?.message || result.error || 'Upload failed';
