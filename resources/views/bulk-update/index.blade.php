@@ -537,8 +537,14 @@ document.addEventListener('DOMContentLoaded', function() {
             const statusCheck = await GlobalAPI.get(`/bulk-update/status?task_id=${currentTaskId}`);
             console.log('Status check result:', statusCheck);
 
-            // Try with new endpoint name (avoiding "execute" word)
-            const result = await GlobalAPI.post('/bulk-update/start-task', { task_id: currentTaskId });
+            // Use FormData instead of JSON (server blocks JSON POST)
+            const formData = new FormData();
+            formData.append('task_id', currentTaskId);
+
+            const result = await GlobalAPI.request('/bulk-update/start-task', {
+                method: 'POST',
+                body: formData
+            });
 
             if (result.success && result.data.success) {
                 startProgressMonitoring();
@@ -647,7 +653,13 @@ document.addEventListener('DOMContentLoaded', function() {
         testButton.onclick = async function() {
             console.log('Testing simple endpoint...');
             try {
-                const result = await GlobalAPI.post('/bulk-update/test-start', { task_id: currentTaskId });
+                // Use FormData instead of JSON
+                const formData = new FormData();
+                formData.append('task_id', currentTaskId);
+                const result = await GlobalAPI.request('/bulk-update/test-start', {
+                    method: 'POST',
+                    body: formData
+                });
                 console.log('Simple endpoint result:', result);
                 GlobalNotification.success('Test Success', 'Simple endpoint works!');
             } catch (error) {
@@ -664,7 +676,14 @@ document.addEventListener('DOMContentLoaded', function() {
         outsideTestButton.onclick = async function() {
             console.log('Testing route outside bulk-update prefix...');
             try {
-                const result = await GlobalAPI.post('/test-json-post', { task_id: currentTaskId, test: 'outside prefix' });
+                // Use FormData instead of JSON
+                const formData = new FormData();
+                formData.append('task_id', currentTaskId);
+                formData.append('test', 'outside prefix');
+                const result = await GlobalAPI.request('/test-json-post', {
+                    method: 'POST',
+                    body: formData
+                });
                 console.log('Outside prefix result:', result);
                 GlobalNotification.success('Outside Test Success', 'Route outside bulk-update works!');
             } catch (error) {
