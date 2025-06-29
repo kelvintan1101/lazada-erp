@@ -404,12 +404,7 @@ document.addEventListener('DOMContentLoaded', function() {
         disableUploadButton('Uploading...');
 
         // Show loading with descriptive message
-        console.log('Attempting to show GlobalLoading...');
-        if (typeof GlobalLoading !== 'undefined') {
-            GlobalLoading.show('Uploading file and creating task...');
-        } else {
-            console.error('GlobalLoading not available');
-        }
+        GlobalLoading.show('Uploading file and creating task...');
 
         // Prepare form data
         const formData = new FormData();
@@ -424,20 +419,9 @@ document.addEventListener('DOMContentLoaded', function() {
         if (result.success && result.data.success) {
             currentTaskId = result.data.task_id;
 
-            // Debug: Check if GlobalNotification is available
-            console.log('GlobalNotification available:', typeof GlobalNotification);
-            console.log('GlobalLoading available:', typeof GlobalLoading);
 
-            // Show success notification
-            if (typeof GlobalNotification !== 'undefined') {
-                GlobalNotification.success('Upload Complete', result.data.message);
-            } else {
-                console.error('GlobalNotification not available');
-                alert('Upload Complete: ' + result.data.message);
-            }
 
-            // Show start processing notification
-            GlobalNotification.info('Start Processing', `Uploaded ${result.data.total_items} products, starting update...`);
+            // Don't show upload notifications - only show completion notification
 
             // Hide upload area, show progress area
             document.getElementById('upload-section').classList.add('hidden');
@@ -521,42 +505,14 @@ document.addEventListener('DOMContentLoaded', function() {
         statusMessage.textContent = status;
         statusDetail.textContent = detail;
 
-        // Show milestone notifications
-        showProgressMilestones(percentage, task);
-    }
-
-    // Show progress milestone notifications
-    let lastMilestone = 0;
-    function showProgressMilestones(progress, task) {
-        // Only show each milestone once
-        if (progress >= 25 && lastMilestone < 25) {
-            lastMilestone = 25;
-            GlobalNotification.info('Progress Update', '25% complete - Processing products...');
-        } else if (progress >= 50 && lastMilestone < 50) {
-            lastMilestone = 50;
-            GlobalNotification.info('Progress Update', '50% complete - Halfway there...');
-        } else if (progress >= 75 && lastMilestone < 75) {
-            lastMilestone = 75;
-            GlobalNotification.info('Progress Update', '75% complete - Almost done...');
-        }
     }
 
     // Show success notification using GlobalNotification
     function showSuccessNotification(task) {
         const message = `Successfully processed ${task.successful_items} products${task.failed_items > 0 ? `, failed ${task.failed_items} items` : ''}`;
 
-        // Use global notification with longer duration for important results
+        // Only show completion notification with longer duration
         GlobalNotification.success('Bulk Update Completed', message, 8000);
-
-        // Show report download notification if there are failed items
-        if (task.failed_items > 0) {
-            setTimeout(() => {
-                GlobalNotification.warning('Report Available', 'Download the report to see failed items', 10000);
-            }, 2000);
-        }
-
-        // Reset milestone counter for next task
-        lastMilestone = 0;
     }
 
     // Auto execute task function
@@ -585,7 +541,6 @@ document.addEventListener('DOMContentLoaded', function() {
             GlobalLoading.hide();
 
             if (result.success && result.data.success) {
-                GlobalNotification.success('Task Started', 'Bulk update is now processing...');
                 startProgressMonitoring();
             } else {
                 const errorMessage = result.data?.message || result.error || 'Task startup failed, please retry';
