@@ -403,8 +403,8 @@ document.addEventListener('DOMContentLoaded', function() {
         // Update button state
         disableUploadButton('Uploading...');
 
-        // Show loading
-        GlobalLoading.show('upload');
+        // Show loading with descriptive message
+        GlobalLoading.show('Uploading file and creating task...');
 
         // Prepare form data
         const formData = new FormData();
@@ -508,14 +508,43 @@ document.addEventListener('DOMContentLoaded', function() {
         
         statusMessage.textContent = status;
         statusDetail.textContent = detail;
+
+        // Show milestone notifications
+        showProgressMilestones(percentage, task);
+    }
+
+    // Show progress milestone notifications
+    let lastMilestone = 0;
+    function showProgressMilestones(progress, task) {
+        // Only show each milestone once
+        if (progress >= 25 && lastMilestone < 25) {
+            lastMilestone = 25;
+            GlobalNotification.info('Progress Update', '25% complete - Processing products...');
+        } else if (progress >= 50 && lastMilestone < 50) {
+            lastMilestone = 50;
+            GlobalNotification.info('Progress Update', '50% complete - Halfway there...');
+        } else if (progress >= 75 && lastMilestone < 75) {
+            lastMilestone = 75;
+            GlobalNotification.info('Progress Update', '75% complete - Almost done...');
+        }
     }
 
     // Show success notification using GlobalNotification
     function showSuccessNotification(task) {
         const message = `Successfully processed ${task.successful_items} products${task.failed_items > 0 ? `, failed ${task.failed_items} items` : ''}`;
 
-        // Use GlobalNotification directly
-        GlobalNotification.success('Bulk Update Completed', message);
+        // Use global notification with longer duration for important results
+        GlobalNotification.success('Bulk Update Completed', message, 8000);
+
+        // Show report download notification if there are failed items
+        if (task.failed_items > 0) {
+            setTimeout(() => {
+                GlobalNotification.warning('Report Available', 'Download the report to see failed items', 10000);
+            }, 2000);
+        }
+
+        // Reset milestone counter for next task
+        lastMilestone = 0;
     }
 
     // Auto execute task function
@@ -528,7 +557,8 @@ document.addEventListener('DOMContentLoaded', function() {
                 return;
             }
 
-
+            // Show global loading during task execution
+            GlobalLoading.show('Starting bulk update task...');
 
             // Use FormData instead of JSON (server blocks JSON POST)
             const formData = new FormData();
@@ -539,7 +569,11 @@ document.addEventListener('DOMContentLoaded', function() {
                 body: formData
             });
 
+            // Hide loading
+            GlobalLoading.hide();
+
             if (result.success && result.data.success) {
+                GlobalNotification.success('Task Started', 'Bulk update is now processing...');
                 startProgressMonitoring();
             } else {
                 const errorMessage = result.data?.message || result.error || 'Task startup failed, please retry';
@@ -548,6 +582,7 @@ document.addEventListener('DOMContentLoaded', function() {
                 document.getElementById('upload-section').classList.remove('hidden');
             }
         } catch (error) {
+            GlobalLoading.hide();
             GlobalNotification.error('Execution Error', 'Failed to start task. Please refresh the page and try again.');
             document.getElementById('progress-section').classList.add('hidden');
             document.getElementById('upload-section').classList.remove('hidden');
