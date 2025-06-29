@@ -404,7 +404,12 @@ document.addEventListener('DOMContentLoaded', function() {
         disableUploadButton('Uploading...');
 
         // Show loading with descriptive message
-        GlobalLoading.show('Uploading file and creating task...');
+        console.log('Attempting to show GlobalLoading...');
+        if (typeof GlobalLoading !== 'undefined') {
+            GlobalLoading.show('Uploading file and creating task...');
+        } else {
+            console.error('GlobalLoading not available');
+        }
 
         // Prepare form data
         const formData = new FormData();
@@ -419,10 +424,17 @@ document.addEventListener('DOMContentLoaded', function() {
         if (result.success && result.data.success) {
             currentTaskId = result.data.task_id;
 
-
+            // Debug: Check if GlobalNotification is available
+            console.log('GlobalNotification available:', typeof GlobalNotification);
+            console.log('GlobalLoading available:', typeof GlobalLoading);
 
             // Show success notification
-            GlobalNotification.success('Upload Complete', result.data.message);
+            if (typeof GlobalNotification !== 'undefined') {
+                GlobalNotification.success('Upload Complete', result.data.message);
+            } else {
+                console.error('GlobalNotification not available');
+                alert('Upload Complete: ' + result.data.message);
+            }
 
             // Show start processing notification
             GlobalNotification.info('Start Processing', `Uploaded ${result.data.total_items} products, starting update...`);
