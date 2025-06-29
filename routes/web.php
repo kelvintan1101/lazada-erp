@@ -33,15 +33,7 @@ Route::middleware('auth')->group(function () {
         return response()->json(['csrf_token' => csrf_token()]);
     });
 
-    // Test route outside bulk-update prefix
-    Route::post('test-json-post', function(Request $request) {
-        \Log::info('Test JSON POST route called', ['data' => $request->all()]);
-        return response()->json([
-            'success' => true,
-            'message' => 'JSON POST works outside bulk-update',
-            'received_data' => $request->all()
-        ]);
-    });
+
 });
 
 // Dashboard
@@ -95,16 +87,6 @@ Route::middleware(['auth'])->group(function () {
         Route::get('/auth-check', [BulkUpdateController::class, 'authCheck'])->name('bulk-update.auth-check');
         Route::post('/upload', [BulkUpdateController::class, 'upload'])->name('bulk-update.upload');
         Route::post('/start-task', [BulkUpdateController::class, 'execute'])->name('bulk-update.execute');
-
-        // Test route to debug 419 issue
-        Route::post('/test-start', function(Request $request) {
-            \Log::info('Test start route called', ['data' => $request->all()]);
-            return response()->json([
-                'success' => true,
-                'message' => 'Test route works',
-                'received_data' => $request->all()
-            ]);
-        });
         Route::get('/status', [BulkUpdateController::class, 'status'])->name('bulk-update.status');
         Route::get('/download-report', [BulkUpdateController::class, 'downloadReport'])->name('bulk-update.download-report');
     });

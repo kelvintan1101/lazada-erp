@@ -304,11 +304,7 @@ class BulkUpdateController extends Controller
      */
     public function execute(Request $request)
     {
-        \Log::info('Execute method called', [
-            'request_data' => $request->all(),
-            'task_id' => $request->input('task_id'),
-            'task_id_type' => gettype($request->input('task_id'))
-        ]);
+
 
         // Convert task_id to integer for FormData compatibility
         $taskId = (int) $request->input('task_id');
@@ -318,10 +314,6 @@ class BulkUpdateController extends Controller
         ]);
 
         if ($validator->fails()) {
-            \Log::warning('Execute validation failed', [
-                'errors' => $validator->errors()->toArray(),
-                'request_data' => $request->all()
-            ]);
             return response()->json([
                 'success' => false,
                 'message' => $validator->errors()->first()

@@ -419,9 +419,7 @@ document.addEventListener('DOMContentLoaded', function() {
         if (result.success && result.data.success) {
             currentTaskId = result.data.task_id;
 
-            // Debug: Log upload response
-            console.log('Upload response:', result.data);
-            console.log('Task ID assigned:', currentTaskId);
+
 
             // Show success notification
             GlobalNotification.success('Upload Complete', result.data.message);
@@ -447,9 +445,6 @@ document.addEventListener('DOMContentLoaded', function() {
             setTimeout(() => {
                 executeTaskAutomatically();
             }, 1000); // 1 second delay
-
-            // Also show manual execute button for testing (can be removed later)
-            showManualExecuteButton();
         } else {
             const errorMessage = result.data?.message || result.error || 'Upload failed';
             GlobalNotification.error('Upload Failed', errorMessage);
@@ -533,14 +528,7 @@ document.addEventListener('DOMContentLoaded', function() {
                 return;
             }
 
-            // Debug: Log the task ID being sent
-            console.log('Executing task with ID:', currentTaskId);
-            console.log('Task ID type:', typeof currentTaskId);
 
-            // First, let's check if the task exists by checking its status
-            console.log('Checking task status first...');
-            const statusCheck = await GlobalAPI.get(`/bulk-update/status?task_id=${currentTaskId}`);
-            console.log('Status check result:', statusCheck);
 
             // Use FormData instead of JSON (server blocks JSON POST)
             const formData = new FormData();
@@ -560,8 +548,6 @@ document.addEventListener('DOMContentLoaded', function() {
                 document.getElementById('upload-section').classList.remove('hidden');
             }
         } catch (error) {
-            console.error('Execute task error:', error);
-            console.error('Current task ID:', currentTaskId);
             GlobalNotification.error('Execution Error', 'Failed to start task. Please refresh the page and try again.');
             document.getElementById('progress-section').classList.add('hidden');
             document.getElementById('upload-section').classList.remove('hidden');
@@ -620,84 +606,7 @@ document.addEventListener('DOMContentLoaded', function() {
         resetFileSelection();
     }
 
-    // Show manual execute button for testing
-    function showManualExecuteButton() {
-        const progressSection = document.getElementById('progress-section');
 
-        // Add a manual execute button
-        const executeButton = document.createElement('button');
-        executeButton.textContent = 'Manual Execute (Test)';
-        executeButton.className = 'bg-blue-500 text-white px-4 py-2 rounded mt-4';
-        executeButton.onclick = async function() {
-            console.log('Manual execute clicked, task ID:', currentTaskId);
-
-            // First test: Check if task exists
-            try {
-                const statusResult = await GlobalAPI.get(`/bulk-update/status?task_id=${currentTaskId}`);
-                console.log('Status check result:', statusResult);
-
-                if (statusResult.success) {
-                    console.log('Task exists, trying execute...');
-                    await executeTaskAutomatically();
-                } else {
-                    console.error('Task does not exist:', statusResult);
-                    GlobalNotification.error('Task Error', 'Task not found in database');
-                }
-            } catch (error) {
-                console.error('Status check failed:', error);
-                GlobalNotification.error('Status Check Failed', error.message);
-            }
-        };
-
-        progressSection.appendChild(executeButton);
-
-        // Add test button for simple endpoint
-        const testButton = document.createElement('button');
-        testButton.textContent = 'Test Simple Endpoint';
-        testButton.className = 'bg-green-500 text-white px-4 py-2 rounded mt-2 ml-2';
-        testButton.onclick = async function() {
-            console.log('Testing simple endpoint...');
-            try {
-                // Use FormData instead of JSON
-                const formData = new FormData();
-                formData.append('task_id', currentTaskId);
-                const result = await GlobalAPI.request('/bulk-update/test-start', {
-                    method: 'POST',
-                    body: formData
-                });
-                console.log('Simple endpoint result:', result);
-                GlobalNotification.success('Test Success', 'Simple endpoint works!');
-            } catch (error) {
-                console.error('Simple endpoint failed:', error);
-                GlobalNotification.error('Test Failed', error.message);
-            }
-        };
-        progressSection.appendChild(testButton);
-
-        // Add test button for route outside bulk-update prefix
-        const outsideTestButton = document.createElement('button');
-        outsideTestButton.textContent = 'Test Outside Prefix';
-        outsideTestButton.className = 'bg-purple-500 text-white px-4 py-2 rounded mt-2 ml-2';
-        outsideTestButton.onclick = async function() {
-            console.log('Testing route outside bulk-update prefix...');
-            try {
-                // Use FormData instead of JSON
-                const formData = new FormData();
-                formData.append('task_id', currentTaskId);
-                formData.append('test', 'outside prefix');
-                const result = await GlobalAPI.request('/test-json-post', {
-                    method: 'POST',
-                    body: formData
-                });
-                console.log('Outside prefix result:', result);
-                GlobalNotification.success('Outside Test Success', 'Route outside bulk-update works!');
-            } catch (error) {
-                console.error('Outside prefix failed:', error);
-                GlobalNotification.error('Outside Test Failed', error.message);
-            }
-        };
-        progressSection.appendChild(outsideTestButton);
-    }
 
 
 
