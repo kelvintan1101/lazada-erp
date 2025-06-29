@@ -537,14 +537,8 @@ document.addEventListener('DOMContentLoaded', function() {
             const statusCheck = await GlobalAPI.get(`/bulk-update/status?task_id=${currentTaskId}`);
             console.log('Status check result:', statusCheck);
 
-            // Try with explicit JSON content type
-            const result = await GlobalAPI.request('/bulk-update/execute', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json'
-                },
-                body: JSON.stringify({ task_id: parseInt(currentTaskId) })
-            });
+            // Try with new endpoint name (avoiding "execute" word)
+            const result = await GlobalAPI.post('/bulk-update/start-task', { task_id: currentTaskId });
 
             if (result.success && result.data.success) {
                 startProgressMonitoring();
@@ -653,7 +647,7 @@ document.addEventListener('DOMContentLoaded', function() {
         testButton.onclick = async function() {
             console.log('Testing simple endpoint...');
             try {
-                const result = await GlobalAPI.post('/bulk-update/test-execute', { task_id: currentTaskId });
+                const result = await GlobalAPI.post('/bulk-update/test-start', { task_id: currentTaskId });
                 console.log('Simple endpoint result:', result);
                 GlobalNotification.success('Test Success', 'Simple endpoint works!');
             } catch (error) {

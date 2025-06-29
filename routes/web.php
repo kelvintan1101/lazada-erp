@@ -84,11 +84,11 @@ Route::middleware(['auth'])->group(function () {
         Route::get('/', [BulkUpdateController::class, 'index'])->name('bulk-update.index');
         Route::get('/auth-check', [BulkUpdateController::class, 'authCheck'])->name('bulk-update.auth-check');
         Route::post('/upload', [BulkUpdateController::class, 'upload'])->name('bulk-update.upload');
-        Route::post('/execute', [BulkUpdateController::class, 'execute'])->name('bulk-update.execute');
+        Route::post('/start-task', [BulkUpdateController::class, 'execute'])->name('bulk-update.execute');
 
         // Test route to debug 419 issue
-        Route::post('/test-execute', function(Request $request) {
-            \Log::info('Test execute route called', ['data' => $request->all()]);
+        Route::post('/test-start', function(Request $request) {
+            \Log::info('Test start route called', ['data' => $request->all()]);
             return response()->json([
                 'success' => true,
                 'message' => 'Test route works',
