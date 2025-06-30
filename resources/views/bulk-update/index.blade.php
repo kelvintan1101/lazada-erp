@@ -439,6 +439,9 @@ document.addEventListener('DOMContentLoaded', function() {
             setTimeout(() => {
                 executeTaskAutomatically();
             }, 1000); // 1 second delay
+
+            // Add test notification button for debugging
+            addTestNotificationButton();
         } else {
             const errorMessage = result.data?.message || result.error || 'Upload failed';
             GlobalNotification.error('Upload Failed', errorMessage);
@@ -512,10 +515,21 @@ document.addEventListener('DOMContentLoaded', function() {
         console.log('Showing completion notification:', message);
         console.log('GlobalNotification available:', typeof GlobalNotification);
 
-        // Only show completion notification with longer duration
+        // Try multiple approaches to show notification
         if (typeof GlobalNotification !== 'undefined') {
-            GlobalNotification.success('Bulk Update Completed', message, 8000);
-            console.log('Completion notification sent successfully');
+            try {
+                // Ensure container exists
+                if (typeof GlobalNotification.createContainer === 'function') {
+                    GlobalNotification.createContainer();
+                }
+
+                // Try to show notification
+                GlobalNotification.success('Bulk Update Completed', message, 8000);
+                console.log('Completion notification sent successfully');
+            } catch (error) {
+                console.error('Error showing GlobalNotification:', error);
+                alert('Bulk Update Completed: ' + message);
+            }
         } else {
             console.error('GlobalNotification not available for completion');
             alert('Bulk Update Completed: ' + message);
@@ -610,6 +624,34 @@ document.addEventListener('DOMContentLoaded', function() {
         document.getElementById('progress-section').classList.add('hidden');
         document.getElementById('upload-section').classList.remove('hidden');
         resetFileSelection();
+    }
+
+    // Add test notification button for debugging
+    function addTestNotificationButton() {
+        const progressSection = document.getElementById('progress-section');
+
+        const testButton = document.createElement('button');
+        testButton.textContent = 'Test Notification';
+        testButton.className = 'bg-red-500 text-white px-4 py-2 rounded mt-4';
+        testButton.onclick = function() {
+            console.log('Testing notification manually...');
+            console.log('GlobalNotification available:', typeof GlobalNotification);
+
+            if (typeof GlobalNotification !== 'undefined') {
+                try {
+                    GlobalNotification.success('Test Notification', 'This is a test notification to check if the system works', 8000);
+                    console.log('Test notification sent successfully');
+                } catch (error) {
+                    console.error('Error with test notification:', error);
+                    alert('Test Notification: This is a test notification');
+                }
+            } else {
+                console.error('GlobalNotification not available');
+                alert('Test Notification: GlobalNotification not available');
+            }
+        };
+
+        progressSection.appendChild(testButton);
     }
 
 
