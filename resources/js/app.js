@@ -205,8 +205,14 @@ window.GlobalNotification = {
             this.container = document.createElement('div');
             this.container.id = 'global-notification-container';
             this.container.className = 'fixed bottom-4 right-4 z-50 space-y-2';
+            this.container.style.maxWidth = '420px';
             document.body.appendChild(this.container);
         }
+
+        // Ensure container is visible and properly styled
+        this.container.style.pointerEvents = 'none';
+        this.container.style.display = 'flex';
+        this.container.style.flexDirection = 'column-reverse';
     },
 
     // Show notification

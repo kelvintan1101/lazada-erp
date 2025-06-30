@@ -72,7 +72,7 @@
     <!-- Global Loading System is now created dynamically by GlobalLoading.init() for better styling -->
 
     <!-- Global Notification System -->
-    <div id="global-notification-container" style="position: fixed; bottom: 20px; right: 20px; z-index: 999999; max-width: 420px; pointer-events: none; display: flex; flex-direction: column-reverse; gap: 16px;"></div>
+    <div id="global-notification-container" class="fixed bottom-4 right-4 z-50 space-y-2" style="max-width: 420px;"></div>
 
     <!-- All global JavaScript systems (GlobalAPI, GlobalNotification, GlobalLoading) are now handled in app.js for better Laravel standards and consistency -->
 
