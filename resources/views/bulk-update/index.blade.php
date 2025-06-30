@@ -591,7 +591,7 @@ document.addEventListener('DOMContentLoaded', function() {
                 clearInterval(progressInterval);
                 showSuccessNotification(task);
 
-                // Return to upload page after a few seconds
+                // Return to upload page after notification has time to be seen (8 seconds + 1 second buffer)
                 setTimeout(() => {
                     document.getElementById('progress-section').classList.add('hidden');
                     document.getElementById('upload-section').classList.remove('hidden');
@@ -599,7 +599,7 @@ document.addEventListener('DOMContentLoaded', function() {
                     document.getElementById('excel-file').value = '';
                     document.getElementById('file-info').classList.add('hidden');
                     document.getElementById('upload-btn').disabled = true;
-                }, 3000);
+                }, 9000);
             } else if (task.status === 'failed') {
                 clearInterval(progressInterval);
                 GlobalNotification.error('Update Failed', task.error_message || 'Encountered errors during processing, please retry');
