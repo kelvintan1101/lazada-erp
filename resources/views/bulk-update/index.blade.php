@@ -403,8 +403,7 @@ document.addEventListener('DOMContentLoaded', function() {
         // Update button state
         disableUploadButton('Uploading...');
 
-        // Show loading with descriptive message
-        GlobalLoading.show('Uploading file and creating task...');
+        // No loading needed - upload is fast
 
         // Prepare form data
         const formData = new FormData();
@@ -413,8 +412,7 @@ document.addEventListener('DOMContentLoaded', function() {
         // Make API call
         const result = await GlobalAPI.post('/bulk-update/upload', formData);
 
-        // Hide loading
-        GlobalLoading.hide();
+        // No loading to hide
 
         if (result.success && result.data.success) {
             currentTaskId = result.data.task_id;
@@ -511,8 +509,17 @@ document.addEventListener('DOMContentLoaded', function() {
     function showSuccessNotification(task) {
         const message = `Successfully processed ${task.successful_items} products${task.failed_items > 0 ? `, failed ${task.failed_items} items` : ''}`;
 
+        console.log('Showing completion notification:', message);
+        console.log('GlobalNotification available:', typeof GlobalNotification);
+
         // Only show completion notification with longer duration
-        GlobalNotification.success('Bulk Update Completed', message, 8000);
+        if (typeof GlobalNotification !== 'undefined') {
+            GlobalNotification.success('Bulk Update Completed', message, 8000);
+            console.log('Completion notification sent successfully');
+        } else {
+            console.error('GlobalNotification not available for completion');
+            alert('Bulk Update Completed: ' + message);
+        }
     }
 
     // Auto execute task function
@@ -525,8 +532,7 @@ document.addEventListener('DOMContentLoaded', function() {
                 return;
             }
 
-            // Show global loading during task execution
-            GlobalLoading.show('Starting bulk update task...');
+            // No loading needed - execution is fast
 
             // Use FormData instead of JSON (server blocks JSON POST)
             const formData = new FormData();
@@ -537,8 +543,7 @@ document.addEventListener('DOMContentLoaded', function() {
                 body: formData
             });
 
-            // Hide loading
-            GlobalLoading.hide();
+            // No loading to hide
 
             if (result.success && result.data.success) {
                 startProgressMonitoring();
@@ -549,7 +554,6 @@ document.addEventListener('DOMContentLoaded', function() {
                 document.getElementById('upload-section').classList.remove('hidden');
             }
         } catch (error) {
-            GlobalLoading.hide();
             GlobalNotification.error('Execution Error', 'Failed to start task. Please refresh the page and try again.');
             document.getElementById('progress-section').classList.add('hidden');
             document.getElementById('upload-section').classList.remove('hidden');
