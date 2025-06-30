@@ -508,12 +508,9 @@ document.addEventListener('DOMContentLoaded', function() {
 
     }
 
-    // Show success notification using GlobalNotification - same approach as products/orders sync
+    // Use the global syncManager function - same approach as products/orders sync
     function showSuccessNotification(task) {
-        const message = `Successfully processed ${task.successful_items} products${task.failed_items > 0 ? `, failed ${task.failed_items} items` : ''}`;
-
-        // Use the exact same approach as products/orders sync
-        GlobalNotification.success('Bulk Update Complete', message);
+        window.syncManager.showBulkUpdateNotification(task);
     }
 
     // Auto execute task function
