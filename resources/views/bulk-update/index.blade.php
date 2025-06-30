@@ -508,32 +508,12 @@ document.addEventListener('DOMContentLoaded', function() {
 
     }
 
-    // Show success notification using GlobalNotification
+    // Show success notification using GlobalNotification - same approach as products/orders sync
     function showSuccessNotification(task) {
         const message = `Successfully processed ${task.successful_items} products${task.failed_items > 0 ? `, failed ${task.failed_items} items` : ''}`;
 
-        console.log('Showing completion notification:', message);
-        console.log('GlobalNotification available:', typeof GlobalNotification);
-
-        // Try multiple approaches to show notification
-        if (typeof GlobalNotification !== 'undefined') {
-            try {
-                // Ensure container exists
-                if (typeof GlobalNotification.createContainer === 'function') {
-                    GlobalNotification.createContainer();
-                }
-
-                // Try to show notification
-                GlobalNotification.success('Bulk Update Completed', message, 8000);
-                console.log('Completion notification sent successfully');
-            } catch (error) {
-                console.error('Error showing GlobalNotification:', error);
-                alert('Bulk Update Completed: ' + message);
-            }
-        } else {
-            console.error('GlobalNotification not available for completion');
-            alert('Bulk Update Completed: ' + message);
-        }
+        // Use the exact same approach as products/orders sync
+        GlobalNotification.success('Bulk Update Complete', message);
     }
 
     // Auto execute task function
