@@ -508,9 +508,9 @@ document.addEventListener('DOMContentLoaded', function() {
 
     }
 
-    // Use the global syncManager function - same approach as products/orders sync
+    // No notification for bulk update completion
     function showSuccessNotification(task) {
-        window.syncManager.showBulkUpdateNotification(task);
+        // Notification removed as requested
     }
 
     // Auto execute task function

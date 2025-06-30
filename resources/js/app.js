@@ -537,12 +537,6 @@ window.GlobalLoading = {
 // Sync functionality with loading states
 window.syncManager = {
 
-    // Bulk update completion notification - same approach as sync functions
-    showBulkUpdateNotification(task) {
-        const message = `Successfully processed ${task.successful_items} products${task.failed_items > 0 ? `, failed ${task.failed_items} items` : ''}`;
-        GlobalNotification.success('Bulk Update Complete', message);
-    },
-
     // Sync products function
     async syncProducts(button) {
         if (button.disabled) return;
